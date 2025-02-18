@@ -111,20 +111,23 @@ export default defineComponent({
 
 		// 搜素请求
 		function search(params?: any) {
+			const form = Form.value?.getForm();
+
 			function next(data: any) {
 				Form.value?.done();
 				close();
 
 				return crud.refresh({
 					...data,
+					...params,
 					page: 1
 				});
 			}
 
 			if (config.onSearch) {
-				config.onSearch(params, { next, close });
+				config.onSearch(form, { next, close });
 			} else {
-				next(params);
+				next(form);
 			}
 		}
 
@@ -151,7 +154,9 @@ export default defineComponent({
 							{
 								type: e == "search" ? "primary" : null,
 								size: style.size,
-								onClick: fns[e]
+								onClick: () => {
+									fns[e]();
+								}
 							},
 							{ default: () => crud.dict.label[e] }
 						);

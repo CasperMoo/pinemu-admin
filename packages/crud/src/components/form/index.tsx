@@ -96,7 +96,7 @@ export default defineComponent({
 		// 清空表单验证
 		function clear() {
 			for (const i in form) {
-				delete form[i];
+				form[i] = undefined;
 			}
 
 			setTimeout(() => {

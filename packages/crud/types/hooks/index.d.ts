@@ -13,5 +13,4 @@ export declare function useRefs(): {
 };
 export declare function useProxy(ctx: any): any;
 export declare function useElApi(keys: string[], el: any): obj;
-export declare function useEventListener(name: string, cb: () => any): void;
 export * from "./crud";

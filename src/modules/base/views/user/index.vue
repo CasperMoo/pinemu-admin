@@ -7,6 +7,8 @@
 
 		<template #right>
 			<cl-crud ref="Crud">
+				<cl-adv-search ref="AdvSearch" />
+
 				<cl-row>
 					<!-- 刷新按钮 -->
 					<cl-refresh-btn />
@@ -25,6 +27,8 @@
 					</el-button>
 					<cl-flex1 />
 					<cl-search-key placeholder="搜索用户名、姓名" />
+
+					<cl-adv-btn />
 				</cl-row>
 
 				<cl-row>
@@ -59,7 +63,7 @@
 </template>
 
 <script lang="ts" name="sys-user" setup>
-import { useTable, useUpsert, useCrud, setFocus } from '@cool-vue/crud';
+import { useTable, useUpsert, useCrud, setFocus, useAdvSearch } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import DeptList from './components/dept-list.vue';
 import UserMove from './components/user-move.vue';
@@ -330,4 +334,16 @@ async function toMove(item?: Eps.BaseSysDepartmentEntity) {
 
 	refs.userMove.open(ids);
 }
+
+const AdvSearch = useAdvSearch({
+	items: [
+		{
+			label: '11',
+			prop: 'name',
+			component: {
+				name: 'el-input'
+			}
+		}
+	]
+});
 </script>

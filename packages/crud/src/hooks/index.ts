@@ -1,6 +1,6 @@
 import { Mitt } from "../utils/mitt";
 import { isFunction } from "lodash-es";
-import { getCurrentInstance, inject, reactive } from "vue";
+import { computed, getCurrentInstance, inject, reactive } from "vue";
 
 export function useCore() {
 	const crud = inject("crud") as ClCrud.Ref;
@@ -60,22 +60,10 @@ export function useProxy(ctx: any) {
 }
 
 export function useElApi(keys: string[], el: any) {
-	const apis: obj = {};
-
-	keys.forEach((e) => {
-		apis[e] = (...args: any[]) => {
-			return el.value[e](...args);
-		};
-	});
-
-	return apis;
-}
-
-export function useEventListener(name: string, cb: () => any) {
-	window.removeEventListener(name, cb);
-	window.addEventListener(name, cb);
-
-	cb();
+	return keys.reduce((apis, key) => {
+		apis[key] = computed(() => el.value?.[key]);
+		return apis;
+	}, {} as obj);
 }
 
 export * from "./crud";
