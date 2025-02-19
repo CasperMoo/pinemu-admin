@@ -117,9 +117,8 @@ export default defineComponent({
 				list.forEach(e => {
 					if (e.type == 0) {
 						try {
-							console.log(e.id);
 							refs.menu?.open(String(e.id));
-						} catch (err) {}
+						} catch (err) { }
 
 						if (e.children) {
 							deep(e.children);
