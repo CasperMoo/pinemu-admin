@@ -29,7 +29,7 @@ export default ({ mode }: ConfigEnv): UserConfig => {
 				eps: {
 					enable: true
 				},
-				demo: true
+				demo: false // 是否开启演示模式
 			}),
 			visualizer({
 				open: false,
