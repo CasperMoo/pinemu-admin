@@ -505,7 +505,7 @@ const plugin = reactive({
 
 			await service
 				.request({
-					url: `${helper.options.host}/app/plugin/info/page`,
+					url: `${helper.options.api}/app/plugin/info/page`,
 					method: 'POST',
 					data
 				})
