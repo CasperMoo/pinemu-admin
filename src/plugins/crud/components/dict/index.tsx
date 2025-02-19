@@ -1,7 +1,6 @@
-import { defineComponent, h, ref, type PropType } from 'vue';
-import { CrudProps } from '../..';
+import { defineComponent, h, ref, toValue, type PropType } from 'vue';
+import { CrudProps } from '../../comm';
 import { cloneDeep, isArray, isString } from 'lodash-es';
-import { getValue } from '../../utils';
 import { deepFind } from '/$/dict/utils';
 
 export default defineComponent({
@@ -10,7 +9,7 @@ export default defineComponent({
 	props: {
 		...CrudProps,
 		// 绑定值
-		modelValue: [String, Array] as PropType<string[] | string>,
+		modelValue: [String, Array, Number],
 		// 选项列表
 		options: {
 			type: Array as PropType<DictOptions[]>,
@@ -41,7 +40,7 @@ export default defineComponent({
 
 	setup(props) {
 		// 选项列表
-		const list: DictOptions = cloneDeep(getValue(props.options || []));
+		const list: DictOptions = cloneDeep(toValue(props.options || []));
 
 		// 设置颜色
 		if (props.color) {
@@ -131,16 +130,16 @@ export default defineComponent({
 						);
 					}),
 				isHide &&
-				h(
-					<el-link
-						style={{ marginLeft: '5px', userSelect: 'none', cursor: 'pointer' }}
-						onClick={() => {
-							isExpand.value = true;
-						}}
-					/>,
-					{},
-					{ default: () => '...' }
-				)
+					h(
+						<el-link
+							style={{ marginLeft: '5px', userSelect: 'none', cursor: 'pointer' }}
+							onClick={() => {
+								isExpand.value = true;
+							}}
+						/>,
+						{},
+						{ default: () => '...' }
+					)
 			];
 		};
 	}

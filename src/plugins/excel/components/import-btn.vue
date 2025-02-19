@@ -1,12 +1,16 @@
 <template>
-	<el-button :icon="icon" :disabled="disabled" :type="type" @click="open">导入</el-button>
+	<el-button :icon="icon" :disabled="disabled" :type="type" @click="open">
+		{{ $t('导入') }}
+	</el-button>
 
 	<cl-form ref="Form">
 		<template #slot-upload>
 			<div v-if="!upload.filename" class="upload">
 				<div class="tips" v-if="template">
 					<span>{{ tips }}</span>
-					<el-button type="primary" text bg @click="download">下载模版</el-button>
+					<el-button type="primary" text bg @click="download">{{
+						$t('下载模版')
+					}}</el-button>
 				</div>
 
 				<div class="inner">
@@ -26,19 +30,19 @@
 		<template #slot-list>
 			<div v-if="list.length" class="data-table">
 				<div class="head">
-					<el-button type="success" @click="clear">重新上传</el-button>
+					<el-button type="success" @click="clear">{{ $t('重新上传') }}</el-button>
 					<el-button
 						type="danger"
 						:disabled="table.selection.length == 0"
 						@click="table.del()"
-						>批量删除</el-button
 					>
+						{{ $t('批量删除') }}
+					</el-button>
 				</div>
 
 				<div class="cl-table">
 					<el-table
 						border
-						small
 						:data="list"
 						max-height="600px"
 						@selection-change="table.onSelectionChange"
@@ -56,7 +60,7 @@
 						/>
 
 						<el-table-column
-							label="序号"
+							:label="$t('序号')"
 							type="index"
 							width="80px"
 							align="center"
@@ -86,15 +90,21 @@
 							</template>
 						</el-table-column>
 
-						<el-table-column label="操作" width="100px" align="center" fixed="right">
+						<el-table-column
+							:label="$t('操作')"
+							width="100px"
+							align="center"
+							fixed="right"
+						>
 							<template #default="scope">
 								<el-button
 									text
 									bg
 									type="danger"
 									@click.stop="table.del(scope.$index)"
-									>删除</el-button
 								>
+									{{ $t('删除') }}
+								</el-button>
 							</template>
 						</el-table-column>
 					</el-table>
@@ -115,7 +125,11 @@
 	</cl-form>
 </template>
 
-<script lang="ts" setup name="cl-import-btn">
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-import-btn'
+});
+
 import { useForm } from '@cool-vue/crud';
 import { ElMessage } from 'element-plus';
 import { reactive, type PropType, computed } from 'vue';
@@ -123,6 +137,7 @@ import * as XLSX from 'xlsx';
 import chardet from 'chardet';
 import { extname } from '/@/cool/utils';
 import { has } from 'lodash-es';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
 	onConfig: Function,
@@ -131,10 +146,7 @@ const props = defineProps({
 		type: String,
 		default: ''
 	},
-	tips: {
-		type: String,
-		default: '请按照模版填写信息'
-	},
+	tips: String,
 	limitSize: {
 		type: Number,
 		default: 10
@@ -157,6 +169,12 @@ const props = defineProps({
 const emit = defineEmits(['change']);
 
 const Form = useForm();
+const { t } = useI18n();
+
+// 提示信息
+const tips = computed(() => {
+	return props.tips || t('请按照模版填写信息');
+});
 
 // 上传信息
 const upload = reactive({
@@ -227,7 +245,7 @@ function open() {
 	clear();
 
 	Form.value?.open({
-		title: '导入',
+		title: t('导入'),
 		width: computed(() => (upload.filename ? '80%' : '800px')),
 		dialog: {
 			'close-on-press-escape': false
@@ -247,19 +265,19 @@ function open() {
 			}
 		],
 		op: {
-			saveButtonText: '提交'
+			saveButtonText: t('提交')
 		},
 		on: {
 			submit(_, { done, close }) {
 				if (!upload.filename) {
 					done();
-					return ElMessage.error('请选择文件');
+					return ElMessage.error(t('请选择文件'));
 				}
 
 				if (props.onSubmit) {
 					props.onSubmit(upload, { done, close });
 				} else {
-					ElMessage.error('<cl-import-btn /> 未配置 onSubmit 参数');
+					ElMessage.error(t('[cl-import-btn] onSubmit is required'));
 					done();
 				}
 			}
@@ -288,7 +306,13 @@ function onUpload(raw: File, _: any, { next }: any) {
 		let json: any[] = [];
 		for (const sheet in workbook.Sheets) {
 			if (has(workbook.Sheets, sheet)) {
-				json = json.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]));
+				json = json.concat(
+					XLSX.utils.sheet_to_json(workbook.Sheets[sheet], {
+						raw: false,
+						dateNF: 'yyyy-mm-dd',
+						defval: ''
+					})
+				);
 			}
 		}
 

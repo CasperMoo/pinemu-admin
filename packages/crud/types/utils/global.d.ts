@@ -1,4 +1,4 @@
-import { App } from "vue";
+import { App } from 'vue';
 declare const _default: {
     readonly vue: App;
     get(key: string): any;

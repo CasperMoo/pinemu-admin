@@ -1,5 +1,5 @@
-import { defineComponent, } from 'vue';
-import { CrudProps } from '../..';
+import { defineComponent } from 'vue';
+import { CrudProps } from '../../comm';
 
 export default defineComponent({
 	name: 'cl-render',
@@ -7,10 +7,10 @@ export default defineComponent({
 	props: {
 		...CrudProps,
 		modelValue: null,
-		placeholder: String,
+		placeholder: String
 	},
 
-	setup(props, { slots, }) {
+	setup(props, { slots }) {
 		return () => {
 			return slots.default?.(props);
 		};

@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">event</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>event</el-tag>
 			<span>组件事件</span>
 		</div>
 

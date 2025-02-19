@@ -26,7 +26,7 @@ export default defineComponent({
 		// 宽度
 		width: {
 			type: [String, Number],
-			default: 260
+			default: 280
 		},
 		// 是否实时刷新
 		refreshOnInput: Boolean

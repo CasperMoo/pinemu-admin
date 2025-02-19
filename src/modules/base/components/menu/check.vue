@@ -1,6 +1,6 @@
 <template>
 	<div class="cl-menu-check">
-		<el-input v-model="keyword" placeholder="输入关键字进行过滤" />
+		<el-input v-model="keyword" :placeholder="$t('输入关键字进行过滤')" />
 
 		<div class="cl-menu-check__scroller">
 			<el-scrollbar max-height="200px">
@@ -21,11 +21,18 @@
 	</div>
 </template>
 
-<script lang="ts" name="cl-menu-check" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-menu-check'
+});
+
 import { ref, watch } from 'vue';
 import { deepTree } from '/@/cool/utils';
 import { useCool } from '/@/cool';
 import { useUpsert } from '@cool-vue/crud';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
 	modelValue: {

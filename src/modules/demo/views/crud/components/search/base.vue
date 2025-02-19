@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">base</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>base</el-tag>
 			<span>起步</span>
 		</div>
 
@@ -14,7 +14,7 @@
 				<cl-crud ref="Crud">
 					<cl-row>
 						<!--【很重要】搜索组件 -->
-						<cl-search ref="Search" :reset-btn="true" />
+						<cl-search ref="Search" />
 					</cl-row>
 
 					<cl-row>

@@ -5,7 +5,7 @@
 			<cl-add-btn />
 			<cl-multi-delete-btn />
 			<cl-flex1 />
-			<cl-search-key placeholder="搜索名称" />
+			<cl-search-key :placeholder="$t('搜索名称')" />
 		</cl-row>
 
 		<cl-row>
@@ -29,7 +29,7 @@
 								fontSize: '12px'
 							}"
 						>
-							是否关联上下级
+							{{ t('是否关联上下级') }}
 						</span>
 					</el-row>
 
@@ -43,10 +43,16 @@
 	</cl-crud>
 </template>
 
-<script lang="ts" setup name="sys-role">
+<script lang="ts" setup>
+defineOptions({
+	name: 'sys-role'
+});
+
 import { useTable, useUpsert, useCrud } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const { service } = useCool();
 
 // cl-crud
@@ -63,7 +69,7 @@ const Upsert = useUpsert({
 	items: [
 		{
 			prop: 'name',
-			label: '名称',
+			label: t('名称'),
 			span: 12,
 			required: true,
 			component: {
@@ -72,7 +78,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'label',
-			label: '标识',
+			label: t('标识'),
 			span: 12,
 			required: true,
 			component: {
@@ -81,7 +87,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'remark',
-			label: '备注',
+			label: t('备注'),
 			span: 24,
 			component: {
 				name: 'el-input',
@@ -92,7 +98,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '功能权限',
+			label: t('功能权限'),
 			prop: 'menuIdList',
 			value: [],
 			component: {
@@ -100,7 +106,7 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '数据权限',
+			label: t('数据权限'),
 			prop: 'relevance',
 			component: {
 				name: 'slot-relevance'
@@ -125,36 +131,34 @@ const Table = useTable({
 		},
 		{
 			prop: 'name',
-			label: '名称',
+			label: t('名称'),
 			minWidth: 150
 		},
 		{
 			prop: 'label',
-			label: '标识',
+			label: t('标识'),
 			minWidth: 120
 		},
 		{
 			prop: 'remark',
-			label: '备注',
+			label: t('备注'),
 			showOverflowTooltip: true,
 			minWidth: 150
 		},
 		{
 			prop: 'createTime',
-			label: '创建时间',
+			label: t('创建时间'),
 			sortable: 'desc',
 			minWidth: 170
 		},
 		{
 			prop: 'updateTime',
-			label: '更新时间',
+			label: t('更新时间'),
 			sortable: 'custom',
 			minWidth: 170
 		},
 		{
-			label: '操作',
-			type: 'op',
-			buttons: ['edit', 'delete']
+			type: 'op'
 		}
 	]
 });

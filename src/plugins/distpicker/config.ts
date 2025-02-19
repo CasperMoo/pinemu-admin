@@ -1,4 +1,4 @@
-import type { ModuleConfig } from '/@/cool';
+import { type ModuleConfig } from '/@/cool';
 import { registerFormHook } from '@cool-vue/crud';
 
 // 注册hook
@@ -16,6 +16,12 @@ registerFormHook('pca', (value, { method, form, prop }) => {
 
 export default (): ModuleConfig => {
 	return {
+		enable: true,
+		components: [
+			// 省市区选择 https://github.com/modood/Administrative-divisions-of-China
+			() => import('./components/index')
+		],
+
 		label: '省市区选择器',
 		description: '快速增删改查及一系列辅助组件',
 		author: 'COOL',
@@ -26,11 +32,6 @@ export default (): ModuleConfig => {
 				name: '基础用法',
 				component: () => import('./demo/base.vue')
 			}
-		],
-
-		components: [
-			// 省市区选择 https://github.com/modood/Administrative-divisions-of-China
-			() => import('./components/index')
 		]
 	};
 };

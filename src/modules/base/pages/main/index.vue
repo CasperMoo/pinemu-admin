@@ -1,5 +1,5 @@
 <template>
-	<div class="app-layout" :class="{ collapse: app.isFold, full: app.isFull }">
+	<div class="app-layout" :class="{ 'is-collapse': app.isFold, 'is-full': app.isFull }">
 		<div class="app-layout__mask" @click="app.fold(true)"></div>
 
 		<div class="app-layout__left">
@@ -14,20 +14,30 @@
 	</div>
 </template>
 
-<script lang="ts" name="app-layout" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'app-layout'
+});
+
+import { useBase } from '/$/base';
 import Topbar from './components/topbar.vue';
 import Slider from './components/slider.vue';
 import process from './components/process.vue';
 import Views from './components/views.vue';
-import { useBase } from '/$/base';
 
 const { app } = useBase();
 </script>
 
 <style lang="scss" scoped>
+.app-global {
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
 .app-layout {
 	display: flex;
-	background-color: var(--view-bg-color);
+	background-color: var(--bg-color);
 	height: 100%;
 	width: 100%;
 	overflow: hidden;
@@ -70,7 +80,7 @@ const { app } = useBase();
 			width: 100%;
 		}
 
-		&.collapse {
+		&.is-collapse {
 			.app-layout__left {
 				transform: translateX(-100%);
 			}
@@ -91,18 +101,18 @@ const { app } = useBase();
 			display: none;
 		}
 
-		&.collapse {
+		&.is-collapse {
 			.app-layout__left {
-				width: 64px;
+				width: 67px;
 			}
 
 			.app-layout__right {
-				width: calc(100% - 64px);
+				width: calc(100% - 67px);
 			}
 		}
 	}
 
-	&.full {
+	&.is-full {
 		.app-layout__left {
 			width: 0;
 		}

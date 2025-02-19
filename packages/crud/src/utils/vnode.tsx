@@ -30,7 +30,7 @@ const regs: Map<string, any> = new Map();
 
 // 解析节点
 export function parseNode(vnode: any, options: Options): VNode {
-	const { scope, prop, slots, children, _data } = options || [];
+	const { scope, prop, slots, children, _data } = options || {};
 
 	// 渲染后组件
 	let comp: VNode | null = null;
@@ -128,18 +128,14 @@ export function renderNode(vnode: any, options: Options) {
 			let placeholder = "";
 
 			switch (item.component?.name) {
-				case "el-select":
-					placeholder = config.dict.label.placeholderSelect;
-					break;
-
-				default:
+				case "el-input":
 					placeholder = config.dict.label.placeholder;
 					break;
 			}
 
 			if (placeholder) {
 				if (!item.component.props.placeholder) {
-					item.component.props.placeholder = placeholder + (item.label || '');
+					item.component.props.placeholder = placeholder
 				}
 			}
 		}
@@ -179,7 +175,7 @@ export function renderNode(vnode: any, options: Options) {
 				return options.custom(vnode);
 			}
 
-			return <cl-error-message title={`Error，name is required`} />;
+			return <cl-error-message title="Error，component name is required" />;
 		}
 	}
 }

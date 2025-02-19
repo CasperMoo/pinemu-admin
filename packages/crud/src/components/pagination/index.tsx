@@ -68,6 +68,7 @@ export default defineComponent({
 		return () => {
 			return h(
 				<el-pagination
+					class="cl-pagination"
 					size={browser.isMini ? 'small' : style.size}
 					background
 					page-sizes={[10, 20, 30, 40, 50, 100]}

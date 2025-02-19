@@ -13,8 +13,8 @@
 			"            <!-- 删除按钮 -->",
 			"            <cl-multi-delete-btn />",
 			"            <cl-flex1 />",
-			"            <!-- 关键字搜索 -->",
-			"            <cl-search-key />",
+			"            <!-- 条件搜索 -->",
+			"            <cl-search ref=\"Search\" />",
 			"        </cl-row>",
 			"",
 			"        <cl-row>",
@@ -33,8 +33,12 @@
 			"    </cl-crud>",
 			"</template>",
 			"",
-			"<script lang=\"ts\" name=\"$1\" setup>",
-			"import { useCrud, useTable, useUpsert } from \"@cool-vue/crud\";",
+			"<script lang=\"ts\" setup>",
+			"defineOptions({",
+			"    name: \"$1\"",
+			"});",
+			"",
+			"import { useCrud, useTable, useUpsert, useSearch } from \"@cool-vue/crud\";",
 			"import { useCool } from \"/@/cool\";",
 			"",
 			"const { service } = useCool();",
@@ -48,6 +52,9 @@
 			"const Table = useTable({",
 			"    columns: []",
 			"});",
+			"",
+			"// cl-search",
+			"const Search = useSearch();",
 			"",
 			"// cl-crud",
 			"const Crud = useCrud(",
@@ -78,25 +85,16 @@
 		],
 		"description": "cl-filter snippets"
 	},
-	"item": {
-		"prefix": "item",
-		"scope": "typescript",
-		"body": [
-			"{",
-			"    label: \"$1\",",
-			"    prop: \"\",",
-			"    component: {",
-			"        name: \"\"",
-			"    }",
-			"},",
-			""
-		],
-		"description": "item snippets"
+	"slot-item": {
+		"prefix": "slot item",
+		"scope": "html",
+		"body": ["<template #slot-$1=\"{ scope }\">", "</template>", ""],
+		"description": "slot snippets"
 	},
-	"column": {
-		"prefix": "column",
-		"scope": "typescript",
-		"body": ["{", "    label: \"$1\",", "    prop: \"\",", "},", ""],
-		"description": "column snippets"
+	"slot-column": {
+		"prefix": "slot column",
+		"scope": "html",
+		"body": ["<template #column-$1=\"{ scope }\">", "    ", "</template>", ""],
+		"description": "column slot snippets"
 	}
 }

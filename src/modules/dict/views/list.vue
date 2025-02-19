@@ -13,7 +13,7 @@
 					<cl-multi-delete-btn />
 					<cl-flex1 />
 					<!-- 关键字搜索 -->
-					<cl-search-key placeholder="搜索名称" />
+					<cl-search-key :placeholder="$t('搜索名称')" />
 				</cl-row>
 
 				<cl-row>
@@ -21,13 +21,13 @@
 					<cl-table ref="Table" row-key="id" @row-click="onRowClick">
 						<template #slot-btn="{ scope }">
 							<el-button
-								v-permission="service.dict.info.permission.add"
 								text
-								bg
 								type="success"
 								@click="append(scope.row)"
-								>新增</el-button
+								v-permission="service.dict.info.permission.add"
 							>
+								{{ $t('新增') }}
+							</el-button>
 						</template>
 					</cl-table>
 				</cl-row>
@@ -42,7 +42,7 @@
 						<div class="form-value">
 							<el-input
 								v-model="scope.value"
-								placeholder="请填写值"
+								:placeholder="$t('请填写值')"
 								clearable
 								type="textarea"
 								:rows="4"
@@ -50,7 +50,7 @@
 
 							<div class="op">
 								<cl-upload-space
-									text="使用文件"
+									:text="$t('使用文件')"
 									:limit="1"
 									@confirm="onFileConfirm"
 								/>
@@ -63,21 +63,28 @@
 	</cl-view-group>
 </template>
 
-<script lang="ts" name="dict-list" setup>
-import { setFocus, useCrud, useTable, useUpsert } from '@cool-vue/crud';
+<script lang="ts" setup>
+defineOptions({
+	name: 'dict-list'
+});
+
+import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { computed } from 'vue';
 import { deepTree } from '/@/cool/utils';
 import { cloneDeep } from 'lodash-es';
 import { useDict } from '../index';
 import { useViewGroup } from '/@/plugins/view';
+import { useI18n } from 'vue-i18n';
+import { Plugins } from '/#/crud';
 
 const { service } = useCool();
 const { dict } = useDict();
+const { t } = useI18n();
 
 const { ViewGroup } = useViewGroup({
-	label: '类型',
-	title: '字典列表',
+	label: t('类型'),
+	title: t('字典列表'),
 	service: service.dict.type,
 	onSelect(item) {
 		refresh({
@@ -93,7 +100,7 @@ const { ViewGroup } = useViewGroup({
 			},
 			items: [
 				{
-					label: '名称',
+					label: t('名称'),
 					prop: 'name',
 					component: {
 						name: 'el-input',
@@ -129,7 +136,7 @@ const Upsert = useUpsert({
 	},
 	items: [
 		{
-			label: '上级节点',
+			label: t('上级节点'),
 			prop: 'parentId',
 			component: {
 				name: 'el-tree-select',
@@ -171,24 +178,24 @@ const Upsert = useUpsert({
 			}
 		},
 		{
-			label: '名称',
+			label: t('名称'),
 			prop: 'name',
 			required: true,
 			component: { name: 'el-input' }
 		},
 		{
-			label: '值',
+			label: t('值'),
 			prop: 'value',
 			component: { name: 'slot-value' }
 		},
 		{
-			label: '排序',
+			label: t('排序'),
 			prop: 'orderNum',
 			value: 1,
 			component: { name: 'el-input-number', props: { min: 1 } }
 		},
 		{
-			label: '备注',
+			label: t('备注'),
 			prop: 'remark',
 			component: {
 				name: 'el-input',
@@ -202,7 +209,7 @@ const Upsert = useUpsert({
 			typeId: ViewGroup.value?.selected?.id
 		});
 	},
-	plugins: [setFocus('name')]
+	plugins: [Plugins.Form.setFocus('name')]
 });
 
 // cl-table
@@ -211,7 +218,7 @@ const Table = useTable({
 		'refresh',
 		row => {
 			return {
-				label: '新增',
+				label: t('新增'),
 				hidden: !service.dict.info._permission?.add,
 				callback(done) {
 					append(row);
@@ -228,35 +235,35 @@ const Table = useTable({
 		{
 			type: 'selection'
 		},
-		{ label: '名称', prop: 'name', align: 'left', minWidth: 200 },
-		{ label: 'ID', prop: 'id', minWidth: 120 },
+		{ label: t('名称'), prop: 'name', align: 'left', minWidth: 200 },
+		{ label: t('ID'), prop: 'id', minWidth: 120 },
 		{
-			label: '值',
+			label: t('值'),
 			prop: 'value',
 			minWidth: 200,
 			showOverflowTooltip: true
 		},
 		{
-			label: '备注',
+			label: t('备注'),
 			prop: 'remark',
 			showOverflowTooltip: true,
 			minWidth: 170
 		},
 		{
-			label: '排序',
+			label: t('排序'),
 			prop: 'orderNum',
 			sortable: 'desc',
 			width: 100,
 			fixed: 'right'
 		},
 		{
-			label: '创建时间',
+			label: t('创建时间'),
 			prop: 'createTime',
 			sortable: 'custom',
 			minWidth: 170
 		},
 		{
-			label: '更新时间',
+			label: t('更新时间'),
 			prop: 'updateTime',
 			sortable: 'custom',
 			minWidth: 170

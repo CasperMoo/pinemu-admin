@@ -15,7 +15,7 @@ export function renderHeader(item: ClTable.Column, { scope, slots }: any) {
 	}
 
 	if (!item.search || !item.search.component) {
-		return scope.column.label;
+		return item.label;
 	}
 
 	// 显示输入框
@@ -28,10 +28,10 @@ export function renderHeader(item: ClTable.Column, { scope, slots }: any) {
 	const text = (
 		<div onClick={show}>
 			<el-icon class="icon">
-				<Search />
+				{item.search.icon?.() ?? <Search />}
 			</el-icon>
 
-			<span>{scope.column.label}</span>
+			{item.renderLabel ? item.renderLabel(scope) : item.label}
 		</div>
 	);
 
@@ -47,12 +47,19 @@ export function renderHeader(item: ClTable.Column, { scope, slots }: any) {
 			item.search.value = val;
 		},
 		onChange(val: any) {
+			item.search.value = val;
+
 			// 更改时刷新列表
 			if (item.search.refreshOnChange) {
 				crud.value?.refresh({
 					page: 1,
 					[item.prop]: val === "" ? undefined : val
 				});
+			}
+		},
+		onBlur() {
+			if (item.search.value === null || item.search.value === undefined || item.search.value === "") {
+				item.search.isInput = false;
 			}
 		}
 	});

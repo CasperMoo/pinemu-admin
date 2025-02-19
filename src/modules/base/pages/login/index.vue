@@ -2,39 +2,40 @@
 	<div class="page-login">
 		<div class="box">
 			<div class="logo">
-				<img src="/logo.png" alt="Logo" />
-				<div class="name">
-					<span v-for="text in app.info.name" :key="text">{{ text }}</span>
+				<div class="icon">
+					<img src="/logo.png" alt="Logo" />
 				</div>
+
+				<span>{{ app.info.name }}</span>
 			</div>
 
-			<p class="desc">快速开发后台权限管理系统</p>
+			<p class="desc">{{ $t('快速开发后台权限管理系统') }}</p>
 
 			<div class="form">
 				<el-form label-position="top" class="form" :disabled="saving">
-					<el-form-item label="用户名">
+					<el-form-item :label="$t('用户名')">
 						<el-input
 							v-model="form.username"
-							placeholder="请输入用户名"
+							:placeholder="$t('请输入用户名')"
 							maxlength="20"
 						/>
 					</el-form-item>
 
-					<el-form-item label="密码">
+					<el-form-item :label="$t('密码')">
 						<el-input
 							v-model="form.password"
 							type="password"
-							placeholder="请输入密码"
+							:placeholder="$t('请输入密码')"
 							maxlength="20"
 							show-password
 							autocomplete="new-password"
 						/>
 					</el-form-item>
 
-					<el-form-item label="验证码">
+					<el-form-item :label="$t('验证码')">
 						<el-input
 							v-model="form.verifyCode"
-							placeholder="图片验证码"
+							:placeholder="$t('验证码')"
 							maxlength="4"
 							@keyup.enter="toLogin"
 						>
@@ -54,7 +55,7 @@
 
 					<div class="op">
 						<el-button type="primary" :loading="saving" @click="toLogin">
-							登录
+							{{ $t('登录') }}
 						</el-button>
 					</div>
 				</el-form>
@@ -69,16 +70,22 @@
 	</div>
 </template>
 
-<script lang="ts" name="login" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'login'
+});
+
 import { reactive, ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { useCool } from '/@/cool';
 import { useBase } from '/$/base';
 import { storage } from '/@/cool/utils';
+import { useI18n } from 'vue-i18n';
 import PicCaptcha from './components/pic-captcha.vue';
 
 const { refs, setRefs, router, service } = useCool();
 const { user, app } = useBase();
+const { t } = useI18n();
 
 // 状态
 const saving = ref(false);
@@ -94,15 +101,15 @@ const form = reactive({
 // 登录
 async function toLogin() {
 	if (!form.username) {
-		return ElMessage.error('用户名不能为空');
+		return ElMessage.error(t('用户名不能为空'));
 	}
 
 	if (!form.password) {
-		return ElMessage.error('密码不能为空');
+		return ElMessage.error(t('密码不能为空'));
 	}
 
 	if (!form.verifyCode) {
-		return ElMessage.error('图片验证码不能为空');
+		return ElMessage.error(t('图片验证码不能为空'));
 	}
 
 	saving.value = true;
@@ -124,7 +131,10 @@ async function toLogin() {
 		refs.picCaptcha.refresh();
 
 		// 提示错误
-		ElMessage.error((err as Error).message);
+		ElMessageBox.alert((err as Error).message, {
+			title: t('提示'),
+			type: 'error'
+		});
 	}
 
 	saving.value = false;
@@ -133,36 +143,6 @@ async function toLogin() {
 
 <style lang="scss" scoped>
 $color: #2c3142;
-
-@keyframes dou {
-	0% {
-		transform: rotate(0);
-	}
-	11% {
-		transform: rotate(7.61deg);
-	}
-	23% {
-		transform: rotate(-5.8deg);
-	}
-	36% {
-		transform: rotate(3.35deg);
-	}
-	49% {
-		transform: rotate(-1.9deg);
-	}
-	62% {
-		transform: rotate(1.12deg);
-	}
-	75% {
-		transform: rotate(-0.64deg);
-	}
-	88% {
-		transform: rotate(0.37deg);
-	}
-	100% {
-		transform: rotate(-0.28deg);
-	}
-}
 
 .page-login {
 	display: flex;
@@ -186,7 +166,6 @@ $color: #2c3142;
 		.cl-svg {
 			height: 100%;
 			width: 100%;
-			fill: $color;
 		}
 	}
 
@@ -196,8 +175,9 @@ $color: #2c3142;
 		left: 0;
 		text-align: center;
 		width: 100%;
-		color: #666;
+		color: var(--el-color-info);
 		font-size: 14px;
+		user-select: none;
 	}
 
 	.box {
@@ -217,25 +197,24 @@ $color: #2c3142;
 			margin-bottom: 20px;
 			display: flex;
 			align-items: center;
+			user-select: none;
 
-			img {
-				height: 46px;
-				background-color: $color;
-				border-radius: 50px;
-				border: 3px solid $color;
+			.icon {
+				border-radius: 8px;
+				padding: 5px;
 				margin-right: 10px;
+				background-color: $color;
+
+				img {
+					height: 36px;
+				}
 			}
 
 			span {
-				display: inline-block;
 				font-size: 38px;
 				font-weight: bold;
 				line-height: 1;
 				letter-spacing: 3px;
-
-				&:nth-child(6) {
-					animation: dou 1s infinite linear;
-				}
 			}
 		}
 
@@ -243,6 +222,9 @@ $color: #2c3142;
 			font-size: 15px;
 			letter-spacing: 1px;
 			margin-bottom: 50px;
+			user-select: none;
+			max-width: 80%;
+			text-align: center;
 		}
 
 		.form {
@@ -254,25 +236,29 @@ $color: #2c3142;
 				}
 
 				.el-form-item__label {
+					color: var(--el-color-info);
 					padding-left: 5px;
+					user-select: none;
 				}
 
 				.el-input {
-					height: 45px;
-					width: 100%;
 					box-sizing: border-box;
 					font-size: 15px;
 					border: 0;
 					border-radius: 0;
 					background-color: #f8f8f8;
 					padding: 0 5px;
-					border-radius: 6px;
+					border-radius: 8px;
 					position: relative;
-					box-shadow: none;
 
 					&__wrapper {
 						box-shadow: none;
 						background-color: transparent;
+					}
+
+					&__inner {
+						height: 45px;
+						color: #333;
 					}
 
 					&:-webkit-autofill {
@@ -297,8 +283,8 @@ $color: #2c3142;
 			:deep(.el-button) {
 				height: 45px;
 				width: 100%;
-				font-size: 15px;
-				border-radius: 6px;
+				font-size: 16px;
+				border-radius: 8px;
 				letter-spacing: 1px;
 			}
 		}

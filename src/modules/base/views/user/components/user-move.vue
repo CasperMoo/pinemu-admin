@@ -4,25 +4,31 @@
 	</div>
 </template>
 
-<script lang="ts" name="user-move" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'user-move'
+});
+
 import { useCool } from '/@/cool';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useCrud, useForm } from '@cool-vue/crud';
+import { useI18n } from 'vue-i18n';
 
 const { service } = useCool();
 const Form = useForm();
 const Crud = useCrud();
+const { t } = useI18n();
 
 async function open(ids: any[]) {
 	Form.value?.open({
-		title: '部门转移',
+		title: t('部门转移'),
 		width: '500px',
 		props: {
 			labelWidth: '80px'
 		},
 		items: [
 			{
-				label: '选择部门',
+				label: t('选择部门'),
 				prop: 'departmentId',
 				component: {
 					name: 'cl-dept-select'
@@ -32,11 +38,11 @@ async function open(ids: any[]) {
 		on: {
 			async submit(data, { done, close }) {
 				if (!data.departmentId) {
-					ElMessage.warning('请选择部门');
+					ElMessage.warning(t('请选择部门'));
 					return done();
 				}
 
-				await ElMessageBox.confirm('转移到新部门，是否继续？', '提示', {
+				await ElMessageBox.confirm(t('转移到新部门，是否继续？'), t('提示'), {
 					type: 'warning'
 				})
 					.then(() => {
@@ -46,7 +52,7 @@ async function open(ids: any[]) {
 								userIds: ids
 							})
 							.then(() => {
-								ElMessage.success('转移成功');
+								ElMessage.success(t('转移成功'));
 								Crud.value?.refresh();
 								close();
 							})

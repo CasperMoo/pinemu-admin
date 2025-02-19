@@ -1,13 +1,24 @@
 <template>
 	<div class="cl-menu-file">
-		<template v-if="isEdit">
-			<el-input v-model="text" placeholder="请输入" @change="onTextChange"></el-input>
+		<el-tooltip :content="$t('自定义输入')">
+			<div
+				class="cl-menu-file__icon"
+				:class="{
+					'is-edit': isEdit
+				}"
+				@click="toggle()"
+			>
+				<cl-svg name="edit" />
+			</div>
+		</el-tooltip>
 
-			<el-tooltip content="选择文件">
-				<el-icon @click="toggle(false)">
-					<folder-checked />
-				</el-icon>
-			</el-tooltip>
+		<template v-if="isEdit">
+			<el-input
+				v-model="text"
+				:placeholder="$t('请输入')"
+				@change="onTextChange"
+				:ref="setRefs('input')"
+			/>
 		</template>
 
 		<template v-else>
@@ -18,20 +29,18 @@
 				filterable
 				@change="onPathChange"
 			/>
-
-			<el-tooltip content="输入编辑">
-				<el-icon @click="toggle(true)">
-					<edit />
-				</el-icon>
-			</el-tooltip>
 		</template>
 	</div>
 </template>
 
-<script lang="ts" name="cl-menu-file" setup>
-import { ref, watch } from 'vue';
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-menu-file'
+});
+
+import { nextTick, ref, watch } from 'vue';
 import { deepPaths } from '/@/cool/utils';
-import { FolderChecked, Edit } from '@element-plus/icons-vue';
+import { useCool } from '/@/cool';
 
 const props = defineProps({
 	modelValue: {
@@ -41,6 +50,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue', 'change']);
+
+const { refs, setRefs } = useCool();
 
 // 扫描文件
 function findFiles() {
@@ -82,8 +93,14 @@ function onTextChange(v: string) {
 }
 
 // 切换
-function toggle(f: boolean) {
-	isEdit.value = f;
+function toggle() {
+	isEdit.value = !isEdit.value;
+
+	if (isEdit.value) {
+		nextTick(() => {
+			refs.input.focus();
+		});
+	}
 }
 
 watch(
@@ -110,12 +127,42 @@ watch(
 	align-items: center;
 	width: 100%;
 
+	&__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 5px;
+		border: 1px solid var(--el-border-color);
+		height: 32px;
+		width: 32px;
+		border-radius: var(--el-border-radius-base);
+		box-sizing: border-box;
+		flex-shrink: 0;
+		cursor: pointer;
+
+		.cl-svg {
+			font-size: 16px;
+		}
+
+		&.is-edit {
+			background-color: var(--el-color-primary);
+			color: var(--el-color-white);
+			border: 0;
+		}
+
+		&:hover:not(.is-edit) {
+			.cl-svg {
+				color: var(--el-color-primary);
+			}
+		}
+	}
+
 	:deep(.el-cascader) {
 		width: 100%;
 	}
 
 	.el-icon {
-		margin: 0 0 0 10px;
+		margin: 0 10px 0 0;
 		font-size: 18px;
 		cursor: pointer;
 

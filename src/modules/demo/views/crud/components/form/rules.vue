@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">rules</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>rules</el-tag>
 			<span>添加/删除表单项</span>
 		</div>
 

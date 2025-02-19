@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">layout</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>layout</el-tag>
 			<span>布局</span>
 		</div>
 

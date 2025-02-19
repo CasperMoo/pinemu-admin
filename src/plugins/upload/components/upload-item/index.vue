@@ -16,7 +16,7 @@
 						class="cl-upload-item__image-cover"
 						fit="contain"
 						:src="item.preload || url"
-						@error="item.error = '加载失败'"
+						@error="item.error = $t('加载失败')"
 					/>
 				</template>
 
@@ -113,7 +113,11 @@
 	</div>
 </template>
 
-<script lang="ts" name="cl-upload-item" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-upload-item'
+});
+
 import { computed, type PropType, onMounted, watch, reactive } from 'vue';
 import { ZoomIn, Delete, VideoPause, VideoPlay } from '@element-plus/icons-vue';
 import { ContextMenu } from '@cool-vue/crud';
@@ -123,7 +127,7 @@ import { fileName, getRule } from '../../utils';
 import { ElMessage } from 'element-plus';
 import { useClipboard } from '@vueuse/core';
 import Viewer from './viewer.vue';
-import type { Upload } from '../../types';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
 	item: {
@@ -149,6 +153,7 @@ const emit = defineEmits(['remove']);
 
 const { refs, setRefs } = useCool();
 const { copy } = useClipboard();
+const { t } = useI18n();
 
 // 图片地址
 const url = computed(() => props.item.url || '');
@@ -181,14 +186,14 @@ function onContextMenu(e: any) {
 		},
 		list: [
 			{
-				label: '预览',
+				label: t('预览'),
 				callback(done) {
 					preview();
 					done();
 				}
 			},
 			{
-				label: '复制链接',
+				label: t('复制链接'),
 				callback(done) {
 					if (props.item.url) {
 						copy(props.item.url);
@@ -206,7 +211,7 @@ function onContextMenu(e: any) {
 			// 	}
 			// },
 			{
-				label: '删除',
+				label: t('删除'),
 				callback(done) {
 					remove();
 					done();
@@ -322,7 +327,6 @@ onMounted(() => {
 		bottom: 0;
 		left: 0;
 		box-sizing: border-box;
-		line-height: 1;
 
 		span {
 			white-space: nowrap;
@@ -386,7 +390,6 @@ onMounted(() => {
 		padding: 2px 4px;
 		border-radius: 2px;
 		text-transform: uppercase;
-		line-height: 1;
 		max-width: 65px;
 		box-sizing: border-box;
 		white-space: nowrap;

@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">dict</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>dict</el-tag>
 			<span>修改文案 / 接口</span>
 		</div>
 

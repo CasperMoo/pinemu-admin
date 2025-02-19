@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">hidden</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>hidden</el-tag>
 			<span>隐藏/显示</span>
 		</div>
 
@@ -111,17 +111,17 @@ const Table = useTable({
 	]
 });
 
-function hideColumn(prop: string) {
-	Table.value?.hideColumn(prop);
+const visible = ref(false);
+
+function open() {
+	visible.value = true;
 }
 
 function showColumn(prop: string) {
 	Table.value?.showColumn(prop);
 }
 
-const visible = ref(false);
-
-function open() {
-	visible.value = true;
+function hideColumn(prop: string) {
+	Table.value?.hideColumn(prop);
 }
 </script>

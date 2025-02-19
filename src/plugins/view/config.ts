@@ -1,7 +1,10 @@
-import type { ModuleConfig } from '/@/cool';
+import { type ModuleConfig } from '/@/cool';
 
 export default (): ModuleConfig => {
 	return {
+		enable: true,
+		components: [() => import('./components/group.vue'), () => import('./components/head.vue')],
+
 		label: '视图组件',
 		description: '左右侧布局、顶部详情等',
 		author: 'COOL',
@@ -16,8 +19,6 @@ export default (): ModuleConfig => {
 				name: '顶部详情',
 				component: () => import('./demo/head.vue')
 			}
-		],
-
-		components: [() => import('./components/group.vue'), () => import('./components/head.vue')]
+		]
 	};
 };

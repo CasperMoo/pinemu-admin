@@ -14,10 +14,10 @@ export async function bootstrap(app: App) {
 	app.use(router);
 
 	// 模块
-	const { eventLoop, list } = createModule(app);
+	const { eventLoop } = createModule(app);
 
 	// eps
-	createEps(list);
+	createEps();
 
 	// 加载
 	Loading.set([eventLoop()]);

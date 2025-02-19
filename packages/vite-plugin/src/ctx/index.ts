@@ -1,10 +1,11 @@
 import { join } from "path";
 import { readFile, rootDir, writeFile, error } from "../utils";
 import { glob } from "glob";
-import { assign, cloneDeep, isEqual, orderBy } from "lodash";
+import { assign, cloneDeep, orderBy } from "lodash";
 import { config } from "../config";
 import fs from "fs";
 import axios from "axios";
+import util from "node:util";
 import type { Ctx } from "../../types";
 
 export async function createCtx() {
@@ -73,7 +74,7 @@ export async function createCtx() {
 		}
 
 		// 是否需要更新 pages.json
-		if (!isEqual(order(ctxData), order(ctx))) {
+		if (!util.isDeepStrictEqual(order(ctxData), order(ctx))) {
 			console.log("[cool-ctx] pages updated");
 			writeFile(ctxPath, JSON.stringify(ctx, null, 4));
 		}

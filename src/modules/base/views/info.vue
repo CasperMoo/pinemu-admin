@@ -1,47 +1,63 @@
 <template>
 	<div class="view-my">
-		<div class="title">基本信息</div>
+		<el-scrollbar>
+			<div class="p-[20px]">
+				<div class="title">{{ $t('基本信息') }}</div>
 
-		<el-form label-width="100px" :model="form" :disabled="loading">
-			<el-form-item label="头像">
-				<cl-upload v-model="form.headImg" />
-			</el-form-item>
+				<el-form label-width="100px" :model="form" :disabled="loading" label-position="top">
+					<el-form-item :label="$t('头像')">
+						<cl-upload v-model="form.headImg" />
+					</el-form-item>
 
-			<el-form-item label="昵称">
-				<el-input v-model="form.nickName" placeholder="请填写昵称" clearable />
-			</el-form-item>
+					<el-form-item :label="$t('昵称')">
+						<el-input
+							v-model="form.nickName"
+							:placeholder="$t('请填写昵称')"
+							clearable
+						/>
+					</el-form-item>
 
-			<el-form-item label="原密码">
-				<el-input
-					v-model="form.oldPassword"
-					type="password"
-					placeholder="请填写原密码"
-					clearable
-				/>
-			</el-form-item>
+					<el-form-item :label="$t('原密码')">
+						<el-input
+							v-model="form.oldPassword"
+							type="password"
+							:placeholder="$t('请填写原密码')"
+							clearable
+						/>
+					</el-form-item>
 
-			<el-form-item label="新密码">
-				<el-input
-					v-model="form.password"
-					type="password"
-					placeholder="请填写新密码"
-					clearable
-				/>
-			</el-form-item>
+					<el-form-item :label="$t('新密码')">
+						<el-input
+							v-model="form.password"
+							type="password"
+							:placeholder="$t('请填写新密码')"
+							clearable
+						/>
+					</el-form-item>
 
-			<el-form-item>
-				<el-button type="primary" :disabled="loading" @click="save">保存修改</el-button>
-			</el-form-item>
-		</el-form>
+					<el-form-item>
+						<el-button type="primary" :disabled="loading" @click="save">{{
+							$t('保存修改')
+						}}</el-button>
+					</el-form-item>
+				</el-form>
+			</div>
+		</el-scrollbar>
 	</div>
 </template>
 
-<script lang="ts" name="my-info" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'my-info'
+});
+
 import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
 import { useBase } from '/$/base';
 import { useCool } from '/@/cool';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const { service } = useCool();
 const { user } = useBase();
 
@@ -66,7 +82,7 @@ async function save() {
 			form.password = '';
 			form.oldPassword = '';
 
-			ElMessage.success('修改成功');
+			ElMessage.success(t('修改成功'));
 			user.get();
 		})
 		.catch(err => {
@@ -86,8 +102,8 @@ onMounted(() => {
 .view-my {
 	background-color: var(--el-bg-color);
 	height: 100%;
-	padding: 20px;
 	box-sizing: border-box;
+	border-radius: 6px;
 
 	.el-form {
 		width: 400px;
@@ -97,6 +113,7 @@ onMounted(() => {
 	.title {
 		margin-bottom: 30px;
 		font-size: 15px;
+		font-weight: bold;
 	}
 }
 </style>

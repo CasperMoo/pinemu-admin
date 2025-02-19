@@ -14,56 +14,64 @@
 			>
 				<p class="name">{{ item.name }}</p>
 				<p class="row">
-					<span>执行服务</span>
+					<span>{{ $t('执行服务') }}</span>
 					<span>{{ item.service }}</span>
 				</p>
 				<p class="row">
-					<span>定时规则</span>
-					<span>{{ item.taskType == 1 ? `间隔${item._every}秒执行` : item.cron }}</span>
+					<span>{{ $t('定时规则') }}</span>
+					<span>{{
+						item.taskType == 1
+							? $t('间隔{every}秒执行', { every: item._every })
+							: item.cron
+					}}</span>
 				</p>
 
 				<div class="status">
 					<template v-if="item.status">
-						<el-tag disable-transitions effect="dark" type="success">进行中</el-tag>
-
-						<el-icon
-							v-permission="service.task.info.permission.stop"
-							class="pause"
+						<div
+							class="icon"
 							@click.stop="stop(item)"
+							v-permission="service.task.info.permission.stop"
 						>
-							<video-pause />
-						</el-icon>
+							<cl-svg name="close-border" />
+						</div>
+
+						<el-tag disable-transitions effect="plain" type="success">{{
+							$t('进行中')
+						}}</el-tag>
 					</template>
 
 					<template v-else>
-						<el-tag disable-transitions effect="dark" type="danger">已停止</el-tag>
-
-						<el-icon
-							v-permission="service.task.info.permission.start"
-							class="play"
+						<div
+							class="icon"
 							@click.stop="start(item)"
+							v-permission="service.task.info.permission.start"
 						>
-							<video-play />
-						</el-icon>
+							<cl-svg name="play" />
+						</div>
+
+						<el-tag disable-transitions effect="plain" type="danger">{{
+							$t('已停止')
+						}}</el-tag>
 					</template>
 
-					<cl-flex1 />
+					<div class="flex1"></div>
 
-					<el-icon
-						v-permission="service.task.info.permission.log"
-						class="log"
+					<div
+						class="icon"
 						@click.stop="log(item)"
+						v-permission="service.task.info.permission.log"
 					>
-						<tickets />
-					</el-icon>
+						<cl-svg name="order" />
+					</div>
 
-					<el-icon
-						v-permission="service.task.info.permission.delete"
-						class="delete"
+					<div
+						class="icon"
 						@click.stop="remove(item)"
+						v-permission="service.task.info.permission.delete"
 					>
-						<delete />
-					</el-icon>
+						<cl-svg name="delete" />
+					</div>
 				</div>
 			</div>
 
@@ -72,10 +80,8 @@
 				class="item is-add"
 				@click="edit()"
 			>
-				<el-icon>
-					<plus />
-				</el-icon>
-				<p>添加计划任务</p>
+				<cl-svg name="plus" :size="36" />
+				<p>{{ $t('添加计划任务') }}</p>
 			</div>
 		</div>
 
@@ -87,17 +93,23 @@
 	</div>
 </template>
 
-<script lang="ts" name="task-list" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'task-list'
+});
+
 import { onActivated, ref } from 'vue';
 import { useBrowser, useCool } from '/@/cool';
 import { VideoPlay, VideoPause, Plus, Tickets, Delete } from '@element-plus/icons-vue';
 import { ContextMenu, useForm } from '@cool-vue/crud';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import TaskLogs from '../components/logs.vue';
+import { useI18n } from 'vue-i18n';
 
 const { service, refs, setRefs } = useCool();
 const { browser } = useBrowser();
 const Form = useForm();
+const { t } = useI18n();
 
 const list = ref<Eps.TaskInfoEntity[]>([]);
 
@@ -116,7 +128,7 @@ function refresh() {
 
 // 启用任务
 function start(item: Eps.TaskInfoEntity) {
-	ElMessageBox.confirm(`此操作将启用任务（${item.name}），是否继续？`, '提示', {
+	ElMessageBox.confirm(t('此操作将启用任务（{name}），是否继续？', { name: item.name }), '提示', {
 		type: 'warning'
 	})
 		.then(() => {
@@ -134,7 +146,7 @@ function start(item: Eps.TaskInfoEntity) {
 
 // 停用任务
 function stop(item: Eps.TaskInfoEntity) {
-	ElMessageBox.confirm(`此操作将停用任务（${item.name}），是否继续？`, '提示', {
+	ElMessageBox.confirm(t('此操作将停用任务（{name}），是否继续？', { name: item.name }), '提示', {
 		type: 'warning'
 	})
 		.then(() => {
@@ -152,7 +164,7 @@ function stop(item: Eps.TaskInfoEntity) {
 
 // 删除任务
 function remove(item: Eps.TaskInfoEntity) {
-	ElMessageBox.confirm(`此操作将删除任务（${item.name}），是否继续？`, '提示', {
+	ElMessageBox.confirm(t('此操作将删除任务（{name}），是否继续？', { name: item.name }), '提示', {
 		type: 'warning'
 	})
 		.then(() => {
@@ -180,14 +192,14 @@ async function edit(item?: Eps.TaskInfoEntity) {
 	}
 
 	Form.value?.open({
-		title: '编辑计划任务',
+		title: t('编辑计划任务'),
 		width: '600px',
 		props: {
 			labelWidth: '80px'
 		},
 		items: [
 			{
-				label: '名称',
+				label: t('名称'),
 				prop: 'name',
 				component: {
 					name: 'el-input',
@@ -198,7 +210,7 @@ async function edit(item?: Eps.TaskInfoEntity) {
 				required: true
 			},
 			{
-				label: '类型',
+				label: t('类型'),
 				prop: 'taskType',
 				value: 0,
 				component: {
@@ -209,7 +221,7 @@ async function edit(item?: Eps.TaskInfoEntity) {
 							value: 0
 						},
 						{
-							label: '时间间隔',
+							label: t('时间间隔'),
 							value: 1
 						}
 					]
@@ -229,7 +241,7 @@ async function edit(item?: Eps.TaskInfoEntity) {
 				required: true
 			},
 			{
-				label: '间隔(秒)',
+				label: t('间隔(秒)'),
 				prop: 'every',
 				hidden: ({ scope }) => scope.taskType == 0,
 				hook: {
@@ -260,7 +272,7 @@ async function edit(item?: Eps.TaskInfoEntity) {
 				}
 			},
 			{
-				label: '开始时间',
+				label: t('开始时间'),
 				prop: 'startDate',
 				hidden: ({ scope }) => scope.taskType == 1,
 				component: {
@@ -272,7 +284,7 @@ async function edit(item?: Eps.TaskInfoEntity) {
 				}
 			},
 			{
-				label: '备注',
+				label: t('备注'),
 				prop: 'remark',
 				component: {
 					name: 'el-input',
@@ -295,7 +307,7 @@ async function edit(item?: Eps.TaskInfoEntity) {
 				service.task.info[item?.id ? 'update' : 'add'](data)
 					.then(() => {
 						refresh();
-						ElMessage.success('保存成功');
+						ElMessage.success(t('保存成功'));
 						close();
 					})
 					.catch(err => {
@@ -325,7 +337,7 @@ function onContextMenu(e: any, item: Eps.TaskInfoEntity) {
 		list: [
 			item.status
 				? {
-						label: '暂停',
+						label: t('暂停'),
 						hidden: !service.task.info._permission.stop,
 						callback(done) {
 							stop(item);
@@ -333,7 +345,7 @@ function onContextMenu(e: any, item: Eps.TaskInfoEntity) {
 						}
 					}
 				: {
-						label: '开始',
+						label: t('开始'),
 						hidden: !service.task.info._permission.start,
 						callback(done) {
 							start(item);
@@ -341,7 +353,7 @@ function onContextMenu(e: any, item: Eps.TaskInfoEntity) {
 						}
 					},
 			{
-				label: '立即执行',
+				label: t('立即执行'),
 				hidden: !service.task.info._permission.once,
 				callback(done) {
 					once(item);
@@ -349,7 +361,7 @@ function onContextMenu(e: any, item: Eps.TaskInfoEntity) {
 				}
 			},
 			{
-				label: '编辑',
+				label: t('编辑'),
 				hidden: !(
 					service.task.info._permission.update && service.task.info._permission.info
 				),
@@ -359,7 +371,7 @@ function onContextMenu(e: any, item: Eps.TaskInfoEntity) {
 				}
 			},
 			{
-				label: '删除',
+				label: t('删除'),
 				hidden: !service.task.info._permission.delete,
 				callback(done) {
 					remove(item);
@@ -367,7 +379,7 @@ function onContextMenu(e: any, item: Eps.TaskInfoEntity) {
 				}
 			},
 			{
-				label: '查看日志',
+				label: t('查看日志'),
 				hidden: !service.task.info._permission.log,
 				callback(done) {
 					log(item);
@@ -429,34 +441,31 @@ onActivated(() => {
 				display: flex;
 				align-items: center;
 				justify-content: space-between;
-				border-top: 1px solid var(--el-border-color-lighter);
-				height: 50px;
+				margin-top: 15px;
 
-				.el-icon {
+				.flex1 {
+					flex: 1;
+				}
+
+				.icon {
 					font-size: 16px;
 					cursor: pointer;
-					margin-left: 10px;
-					padding: 5px;
-					border-radius: 4px;
+					border-radius: 6px;
+					height: 28px;
+					width: 28px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					margin-right: 10px;
+					background-color: var(--el-border-color-lighter);
+					color: var(--el-text-color-primary);
 
 					&:hover {
-						background-color: var(--el-border-color-lighter);
+						background-color: var(--el-border-color-light);
 					}
 
-					&.play {
-						color: var(--el-color-primary);
-					}
-
-					&.pause {
-						color: var(--el-color-danger);
-					}
-
-					&.log {
-						color: var(--el-color-info);
-					}
-
-					&.delete {
-						color: var(--el-color-danger);
+					&:last-child {
+						margin-right: 0;
 					}
 				}
 			}
@@ -471,10 +480,6 @@ onActivated(() => {
 				align-items: center;
 				justify-content: center;
 				color: var(--el-color-info);
-
-				.el-icon {
-					font-size: 30px;
-				}
 
 				p {
 					font-size: 13px;

@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">mode</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>mode</el-tag>
 			<span>新增、编辑、详情模式</span>
 		</div>
 

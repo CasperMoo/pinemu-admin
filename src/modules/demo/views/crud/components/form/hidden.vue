@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">hidden</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>hidden</el-tag>
 			<span>隐藏/显示</span>
 		</div>
 

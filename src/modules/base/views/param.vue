@@ -4,11 +4,14 @@
 			<cl-refresh-btn />
 			<cl-add-btn />
 			<cl-multi-delete-btn />
-			<cl-filter label="数据类型">
-				<cl-select :options="options.dataType" prop="dataType" :width="120"></cl-select>
-			</cl-filter>
 			<cl-flex1 />
-			<cl-search-key placeholder="搜索名称、keyName" />
+			<cl-select
+				:options="options.dataType"
+				prop="dataType"
+				:width="120"
+				:placeholder="$t('数据类型')"
+			/>
+			<cl-search-key :placeholder="$t('搜索名称、keyName')" />
 		</cl-row>
 
 		<cl-row>
@@ -24,29 +27,35 @@
 	</cl-crud>
 </template>
 
-<script lang="ts" name="sys-param" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'sys-param'
+});
+
 import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
 import { Document } from '@element-plus/icons-vue';
 import { reactive } from 'vue';
 import { useCool } from '/@/cool';
+import { useI18n } from 'vue-i18n';
 
 const { service } = useCool();
+const { t } = useI18n();
 
 // 选项
 const options = reactive({
 	dataType: [
 		{
-			label: '字符串',
+			label: t('字符串'),
 			value: 0,
 			type: 'info'
 		},
 		{
-			label: '富文本',
+			label: t('富文本'),
 			value: 1,
 			type: 'success'
 		},
 		{
-			label: '文件',
+			label: t('文件'),
 			value: 2
 		}
 	]
@@ -65,7 +74,7 @@ const Table = useTable({
 			width: 60
 		},
 		{
-			label: '名称',
+			label: t('名称'),
 			prop: 'name',
 			minWidth: 150
 		},
@@ -75,19 +84,18 @@ const Table = useTable({
 			minWidth: 150
 		},
 		{
-			label: '数据类型',
+			label: t('数据类型'),
 			prop: 'dataType',
 			minWidth: 150,
 			dict: options.dataType
 		},
 		{
-			label: '备注',
+			label: t('备注'),
 			prop: 'remark',
 			minWidth: 200,
 			showOverflowTooltip: true
 		},
 		{
-			label: '操作',
 			type: 'op'
 		}
 	]
@@ -102,7 +110,7 @@ const Upsert = useUpsert({
 	items: [
 		{
 			prop: 'name',
-			label: '名称',
+			label: t('名称'),
 			span: 12,
 			required: true,
 			component: {
@@ -117,13 +125,13 @@ const Upsert = useUpsert({
 			component: {
 				name: 'el-input',
 				props: {
-					placeholder: '请输入Key'
+					placeholder: t('请输入Key')
 				}
 			}
 		},
 		{
 			prop: 'dataType',
-			label: '类型',
+			label: t('类型'),
 			value: 0,
 			required: true,
 			component: {
@@ -133,7 +141,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'data_0',
-			label: '数据',
+			label: t('数据'),
 			hidden({ scope }) {
 				return scope.dataType != 0;
 			},
@@ -148,7 +156,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'data_1',
-			label: '数据',
+			label: t('数据'),
 			hidden({ scope }) {
 				return scope.dataType != 1;
 			},
@@ -162,7 +170,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'data_2',
-			label: '数据',
+			label: t('数据'),
 			required: true,
 			hidden({ scope }) {
 				return scope.dataType != 2;
@@ -178,11 +186,11 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'remark',
-			label: '备注',
+			label: t('备注'),
 			component: {
 				name: 'el-input',
 				props: {
-					placeholder: '请输入备注',
+					placeholder: t('请输入备注'),
 					rows: 3,
 					type: 'textarea'
 				}

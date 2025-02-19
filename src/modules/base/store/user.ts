@@ -2,14 +2,13 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { storage } from '/@/cool/utils';
 import { service, router } from '/@/cool';
-import { config } from '/@/config';
 
 // 本地缓存
 const data = storage.info();
 
 export const useUserStore = defineStore('user', function () {
 	// 标识
-	const token = ref<string>(config.test.token || data.token);
+	const token = ref<string>(data.token);
 
 	// 设置标识
 	function setToken(data: {

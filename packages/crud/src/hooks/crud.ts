@@ -171,9 +171,7 @@ export function useSearch<T = any>(options?: ClSearch.Options<T>) {
 	const Search = ref<ClSearch.Ref<T>>();
 	useParent("cl-search", Search);
 
-	if (options) {
-		provide("useSearch__options", options);
-	}
+	provide("useSearch__options", options);
 
 	return Search;
 }

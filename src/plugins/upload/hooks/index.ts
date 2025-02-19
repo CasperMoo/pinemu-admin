@@ -4,12 +4,13 @@ import { uuid } from '/@/cool/utils';
 import { pathJoin } from '../utils';
 import { useBase } from '/$/base';
 import { type AxiosProgressEvent } from 'axios';
-import type { Upload } from '../types';
 import { merge } from 'lodash-es';
+import { useI18n } from 'vue-i18n';
 
 export function useUpload() {
 	const { options } = module.get('upload');
 	const { user } = useBase();
+	const { t } = useI18n();
 
 	// 上传
 	async function toUpload(file: File, opts: Upload.Options = {}): Upload.Respose {
@@ -170,7 +171,7 @@ export function useUpload() {
 							.catch(reject);
 					}
 				} catch (err) {
-					ElMessage.error('文件上传失败');
+					ElMessage.error(t('文件上传失败'));
 					console.error('[upload]', err);
 					reject(err);
 				}

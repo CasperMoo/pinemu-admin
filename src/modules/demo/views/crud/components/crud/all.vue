@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">all</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>all</el-tag>
 			<span>完整示例</span>
 		</div>
 
@@ -23,7 +23,7 @@
 
 						<!-- 筛选 -->
 						<cl-filter label="状态筛选">
-							<!-- 配置props，选择后会自动过滤列表 -->
+							<!-- 配置prop，选择后会自动过滤列表 -->
 							<cl-select :options="options.status" prop="status" :width="120" />
 						</cl-filter>
 
@@ -119,7 +119,11 @@
 	</div>
 </template>
 
-<script lang="tsx" name="demo-crud" setup>
+<script lang="tsx" setup>
+defineOptions({
+	name: 'demo-crud'
+});
+
 import { useCrud, useUpsert, useTable, useAdvSearch, useSearch } from '@cool-vue/crud';
 import { useDict } from '/$/dict';
 import { reactive, ref } from 'vue';
@@ -156,7 +160,7 @@ const subData = reactive({
 const Crud = useCrud(
 	{
 		// 绑定的服务，如：service.demo.goods、service.base.sys.user
-		service: service.test,
+		service: 'test',
 
 		// 刷新事件
 		async onRefresh(params, { next }) {
@@ -486,7 +490,7 @@ const Table = useTable({
 		},
 		{
 			type: 'op',
-			width: 320,
+			width: 340,
 			// 静态配置按钮
 			// buttons: ["info", "edit", "delete"],
 			// 动态配置按钮

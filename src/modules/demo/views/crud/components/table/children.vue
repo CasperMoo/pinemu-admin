@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">children</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>children</el-tag>
 			<span>多级表头</span>
 		</div>
 
@@ -20,9 +20,6 @@
 						<cl-flex1 />
 						<cl-pagination />
 					</cl-row>
-
-					<!-- 新增、编辑 -->
-					<cl-upsert ref="Upsert" />
 				</cl-crud>
 			</cl-dialog>
 		</div>

@@ -1,14 +1,15 @@
-import type { ModuleConfig } from '/@/cool';
-import { getRules } from './utils';
+import { type ModuleConfig } from '/@/cool';
 
 export default (): ModuleConfig => {
 	return {
 		options: {
-			host: 'https://service.cool-js.com/api'
+			index: 'https://cool-js.com',
+			api: 'https://service.cool-js.com/api'
 		},
 		toolbar: {
+			h5: false,
 			order: 1,
-			component: import('./components/auto-menu/btn.vue')
+			component: import('./components/ai-code/btn.vue')
 		},
 		pages: [
 			{
@@ -19,9 +20,6 @@ export default (): ModuleConfig => {
 				},
 				component: () => import('./views/ai-code.vue')
 			}
-		],
-		onLoad() {
-			getRules();
-		}
+		]
 	};
 };

@@ -1,7 +1,7 @@
 <template>
 	<div class="cl-dept-check">
 		<div class="cl-dept-check__search">
-			<el-input v-model="keyword" placeholder="输入关键字进行过滤" />
+			<el-input v-model="keyword" :placeholder="$t('输入关键字进行过滤')" />
 		</div>
 
 		<div class="cl-dept-check__tree">
@@ -24,11 +24,18 @@
 	</div>
 </template>
 
-<script lang="ts" name="cl-dept-check" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-dept-check'
+});
+
 import { ref, watch } from 'vue';
 import { deepTree } from '/@/cool/utils';
 import { useCool } from '/@/cool';
 import { useUpsert } from '@cool-vue/crud';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
 	modelValue: {

@@ -8,28 +8,30 @@ import { useBase } from '/$/base';
 import { router } from '../router';
 import { config, isDev } from '/@/config';
 
+// 创建 axios 实例
 const request = axios.create({
-	timeout: import.meta.env.VITE_TIMEOUT,
-	withCredentials: false
+	timeout: import.meta.env.VITE_TIMEOUT, // 设置请求超时时间
+	withCredentials: false // 不携带凭证
 });
 
+// 配置 NProgress
 NProgress.configure({
-	showSpinner: true
+	showSpinner: true // 显示加载指示器
 });
 
-// 请求队列
+// 请求队列，用于存储待处理的请求
 let queue: Array<(token: string) => void> = [];
 
-// 是否刷新中
+// 标识是否正在刷新 token
 let isRefreshing = false;
 
-// 请求
+// 请求拦截器
 request.interceptors.request.use(
 	(req: any) => {
-		const { user } = useBase();
+		const { user } = useBase(); // 获取用户信息
 
 		if (req.url) {
-			// 请求进度条
+			// 控制请求进度条的显示
 			if (
 				!config.ignore.NProgress.some(e => req.url.match(new RegExp(`${e}.*`))) &&
 				(req.NProgress ?? true)
@@ -38,7 +40,7 @@ request.interceptors.request.use(
 			}
 		}
 
-		// 请求信息
+		// 在开发环境中打印请求信息
 		if (isDev) {
 			console.group(req.url);
 			console.log('method:', req.method);
@@ -46,14 +48,21 @@ request.interceptors.request.use(
 			console.groupEnd();
 		}
 
+		if (!req.headers) {
+			req.headers = {};
+		}
+
+		// 设置请求头中的语言
+		req.headers['language'] = config.i18n.locale;
+
 		// 验证 token
 		if (user.token) {
-			// 请求标识
-			if (req.headers && req.headers['Authorization'] !== null) {
+			// 设置请求头中的 Authorization
+			if (req.headers['Authorization'] !== null) {
 				req.headers['Authorization'] = user.token;
 			}
 
-			// 忽略
+			// 忽略特定请求
 			if (['eps', 'refreshToken'].some(e => endsWith(req.url, e))) {
 				return req;
 			}
@@ -65,13 +74,13 @@ request.interceptors.request.use(
 					ElMessage.error('登录状态已失效，请重新登录');
 					user.logout();
 				} else {
-					// 是否在刷新中
+					// 如果不在刷新中，则刷新 token
 					if (!isRefreshing) {
 						isRefreshing = true;
 
 						user.refreshToken()
 							.then(token => {
-								queue.forEach(cb => cb(token));
+								queue.forEach(cb => cb(token)); // 处理队列中的请求
 								queue = [];
 								isRefreshing = false;
 							})
@@ -80,12 +89,11 @@ request.interceptors.request.use(
 							});
 					}
 
+					// 返回一个新的 Promise，等待 token 刷新完成
 					return new Promise(resolve => {
-						// 继续请求
 						queue.push(token => {
-							// 重新设置 token
 							if (req.headers) {
-								req.headers['Authorization'] = token;
+								req.headers['Authorization'] = token; // 重新设置 token
 							}
 							resolve(req);
 						});
@@ -97,14 +105,14 @@ request.interceptors.request.use(
 		return req;
 	},
 	error => {
-		return Promise.reject(error);
+		return Promise.reject(error); // 请求错误处理
 	}
 );
 
-// 响应
+// 响应拦截器
 request.interceptors.response.use(
 	res => {
-		NProgress.done();
+		NProgress.done(); // 结束进度条
 
 		if (!res?.data) {
 			return res;
@@ -113,45 +121,45 @@ request.interceptors.response.use(
 		const { code, data, message } = res.data;
 
 		if (!code) {
-			return res.data;
+			return res.data; // 返回数据
 		}
 
 		switch (code) {
 			case 1000:
-				return data;
+				return data; // 成功返回数据
 			default:
-				return Promise.reject({ code, message });
+				return Promise.reject({ code, message }); // 处理错误
 		}
 	},
 	async error => {
-		NProgress.done();
+		NProgress.done(); // 结束进度条
 
 		if (error.response) {
 			const { status } = error.response;
 			const { user } = useBase();
 
 			if (status == 401) {
-				user.logout();
+				user.logout(); // 未授权，登出用户
 			} else {
 				if (!isDev) {
 					switch (status) {
 						case 403:
-							router.push('/403');
+							router.push('/403'); // 禁止访问
 							break;
 
 						case 500:
-							router.push('/500');
+							router.push('/500'); // 服务器错误
 							break;
 
 						case 502:
-							router.push('/502');
+							router.push('/502'); // 网关错误
 							break;
 					}
 				}
 			}
 		}
 
-		return Promise.reject({ message: error.message });
+		return Promise.reject({ message: error.response?.data?.message || error.message }); // 返回错误信息
 	}
 );
 

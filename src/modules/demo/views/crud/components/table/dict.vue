@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">dict</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>dict</el-tag>
 			<span>字典匹配</span>
 		</div>
 
@@ -96,9 +96,9 @@ const Table = useTable({
 			// 自定义匹配列表
 			dict: [
 				{
-					label: '启用', // 显示文本
-					value: 1, // 匹配值
-					type: 'success' // el-tag 的type：success、danger、warning、info 默认 primary
+					label: '启用',
+					value: 1,
+					type: 'success'
 				},
 				{
 					label: '禁用',

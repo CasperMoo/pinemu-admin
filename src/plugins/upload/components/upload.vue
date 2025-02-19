@@ -66,7 +66,11 @@
 										<upload-filled />
 									</el-icon>
 									<div>
-										点击上传或将文件拖动到此处，文件大小限制{{ limitSize }}M
+										{{
+											t('点击上传或将文件拖动到此处，文件大小限制{n}M', {
+												n: limitSize
+											})
+										}}
 									</div>
 								</div>
 
@@ -130,9 +134,13 @@
 	</div>
 </template>
 
-<script lang="ts" setup name="cl-upload">
-import { computed, ref, watch, type PropType, nextTick, mergeProps } from 'vue';
-import { isArray, isEmpty, isNumber } from 'lodash-es';
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-upload'
+});
+
+import { computed, ref, watch, type PropType, nextTick } from 'vue';
+import { assign, isArray, isEmpty, isNumber } from 'lodash-es';
 import VueDraggable from 'vuedraggable';
 import { ElMessage } from 'element-plus';
 import { PictureFilled, UploadFilled, CircleCloseFilled } from '@element-plus/icons-vue';
@@ -143,8 +151,8 @@ import { uuid, isPromise } from '/@/cool/utils';
 import { getUrls, getType } from '../utils';
 import { useUpload } from '../hooks';
 import UploadItem from './upload-item/index.vue';
-import type { Upload } from '../types';
-import { CrudProps } from '../../crud';
+import { CrudProps } from '/#/crud';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
 	...CrudProps,
@@ -205,14 +213,13 @@ const props = defineProps({
 	prefixPath: String
 });
 
-mergeProps(props, CrudProps);
-
 const emit = defineEmits(['update:modelValue', 'change', 'upload', 'success', 'error', 'progress']);
 
 const { refs, setRefs } = useCool();
 const { user } = useBase();
 const Form = useForm();
 const { options, toUpload } = useUpload();
+const { t } = useI18n();
 
 // 元素尺寸
 const size = computed(() => {
@@ -238,10 +245,10 @@ const text = computed(() => {
 	} else {
 		switch (props.type) {
 			case 'file':
-				return '选择文件';
+				return t('选择文件');
 
 			case 'image':
-				return '选择图片';
+				return t('选择图片');
 
 			default:
 				return '';
@@ -310,11 +317,11 @@ async function onBeforeUpload(file: any, item?: Upload.Item) {
 
 		// 赋值
 		if (item) {
-			Object.assign(item, d);
+			assign(item, d);
 		} else {
 			if (props.multiple) {
 				if (!isAdd.value) {
-					ElMessage.warning(`最多只能上传${limit}个文件`);
+					ElMessage.warning(t('最多只能上传{n}个文件', { n: limit }));
 					return false;
 				} else {
 					list.value.push(d);
@@ -342,7 +349,7 @@ async function onBeforeUpload(file: any, item?: Upload.Item) {
 		return r;
 	} else {
 		if (file.size / 1024 / 1024 >= limitSize) {
-			ElMessage.error(`上传文件大小不能超过 ${limitSize}MB!`);
+			ElMessage.error(t('上传文件大小不能超过 {n}MB!', { n: limitSize }));
 			return false;
 		}
 
@@ -380,7 +387,7 @@ async function httpRequest(req: any, item?: Upload.Item) {
 		}
 	})
 		.then(res => {
-			Object.assign(item!, res);
+			assign(item!, res);
 			emit('success', item);
 			update();
 		})
@@ -443,7 +450,7 @@ watch(
 			.map((url, index) => {
 				const old = list.value[index] || {};
 
-				return Object.assign(
+				return assign(
 					{
 						progress: 100,
 						uid: uuid()
@@ -509,7 +516,7 @@ defineExpose({
 		width: v-bind('size[1]');
 		background-color: var(--el-fill-color-light);
 		color: var(--el-text-color-regular);
-		border-radius: 6px;
+		border-radius: 8px;
 		cursor: pointer;
 		box-sizing: border-box;
 		position: relative;

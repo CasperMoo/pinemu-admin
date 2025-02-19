@@ -36,7 +36,7 @@
 			>
 				<!-- 图标 -->
 				<template #column-icon="{ scope }">
-					<cl-svg :name="scope.row.icon" size="16px" style="margin-top: 5px" />
+					<cl-svg :name="scope.row.icon" :size="16" />
 				</template>
 
 				<!-- 是否显示 -->
@@ -70,21 +70,6 @@
 					}}</el-link>
 					<span v-else>{{ scope.row.router }}</span>
 				</template>
-
-				<!-- 行新增 -->
-				<template #slot-add="{ scope }">
-					<el-button
-						v-permission="{
-							and: [service.base.sys.menu.permission.add, scope.row.type != 2]
-						}"
-						type="success"
-						text
-						bg
-						@click="append(scope.row)"
-					>
-						新增
-					</el-button>
-				</template>
 			</cl-table>
 		</cl-row>
 
@@ -105,17 +90,23 @@
 	</cl-crud>
 </template>
 
-<script lang="ts" name="sys-menu" setup>
-import { setFocus, useCrud, useTable, useUpsert } from '@cool-vue/crud';
+<script lang="ts" setup>
+defineOptions({
+	name: 'sys-menu'
+});
+
+import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { deepTree } from '/@/cool/utils';
 import { useStore } from '/$/base/store';
 import { isEmpty } from 'lodash-es';
 import MenuImp from './components/imp.vue';
 import MenuExp from './components/exp.vue';
-import AutoMenu from '/$/helper/components/auto-menu/index.vue';
-import AutoPerms from '/$/helper/components/auto-perms/index.vue';
-import { reactive } from 'vue';
+import AutoMenu from '/$/helper/components/auto-menu.vue';
+import AutoPerms from '/$/helper/components/auto-perms.vue';
+import { onMounted, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { Plugins } from '/#/crud';
 
 interface Item extends Eps.BaseSysMenuEntity {
 	children?: Item[];
@@ -125,21 +116,22 @@ interface Item extends Eps.BaseSysMenuEntity {
 
 const { service, mitt } = useCool();
 const { menu } = useStore();
+const { t } = useI18n();
 
 const options = reactive({
 	type: [
 		{
-			label: '目录',
+			label: t('目录'),
 			value: 0,
 			type: 'warning'
 		},
 		{
-			label: '菜单',
+			label: t('菜单'),
 			value: 1,
 			type: 'success'
 		},
 		{
-			label: '权限',
+			label: t('权限'),
 			value: 2,
 			type: 'danger'
 		}
@@ -151,7 +143,7 @@ const Table = useTable({
 	contextMenu: [
 		row => {
 			return {
-				label: '新增',
+				label: t('新增'),
 				hidden: !(row.type != 2 && service.base.sys.user._permission.add),
 				callback(done) {
 					append(row);
@@ -163,7 +155,7 @@ const Table = useTable({
 		'delete',
 		row => {
 			return {
-				label: '权限',
+				label: t('权限'),
 				hidden: !(row.type != 2 && service.base.sys.user._permission.add),
 				callback(done) {
 					addPermission(row);
@@ -178,46 +170,46 @@ const Table = useTable({
 		},
 		{
 			prop: 'name',
-			label: '名称',
+			label: t('名称'),
 			align: 'left',
 			width: 200,
 			fixed: 'left'
 		},
 		{
 			prop: 'isShow',
-			label: '是否显示',
+			label: t('是否显示'),
 			width: 100
 		},
 		{
 			prop: 'icon',
-			label: '图标',
+			label: t('图标'),
 			width: 100
 		},
 		{
 			prop: 'type',
-			label: '类型',
-			width: 100,
+			label: t('类型'),
+			width: 110,
 			dict: options.type
 		},
 		{
 			prop: 'router',
-			label: '节点路由',
+			label: t('节点路由'),
 			minWidth: 170
 		},
 		{
 			prop: 'keepAlive',
-			label: '路由缓存',
+			label: t('路由缓存'),
 			width: 100
 		},
 		{
 			prop: 'viewPath',
-			label: '文件路径',
+			label: t('文件路径'),
 			minWidth: 200,
 			showOverflowTooltip: true
 		},
 		{
 			prop: 'perms',
-			label: '权限',
+			label: t('权限'),
 			headerAlign: 'center',
 			minWidth: 300,
 			component: {
@@ -226,21 +218,33 @@ const Table = useTable({
 		},
 		{
 			prop: 'orderNum',
-			label: '排序号',
+			label: t('排序号'),
 			width: 90,
 			fixed: 'right'
 		},
 		{
 			prop: 'updateTime',
-			label: '更新时间',
+			label: t('更新时间'),
 			sortable: 'custom',
 			width: 170
 		},
 		{
-			label: '操作',
 			type: 'op',
 			width: 250,
-			buttons: ['slot-add', 'edit', 'delete']
+			buttons({ scope }) {
+				return [
+					{
+						label: t('新增'),
+						type: 'success',
+						hidden: !(service.base.sys.menu._permission.add && scope.row.type != 2),
+						onClick({ scope }) {
+							append(scope.row);
+						}
+					},
+					'edit',
+					'delete'
+				];
+			}
 		}
 	]
 });
@@ -254,7 +258,7 @@ const Upsert = useUpsert({
 		{
 			prop: 'type',
 			value: 0,
-			label: '节点类型',
+			label: t('节点类型'),
 			required: true,
 			component: {
 				name: 'el-radio-group',
@@ -263,7 +267,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'name',
-			label: '节点名称',
+			label: t('节点名称'),
 			component: {
 				name: 'el-input'
 			},
@@ -271,7 +275,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'parentId',
-			label: '上级节点',
+			label: t('上级节点'),
 			hook: {
 				submit(value) {
 					return value || null;
@@ -283,29 +287,29 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'router',
-			label: '节点路由',
+			label: t('节点路由'),
 			hidden: ({ scope }) => scope.type != 1,
 			component: {
 				name: 'el-input',
 				props: {
-					placeholder: '请输入节点路由，如：/test'
+					placeholder: t('请输入节点路由，如：/test')
 				}
 			}
 		},
 		{
 			prop: 'keepAlive',
 			value: true,
-			label: '路由缓存',
+			label: t('路由缓存'),
 			hidden: ({ scope }) => scope.type != 1,
 			component: {
 				name: 'el-radio-group',
 				options: [
 					{
-						label: '开启',
+						label: t('开启'),
 						value: true
 					},
 					{
-						label: '关闭',
+						label: t('关闭'),
 						value: false
 					}
 				]
@@ -313,7 +317,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'isShow',
-			label: '是否显示',
+			label: t('是否显示'),
 			value: true,
 			hidden: ({ scope }) => scope.type == 2,
 			flex: false,
@@ -323,7 +327,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'viewPath',
-			label: '文件路径',
+			label: t('文件路径'),
 			hidden: ({ scope }) => scope.type != 1,
 			component: {
 				name: 'cl-menu-file'
@@ -331,19 +335,22 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'icon',
-			label: '节点图标',
+			label: t('图标'),
 			hidden: ({ scope }) => scope.type == 2,
 			component: {
-				name: 'cl-menu-icon'
+				name: 'cl-menu-icon',
+				props: {
+					showIcon: true
+				}
 			}
 		},
 		{
 			prop: 'orderNum',
-			label: '排序号',
+			label: t('排序号'),
 			component: {
 				name: 'el-input-number',
 				props: {
-					placeholder: '请填写排序号',
+					placeholder: t('请填写排序号'),
 					min: 0,
 					max: 99,
 					'controls-position': 'right'
@@ -359,7 +366,7 @@ const Upsert = useUpsert({
 			}
 		}
 	],
-	plugins: [setFocus('name')]
+	plugins: [Plugins.Form.setFocus('name')]
 });
 
 // cl-crud
@@ -444,4 +451,8 @@ function addPermission({ id }: Item) {
 }
 
 mitt.on('helper.createMenu', refresh);
+
+onMounted(() => {
+	console.log(Table.value);
+});
 </script>

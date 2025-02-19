@@ -15,7 +15,11 @@
 	</div>
 </template>
 
-<script lang="ts" name="cl-menu-perms" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-menu-perms'
+});
+
 import { onMounted, ref, watch, reactive } from 'vue';
 import { useCool } from '/@/cool';
 import { deepPaths } from '/@/cool/utils';

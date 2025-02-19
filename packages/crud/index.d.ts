@@ -60,8 +60,8 @@ declare type obj = {
 declare type DeepPartial<T> = T extends Function
 	? T
 	: T extends object
-	  ? { [P in keyof T]?: DeepPartial<T[P]> }
-	  : T;
+		? { [P in keyof T]?: DeepPartial<T[P]> }
+		: T;
 
 // 合并
 declare type Merge<A, B> = Omit<A, keyof B> & B;
@@ -130,6 +130,15 @@ declare namespace Render {
 
 // crud
 declare namespace ClCrud {
+	declare interface Field {
+		comment: string;
+		source: string;
+		propertyName: string;
+		type: string;
+		dict: string | string[];
+		nullable: boolean;
+	}
+
 	interface Label {
 		op: string;
 		add: string;
@@ -248,7 +257,13 @@ declare namespace ClCrud {
 			update(params?: Params["update"]): Promise<Response["update"]>;
 			info(params?: Params["info"]): Promise<Response["info"]>;
 			delete(params?: Params["delete"]): Promise<Response["delete"]>;
-			[key: string]: (params?: any) => Promise<any>;
+			permission: Permission;
+			search: {
+				fieldEq: Field[];
+				fieldLike: Field[];
+				keyWordLikeFields: Field[];
+			};
+			[key: string]: any;
 		};
 	}
 
@@ -320,6 +335,7 @@ declare namespace ClTable {
 		search: {
 			isInput: boolean;
 			value: any;
+			icon: () => any;
 			refreshOnChange: boolean;
 			component: Render.Component;
 		};
@@ -331,6 +347,7 @@ declare namespace ClTable {
 		buttons: OpButton | ((options: { scope: T }) => OpButton);
 		align: ElementPlus.Align;
 		label: any;
+		renderLabel: (options: { column: any; $index: number }) => any;
 		className: string;
 		prop: PropKey<T>;
 		orderNum: number;
@@ -345,6 +362,7 @@ declare namespace ClTable {
 		headerAlign: ElementPlus.Align;
 		showOverflowTooltip: boolean;
 		fixed: boolean | string;
+		render: (row: T, column: any, value: any, index: number) => any;
 		formatter: (row: T, column: any, value: any, index: number) => any;
 		selectable: (row: T, index: number) => boolean;
 		reserveSelection: boolean;
@@ -386,6 +404,9 @@ declare namespace ClTable {
 		sortRefresh: boolean;
 		emptyText: string;
 		rowKey: string;
+		on?: {
+			[key: string]: (...args: any[]) => void;
+		};
 		plugins?: Plugin[];
 		onRowContextmenu?(row: T, column: any, event: any): void;
 	}
@@ -416,6 +437,7 @@ declare namespace ClTable {
 		scrollTo(position: { top?: number; left?: number }): void;
 		setScrollTop(top: number): void;
 		setScrollLeft(left: number): void;
+		updateKeyChildren(key: string, children: any[]): void;
 	}
 
 	interface Options<T = any> extends DeepPartial<Config<T>> {
@@ -663,6 +685,8 @@ declare namespace ClAdvSearch {
 }
 
 declare namespace ClSearch {
+	type Plugin = (options: { exposed: Ref }) => void;
+
 	interface Config<T = any> {
 		inline?: boolean;
 		items?: ClForm.Item[];
@@ -674,6 +698,7 @@ declare namespace ClSearch {
 		onChange?(data: T, prop: string): void;
 		onLoad?(data: T): void;
 		onSearch?(data: T, options: { next: ClCrud.Service["api"]["page"] }): void;
+		plugins?: Plugin[];
 	}
 
 	interface Ref<T = any> extends ClForm.Ref<T> {
@@ -763,6 +788,9 @@ declare interface Config {
 				opWidth: number | string;
 			};
 			plugins: ClTable.Plugin[];
+		};
+		search: {
+			plugins: ClSearch.Plugin[];
 		};
 	};
 }

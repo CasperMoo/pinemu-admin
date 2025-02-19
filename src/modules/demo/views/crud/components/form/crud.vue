@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">crud</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>crud</el-tag>
 			<span>内嵌CRUD</span>
 		</div>
 
@@ -51,9 +51,6 @@
 
 <script setup lang="ts">
 import { useCrud, useForm, useTable, useUpsert } from '@cool-vue/crud';
-import { useCool } from '/@/cool';
-
-const { service } = useCool();
 
 // cl-upsert
 const Upsert = useUpsert({
@@ -101,7 +98,7 @@ const Table = useTable({
 // cl-crud
 const Crud = useCrud(
 	{
-		service: service.test
+		service: 'test'
 	},
 	app => {
 		app.refresh({

@@ -1,7 +1,11 @@
-import type { ModuleConfig } from '/@/cool';
+import { type ModuleConfig } from '/@/cool';
 
 export default (): ModuleConfig => {
 	return {
+		ignore: {
+			NProgress: ['/space/info/add']
+		},
+
 		components: [
 			() => import('./components/space.vue'),
 			() => import('./components/space-inner.vue')

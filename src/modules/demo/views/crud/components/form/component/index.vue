@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">component</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>component</el-tag>
 			<span>组件渲染</span>
 		</div>
 

@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">selection</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>selection</el-tag>
 			<span>多选框数据</span>
 		</div>
 
@@ -14,9 +14,9 @@
 				<cl-crud ref="Crud">
 					<cl-row>
 						<el-button @click="selectRow">选中2行</el-button>
-						<el-button :disabled="Table?.selection.length == 0" @click="clear"
-							>取消选择</el-button
-						>
+						<el-button :disabled="Table?.selection.length == 0" @click="clear">
+							取消选择
+						</el-button>
 					</cl-row>
 
 					<cl-row>
@@ -98,7 +98,6 @@ function selectRow() {
 }
 
 function clear() {
-	// 更多方法查看文档：https://element-plus.gitee.io/zh-CN/component/table.html#table-%E6%96%B9%E6%B3%95
 	Table.value?.clearSelection();
 }
 

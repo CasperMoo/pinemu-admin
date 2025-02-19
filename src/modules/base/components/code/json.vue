@@ -21,11 +21,16 @@
 	</viewer>
 </template>
 
-<script lang="tsx" name="cl-code-json" setup>
+<script lang="tsx" setup>
+defineOptions({
+	name: 'cl-code-json'
+});
+
 import { useClipboard } from '@vueuse/core';
 import { ElMessage } from 'element-plus';
 import { isObject, isString } from 'lodash-es';
 import { computed, defineComponent } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
 	modelValue: [String, Object],
@@ -41,6 +46,7 @@ const props = defineProps({
 });
 
 const { copy } = useClipboard();
+const { t } = useI18n();
 
 // 文本
 const text = computed(() => {
@@ -68,7 +74,7 @@ const viewer = defineComponent({
 				<div class="cl-code-json">
 					<div class="op">
 						<el-button type="success" size="small" onClick={toCopy}>
-							copy
+							{t('复制')}
 						</el-button>
 
 						{slots.op && slots.op()}
@@ -92,7 +98,6 @@ const viewer = defineComponent({
 
 <style lang="scss">
 .cl-code-json {
-	border-radius: 6px;
 	position: relative;
 	min-width: 200px;
 	max-width: 500px;
@@ -122,13 +127,14 @@ const viewer = defineComponent({
 			cursor: pointer;
 
 			&:hover {
-				color: var(--color-primary);
+				color: var(--el-color-primary);
 			}
 		}
 	}
 
 	&__popper {
 		padding: 0 !important;
+		border-radius: 8px !important;
 	}
 }
 </style>

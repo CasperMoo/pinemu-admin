@@ -1,4 +1,4 @@
-export declare namespace Upload {
+declare namespace Upload {
 	interface Rule {
 		name: string;
 		type: string;

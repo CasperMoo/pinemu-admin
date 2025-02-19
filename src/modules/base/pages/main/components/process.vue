@@ -1,40 +1,42 @@
 <template>
 	<div class="app-process">
 		<ul class="app-process__op">
-			<li class="item" @click="toBack">
+			<li class="cl-comm__icon" @click="toBack">
 				<cl-svg name="back" />
 			</li>
-			<li class="item" @click="toRefresh">
+			<li class="cl-comm__icon" @click="toRefresh">
 				<cl-svg name="refresh" />
 			</li>
-			<li class="item" @click="toHome">
+			<li class="cl-comm__icon" @click="toHome">
 				<cl-svg name="home" />
 			</li>
 		</ul>
 
 		<div class="app-process__container">
 			<el-scrollbar :ref="setRefs('scroller')" class="app-process__scroller">
-				<div
-					v-for="(item, index) in process.list"
-					:key="index"
-					:ref="setRefs(`item-${index}`)"
-					class="app-process__item"
-					:class="{ active: item.active }"
-					:data-index="index"
-					@click="onTap(item, Number(index))"
-					@contextmenu.stop.prevent="openCM($event, item)"
-				>
-					<el-text size="small">{{ item.meta?.label || item.name || item.path }}</el-text>
+				<div class="app-process__list">
+					<div
+						v-for="(item, index) in process.list"
+						:key="index"
+						:ref="setRefs(`item-${index}`)"
+						class="app-process__item"
+						:class="{ active: item.active }"
+						:data-index="index"
+						@click="onTap(item, Number(index))"
+						@contextmenu.stop.prevent="openCM($event, item)"
+					>
+						<span class="label tracking-wider text-[12px]">
+							{{ item.meta.label || item.name || item.path }}
+						</span>
 
-					<el-icon @mousedown.stop="onDel(Number(index))">
-						<close-bold />
-					</el-icon>
+						<cl-svg class="close" name="close" @mousedown.stop="onDel(Number(index))" />
+					</div>
 				</div>
 			</el-scrollbar>
 		</div>
 
 		<ul class="app-process__op">
-			<li class="item" @click="toFull">
+			<li class="cl-comm__icon" @click="toFull">
 				<cl-svg name="screen-normal" v-if="app.isFull" />
 				<cl-svg name="screen-full" v-else />
 			</li>
@@ -42,16 +44,21 @@
 	</div>
 </template>
 
-<script lang="ts" name="app-process" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'app-process'
+});
+
 import { onMounted, watch } from 'vue';
 import { last } from 'lodash-es';
 import { useCool } from '/@/cool';
-import { CloseBold } from '@element-plus/icons-vue';
 import { ContextMenu } from '@cool-vue/crud';
-import { useBase, type Process } from '/$/base';
+import { useBase } from '/$/base';
+import { useI18n } from 'vue-i18n';
 
 const { refs, setRefs, route, router, mitt } = useCool();
 const { process, app } = useBase();
+const { t } = useI18n();
 
 // 刷新当前路由
 function toRefresh() {
@@ -115,12 +122,9 @@ function onDel(index: number) {
 // 右键菜单
 function openCM(e: any, item: Process.Item) {
 	ContextMenu.open(e, {
-		hover: {
-			target: 'app-process__item'
-		},
 		list: [
 			{
-				label: '关闭当前',
+				label: t('关闭当前'),
 				hidden: item.path !== route.path,
 				callback(done) {
 					done();
@@ -130,7 +134,7 @@ function openCM(e: any, item: Process.Item) {
 				}
 			},
 			{
-				label: '关闭其他',
+				label: t('关闭其他'),
 				callback(done) {
 					done();
 
@@ -139,7 +143,7 @@ function openCM(e: any, item: Process.Item) {
 				}
 			},
 			{
-				label: '关闭所有',
+				label: t('关闭所有'),
 				callback(done) {
 					done();
 
@@ -160,18 +164,19 @@ watch(
 
 onMounted(() => {
 	// 添加滚轮事件监听器
-	refs.scroller.wrapRef?.addEventListener('wheel', function (event: WheelEvent) {
-		// 阻止默认滚动行为
-		event.preventDefault();
+	refs.scroller.wrapRef?.addEventListener(
+		'wheel',
+		function (event: WheelEvent) {
+			// 滚动的速度因子，可以根据需要调整
+			const scrollSpeed = 2;
 
-		// 滚动的速度因子，可以根据需要调整
-		const scrollSpeed = 2;
+			// 计算滚动的距离
+			const distance = event.deltaY * scrollSpeed;
 
-		// 计算滚动的距离
-		const distance = event.deltaY * scrollSpeed;
-
-		scrollTo(refs.scroller.wrapRef.scrollLeft + distance);
-	});
+			scrollTo(refs.scroller.wrapRef.scrollLeft + distance);
+		},
+		{ passive: false }
+	);
 });
 </script>
 
@@ -183,39 +188,28 @@ onMounted(() => {
 	padding: 5px 10px;
 	user-select: none;
 	background-color: var(--el-bg-color);
-	box-sizing: border-box;
 	margin-bottom: 10px;
+	overflow: hidden;
 
 	&__op {
+		display: flex;
+		align-items: center;
 		list-style: none;
 
-		.item {
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			position: relative;
-			height: 26px;
-			width: 26px;
-			cursor: pointer;
-			border-radius: 4px;
+		.cl-comm__icon {
 			margin-right: 5px;
 
-			.cl-svg {
-				font-size: 16px;
-			}
-
-			&:hover {
-				background-color: var(--el-fill-color-light);
+			&:last-child {
+				margin-right: 0;
 			}
 		}
 	}
 
 	&__container {
-		height: 30px;
+		height: 100%;
 		flex: 1;
 		position: relative;
-		overflow: hidden;
-		margin: 0 5px;
+		margin: 0 10px;
 	}
 
 	&__scroller {
@@ -230,29 +224,24 @@ onMounted(() => {
 	&__item {
 		display: inline-flex;
 		align-items: center;
-		border-radius: 4px;
-		height: 30px;
-		padding: 0 8px 0 12px;
-		margin-right: 10px;
+		justify-content: space-between;
+		height: 26px;
+		padding: 0 8px;
 		cursor: pointer;
-		color: var(--el-color-info);
+		color: var(--el-text-color-regular);
+		border-radius: 4px;
+		margin-right: 5px;
 
-		.el-text {
-			line-height: 1;
-		}
-
-		.el-icon {
-			font-size: 13px;
+		.close {
 			width: 0;
 			overflow: hidden;
-			transition: width 0.3s;
+			transition: width 0.2s ease-in-out;
+			font-size: 14px;
+			border-radius: 4px;
 			opacity: 0;
-			border-radius: 20px;
-			padding: 2px;
 
 			&:hover {
-				background-color: rgba(0, 0, 0, 0.2);
-				color: #fff;
+				background-color: rgba(0, 0, 0, 0.1);
 			}
 		}
 
@@ -260,30 +249,22 @@ onMounted(() => {
 			margin-right: 0;
 		}
 
-		&:hover {
-			&:not(.active) {
-				background-color: var(--el-fill-color-light);
-			}
+		&:hover:not(.active) {
+			background-color: var(--el-fill-color-light);
 		}
 
 		&.active {
-			background-color: var(--color-primary);
-
-			.el-text {
-				color: #fff;
-			}
-
-			.el-icon {
-				color: #fff;
-			}
+			background-color: var(--el-color-primary);
+			color: #fff;
 		}
 
 		&:hover,
 		&.active {
-			.el-icon {
+			.close {
+				margin-left: 10px;
+				margin-right: -2px;
+				width: 14px;
 				opacity: 1;
-				width: 13px;
-				margin-left: 5px;
 			}
 		}
 	}

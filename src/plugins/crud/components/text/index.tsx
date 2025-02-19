@@ -1,4 +1,4 @@
-import { defineComponent, type PropType } from "vue"
+import { defineComponent, type PropType } from 'vue';
 import { computed, useModel } from 'vue';
 
 export default defineComponent({
@@ -6,7 +6,7 @@ export default defineComponent({
 
 	props: {
 		modelValue: null,
-		formatter: Function as PropType<(value: any, scope: any) => string>,
+		formatter: Function as PropType<(value: any, scope: any) => string>
 		// 继承 el-text https://element-plus.org/zh-CN/component/text.html#attributes
 	},
 
@@ -22,7 +22,7 @@ export default defineComponent({
 		});
 
 		return () => {
-			return <el-text>{text.value}</el-text>
-		}
+			return <el-text>{text.value}</el-text>;
+		};
 	}
-})
+});

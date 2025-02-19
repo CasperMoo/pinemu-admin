@@ -1,8 +1,9 @@
 import { base } from "./base";
 import { config } from "./config";
 import { demo } from "./demo";
-import { virtual } from "./virtual";
+import { getProxyTarget } from "./proxy";
 import type { Config } from "../types";
+import { virtual } from "./virtual";
 import { merge } from "lodash";
 
 export function cool(options: Config.Options) {
@@ -10,7 +11,7 @@ export function cool(options: Config.Options) {
 	config.type = options.type;
 
 	// 请求地址
-	config.reqUrl = options.proxy["/dev/"].target;
+	config.reqUrl = getProxyTarget(options.proxy);
 
 	// Eps
 	if (options.eps) {

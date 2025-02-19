@@ -38,7 +38,7 @@ function setConfig(app: App, options: Options = {}) {
 					order: "order",
 					prop: "prop"
 				},
-				label: locale.zhCn
+				label: locale["zh-cn"]
 			},
 			style: {
 				colors: [
@@ -65,7 +65,7 @@ function setConfig(app: App, options: Options = {}) {
 					contextMenu: ["refresh", "check", "edit", "delete", "order-asc", "order-desc"],
 					column: {
 						align: "center",
-						opWidth: 160
+						opWidth: 180
 					}
 				}
 			},

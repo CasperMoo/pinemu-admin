@@ -14,27 +14,29 @@ import {
 import { useApi } from "../form/helper";
 import { Search, Refresh, Bottom, Top } from "@element-plus/icons-vue";
 import { mitt } from "../../utils/mitt";
-import { isArray, isObject, isString } from "lodash-es";
+import { isArray, isEmpty } from "lodash-es";
+import { usePlugins } from "./helper/plugins";
 
 export default defineComponent({
 	name: "cl-search",
 
 	props: {
+		// 是否行内
 		inline: {
 			type: Boolean,
 			default: true
 		},
+
+		// cl-form 表单配置
 		props: {
 			type: Object,
-			default: () => { }
+			default: () => ({})
 		},
 
 		// 表单值
 		data: {
 			type: Object,
-			default: () => {
-				return {};
-			}
+			default: () => ({})
 		},
 
 		// 列
@@ -50,7 +52,10 @@ export default defineComponent({
 		},
 
 		// 是否需要折叠
-		collapse: Boolean,
+		collapse: {
+			type: Boolean,
+			default: false
+		},
 
 		// 初始化
 		onLoad: Function,
@@ -65,6 +70,7 @@ export default defineComponent({
 		const { crud } = useCore();
 		const { refs, setRefs } = useRefs()
 		const { style } = useConfig();
+		const plugin = usePlugins()
 
 		// 配置
 		const config = reactive<ClSearch.Config>(
@@ -179,15 +185,28 @@ export default defineComponent({
 
 		useProxy(ctx);
 		expose(ctx);
+		plugin.create(config.plugins);
 
 		onMounted(() => {
-			// 打开表单
 			Form.value?.open({
 				op: {
 					hidden: true
 				},
-				props: config.props,
-				items: config.items,
+				props: {
+					labelPosition: 'right',
+					...config.props
+				},
+				items: config.items?.map(e => {
+					return {
+						col: {
+							sm: 12,
+							md: 8,
+							xs: 24,
+							lg: 6,
+						},
+						...e,
+					}
+				}),
 				form: config.data,
 				on: {
 					open(data) {
@@ -235,7 +254,10 @@ export default defineComponent({
 			);
 
 			return (
-				<div class={["cl-search", isExpand.value ? "is-expand" : "is-collapse"]}>
+				<div class={["cl-search", isExpand.value ? "is-expand" : "is-fold", {
+					'is-inline': config.inline,
+					'is-collapse': config.collapse,
+				}]}>
 					<div class="cl-search__form" ref={setRefs("form")}>
 						{h(
 							<cl-form
@@ -243,11 +265,12 @@ export default defineComponent({
 								inner
 								inline={config.inline}
 								enable-plugin={false}
+								name='search'
 							/>,
 							{},
 							{
 								append() {
-									return config.collapse ? null : btnEl;
+									return config.collapse ? null : (isEmpty(config.items) || btnEl);
 								},
 								...slots
 							}

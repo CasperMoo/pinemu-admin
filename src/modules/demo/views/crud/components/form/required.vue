@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">required</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>required</el-tag>
 			<span>必填项配置</span>
 		</div>
 

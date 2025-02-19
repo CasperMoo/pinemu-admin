@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">layout</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>layout</el-tag>
 			<span>布局</span>
 		</div>
 
@@ -97,7 +97,6 @@ const Search = useSearch({
 		{
 			label: '姓名',
 			prop: 'name',
-			span: 6,
 			component: {
 				name: 'el-input',
 				props: {
@@ -116,7 +115,6 @@ const Search = useSearch({
 		{
 			label: '手机号',
 			prop: 'phone',
-			span: 6,
 			component: {
 				name: 'el-input',
 				props: {
@@ -127,7 +125,6 @@ const Search = useSearch({
 		{
 			label: '工作',
 			prop: 'occupation',
-			span: 6,
 			component: {
 				name: 'cl-select',
 				props: {

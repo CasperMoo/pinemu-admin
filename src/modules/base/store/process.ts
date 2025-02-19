@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { assign } from 'lodash-es';
-import type { Process } from '../types';
 
 export const useProcessStore = defineStore('process', function () {
 	const list = ref<Process.List>([]);
@@ -11,6 +10,10 @@ export const useProcessStore = defineStore('process', function () {
 		list.value.forEach((e: Process.Item) => {
 			e.active = false;
 		});
+
+		if (!data.meta) {
+			data.meta = {};
+		}
 
 		if (!data.meta?.isHome && data.meta?.process !== false) {
 			const index = list.value.findIndex(e => e.path === data.path);

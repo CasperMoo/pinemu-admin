@@ -5,12 +5,14 @@ import { isArray, isEmpty, orderBy } from 'lodash-es';
 import { router, service } from '/@/cool';
 import { revisePath } from '../utils';
 import { config } from '/@/config';
-import type { Menu } from '../types';
 
 // 本地缓存
 const data = storage.info();
 
 export const useMenuStore = defineStore('menu', function () {
+	// 所有菜单
+	const all = ref<Menu.List>([]);
+
 	// 视图路由
 	const routes = ref<Menu.List>([]);
 
@@ -111,6 +113,10 @@ export const useMenuStore = defineStore('menu', function () {
 	// 获取菜单，权限信息
 	async function get() {
 		function next(res: { menus: Menu.List; perms?: any[] }) {
+			// 所有菜单
+			all.value = res.menus;
+
+			// 菜单格式化
 			const list = res.menus
 				?.filter(e => e.type != 2)
 				.map(e => {
@@ -184,6 +190,7 @@ export const useMenuStore = defineStore('menu', function () {
 	}
 
 	return {
+		all,
 		routes,
 		group,
 		list,

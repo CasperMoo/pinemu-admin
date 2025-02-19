@@ -1,6 +1,7 @@
 import fs from "fs";
 import { join } from "path";
 import { config } from "../config";
+import prettier from "prettier";
 
 // 根目录
 export function rootDir(path: string) {
@@ -69,6 +70,18 @@ export function parseJson(req: any): Promise<any> {
 				resolve({});
 			}
 		});
+	});
+}
+
+// 格式化内容
+export function formatContent(content: string, options?: prettier.Options) {
+	return prettier.format(content, {
+		parser: "typescript",
+		useTabs: true,
+		tabWidth: 4,
+		endOfLine: "lf",
+		semi: true,
+		...options,
 	});
 }
 

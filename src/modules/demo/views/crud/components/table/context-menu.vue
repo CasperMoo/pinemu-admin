@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">context-menu</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>context-menu</el-tag>
 			<span>右键菜单</span>
 		</div>
 
@@ -112,7 +112,7 @@ const Table = useTable({
 					ElMessage.info('获取中');
 
 					setTimeout(() => {
-						ElMessage.success(`Ta 是${row.name}`);
+						ElMessage.success('Ta 是' + row.name);
 
 						// 关闭右键菜单，只有在用到 callback 方法时才需要
 						done();

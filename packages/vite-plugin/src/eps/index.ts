@@ -1,7 +1,7 @@
 import { createDir, error, firstUpperCase, readFile, rootDir, toCamel } from "../utils";
 import { join } from "path";
 import axios from "axios";
-import { isArray, isEmpty, last, merge, values } from "lodash";
+import { isEmpty, last, values } from "lodash";
 import { createWriteStream } from "fs";
 import prettier from "prettier";
 import { config } from "../config";
@@ -9,7 +9,6 @@ import type { Eps } from "../../types";
 
 const service = {};
 let list: Eps.Entity[] = [];
-let customList: Eps.Entity[] = [];
 
 // 获取请求地址
 function getEpsUrl() {
@@ -45,18 +44,30 @@ function getNames(v: any) {
 	return Object.keys(v).filter((e) => !["namespace", "permission"].includes(e));
 }
 
-// 获取数据
-async function getData(data?: Eps.Entity[]) {
-	// 自定义数据
-	if (!isEmpty(data)) {
-		customList = (data || []).map((e) => {
-			return {
-				...e,
-				isLocal: true,
-			};
-		});
-	}
+// 找字段
+function findColumns(sources: string[], item: Eps.Entity) {
+	const columns = [item.columns, item.pageColumns].flat().filter(Boolean);
+	return (sources || [])
+		.map((e) => columns.find((c) => c.source == e))
+		.filter(Boolean) as Eps.Column[];
+}
 
+// 格式化代码
+async function formatCode(text: string) {
+	return prettier.format(text, {
+		parser: "typescript",
+		useTabs: true,
+		tabWidth: 4,
+		endOfLine: "lf",
+		semi: true,
+		singleQuote: false,
+		printWidth: 100,
+		trailingComma: "none",
+	});
+}
+
+// 获取数据
+async function getData() {
 	// 读取本地数据
 	list = readFile(getEpsPath("eps.json"), true) || [];
 
@@ -76,27 +87,14 @@ async function getData(data?: Eps.Entity[]) {
 					list = values(data).flat();
 				}
 			} else {
-				error(`[cool-eps] ${message || "获取数据失败"}`);
+				error(`[cool-eps] ${message || "Failed to fetch data"}`);
 			}
 		})
 		.catch(() => {
-			error(`[cool-eps] 后端未启动 ➜ ${url}`);
+			error(`[cool-eps] API service is not running → ${url}`);
 		});
 
-	// 合并自定义数据
-	if (isArray(customList)) {
-		customList.forEach((e) => {
-			const d = list.find((a) => e.prefix === a.prefix);
-
-			if (d) {
-				merge(d, e);
-			} else {
-				list.push(e);
-			}
-		});
-	}
-
-	// 设置默认值
+	// 初始化处理
 	list.forEach((e) => {
 		if (!e.namespace) {
 			e.namespace = "";
@@ -106,6 +104,14 @@ async function getData(data?: Eps.Entity[]) {
 		}
 		if (!e.columns) {
 			e.columns = [];
+		}
+
+		if (!e.search) {
+			e.search = {
+				fieldEq: findColumns(e.pageQueryOp?.fieldEq, e),
+				fieldLike: findColumns(e.pageQueryOp?.fieldLike, e),
+				keyWordLikeFields: findColumns(e.pageQueryOp?.keyWordLikeFields, e),
+			};
 		}
 	});
 }
@@ -123,6 +129,7 @@ function createJson() {
 					path: e.path,
 				};
 			}),
+			search: e.search,
 		};
 	});
 
@@ -173,7 +180,21 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 
 			let t = `interface ${formatName(item.name)} {`;
 
-			for (const col of item.columns || []) {
+			// 合并多个列
+			const columns: Eps.Column[] = [];
+
+			[item.columns, item.pageColumns]
+				.flat()
+				.filter(Boolean)
+				.forEach((e) => {
+					const d = columns.find((c) => c.source == e.source);
+
+					if (!d) {
+						columns.push(e);
+					}
+				});
+
+			for (const col of columns || []) {
 				t += `
 					/**
 					 * ${col.comment}
@@ -203,7 +224,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 	}
 
 	// 创建 Service
-	function createDts() {
+	async function createDts() {
 		let controller = "";
 		let chain = "";
 
@@ -367,6 +388,8 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 
 				${chain}
 			}
+
+			${await createDict()}
 		`;
 	}
 
@@ -374,21 +397,12 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 	const text = `
 		declare namespace Eps {
 			${createEntity()}
-			${createDts()}
+			${await createDts()}
 		}
 	`;
 
 	// 文本内容
-	const content = await prettier.format(text, {
-		parser: "typescript",
-		useTabs: true,
-		tabWidth: 4,
-		endOfLine: "lf",
-		semi: true,
-		singleQuote: false,
-		printWidth: 100,
-		trailingComma: "none",
-	});
+	const content = await formatCode(text);
 
 	const local_content = readFile(getEpsPath("eps.d.ts"));
 
@@ -437,6 +451,17 @@ function createService() {
 						d[k].namespace = path;
 					}
 
+					// 创建权限
+					if (d[k].namespace) {
+						getNames(d[k]).forEach((i) => {
+							d[k].permission[i] =
+								`${d[k].namespace.replace(`${id}/`, "")}/${i}`.replace(/\//g, ":");
+						});
+					}
+
+					// 创建搜索
+					d[k].search = e.search;
+
 					// 创建方法
 					e.api.forEach((a) => {
 						// 方法名
@@ -446,14 +471,6 @@ function createService() {
 							d[k][n] = a;
 						}
 					});
-
-					// 创建权限
-					if (d[k].namespace) {
-						getNames(d[k]).forEach((i) => {
-							d[k].permission[i] =
-								`${d[k].namespace.replace(`${id}/`, "")}/${i}`.replace(/\//g, ":");
-						});
-					}
 				}
 			}
 		}
@@ -462,11 +479,25 @@ function createService() {
 	});
 }
 
+// 创建 dict
+async function createDict() {
+	return axios
+		.get(config.reqUrl + "/" + config.type + "/dict/info/types")
+		.then(async (res) => {
+			const { code, data } = res.data;
+
+			if (code === 1000) {
+				return `type DictKey = ${data.map((e: any) => `"${e.key}"`).join(" | ")}`;
+			}
+		})
+		.catch((err) => {});
+}
+
 // 创建 eps
-export async function createEps(query?: { list: any[] }) {
+export async function createEps() {
 	if (config.eps.enable) {
 		// 获取数据
-		await getData(query?.list || []);
+		await getData();
 
 		// 创建 service
 		createService();

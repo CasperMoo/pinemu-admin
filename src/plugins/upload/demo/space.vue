@@ -1,18 +1,18 @@
 <template>
 	<div>
-		<el-divider content-position="left"> 单选 </el-divider>
+		<el-divider content-position="left"> {{ $t('单选') }} </el-divider>
 
 		<cl-upload-space v-model="v1" :multiple="false" accept="image/*" />
 	</div>
 
 	<div>
-		<el-divider content-position="left"> 多选 </el-divider>
+		<el-divider content-position="left"> {{ $t('多选') }} </el-divider>
 
 		<cl-upload-space v-model="v2" :limit="3" accept="image/*" />
 	</div>
 
 	<div>
-		<el-divider content-position="left"> 自定义 </el-divider>
+		<el-divider content-position="left"> {{ $t('自定义') }} </el-divider>
 
 		<cl-upload-space
 			:ref="setRefs('uploadSpace')"
@@ -23,7 +23,7 @@
 		>
 			<div class="space-custom" @click="refs.uploadSpace?.open">
 				<cl-avatar :size="50" :src="v3" />
-				<p>选择头像</p>
+				<p>{{ $t('选择头像') }}</p>
 			</div>
 		</cl-upload-space>
 	</div>

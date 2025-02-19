@@ -8,27 +8,27 @@
 						<div class="head">
 							<el-text class="label">{{ config.label }}</el-text>
 
-							<el-tooltip v-if="config.enableRefresh" content="刷新">
-								<el-icon class="icon" @click="refresh()">
-									<icon-refresh />
-								</el-icon>
+							<el-tooltip v-if="config.enableRefresh" :content="$t('刷新')">
+								<div class="icon" @click="refresh()">
+									<cl-svg name="refresh" />
+								</div>
 							</el-tooltip>
 
-							<el-tooltip v-if="config.enableAdd" content="添加">
-								<el-icon
+							<el-tooltip v-if="config.enableAdd" :content="$t('添加')">
+								<div
 									class="icon"
 									@click="edit()"
 									v-permission="config.service.permission.add"
 								>
-									<plus />
-								</el-icon>
+									<cl-svg name="plus-border" />
+								</div>
 							</el-tooltip>
 						</div>
 
 						<div v-if="config.enableKeySearch" class="search">
 							<el-input
 								v-model="keyWord"
-								placeholder="搜索关键字"
+								:placeholder="$t('搜索关键字')"
 								clearable
 								:prefix-icon="Search"
 								@change="
@@ -117,12 +117,11 @@
 														<span>{{ item.name }}</span>
 													</slot>
 
-													<el-icon
+													<cl-svg
+														name="right"
+														class="ml-auto"
 														v-show="selected?.id == item.id"
-														class="arrow-right"
-													>
-														<arrow-right-bold />
-													</el-icon>
+													/>
 												</div>
 											</slot>
 										</li>
@@ -137,23 +136,20 @@
 
 				<!-- 收起按钮 -->
 				<div v-if="browser.isMini" class="collapse-btn" @click="expand(false)">
-					<el-icon>
-						<arrow-right />
-					</el-icon>
+					<cl-svg name="right" />
 				</div>
 			</div>
 
 			<!-- 右侧 -->
 			<div class="cl-view-group__right">
 				<div class="head">
-					<div class="icon" @click="expand()">
-						<el-icon v-if="isExpand"><arrow-left /></el-icon>
-						<el-icon v-else><arrow-right /></el-icon>
+					<div class="icon" :class="{ 'is-fold': !isExpand }" @click="expand()">
+						<cl-svg name="back" />
 					</div>
 
 					<slot name="title" :selected="selected">
 						<span class="title">
-							{{ config.title }}（{{ selected?.name || '未选择' }}）
+							{{ config.title }}（{{ selected?.name || $t('未选择') }}）
 						</span>
 					</slot>
 				</div>
@@ -170,7 +166,12 @@
 	</div>
 </template>
 
-<script lang="ts" setup name="cl-view-group">
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-view-group'
+});
+
+import { useI18n } from 'vue-i18n';
 import { inject, nextTick, onMounted, reactive, ref, useSlots } from 'vue';
 import {
 	ArrowLeft,
@@ -183,9 +184,8 @@ import {
 import { useBrowser, useCool } from '/@/cool';
 import { ContextMenu, useForm } from '@cool-vue/crud';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { isEmpty, merge } from 'lodash-es';
+import { assign, isEmpty, merge } from 'lodash-es';
 import { deepTree } from '/@/cool/utils';
-import { type ClViewGroup } from '../types/index.d';
 import { useClipboard } from '@vueuse/core';
 
 const { browser, onScreenChange } = useBrowser();
@@ -193,13 +193,14 @@ const slots = useSlots();
 const Form = useForm();
 const { refs, setRefs } = useCool();
 const { copy } = useClipboard();
+const { t } = useI18n();
 
 // 配置
 const config = reactive(
-	Object.assign(
+	assign(
 		{
-			label: '组',
-			title: '列表',
+			label: t('组'),
+			title: t('列表'),
 			leftWidth: '300px',
 			data: {},
 			service: {},
@@ -217,7 +218,7 @@ const config = reactive(
 const isCustom = !!slots.left;
 
 if (isEmpty(config.service) && !isCustom) {
-	console.error('<cl-view-group /> 参数 service 不能为空');
+	console.error('[cl-view-group] service is required');
 }
 
 // 加载中
@@ -282,7 +283,7 @@ function select(data?: ClViewGroup.Item) {
 // 编辑
 function edit(item?: ClViewGroup.Item) {
 	Form.value?.open({
-		title: (item ? '编辑' : '添加') + config.label,
+		title: (item ? t('编辑') : t('添加')) + config.label,
 		form: {
 			...item
 		},
@@ -290,10 +291,10 @@ function edit(item?: ClViewGroup.Item) {
 			submit(data, { close, done }) {
 				config.service[item ? 'update' : 'add'](data)
 					.then(() => {
-						ElMessage.success('保存成功');
+						ElMessage.success(t('保存成功'));
 
 						if (item) {
-							Object.assign(item, data);
+							assign(item, data);
 						}
 
 						refresh();
@@ -311,7 +312,7 @@ function edit(item?: ClViewGroup.Item) {
 
 // 删除
 function remove(item: ClViewGroup.Item) {
-	ElMessageBox.confirm('此操作将会删除选择的数据，是否继续？', '提示', {
+	ElMessageBox.confirm(t('此操作将会删除选择的数据，是否继续？'), t('提示'), {
 		type: 'warning'
 	})
 		.then(() => {
@@ -319,7 +320,7 @@ function remove(item: ClViewGroup.Item) {
 				config.service
 					.delete(params)
 					.then(async () => {
-						ElMessage.success('删除成功');
+						ElMessage.success(t('删除成功'));
 
 						// 刷新列表
 						await refresh();
@@ -361,7 +362,7 @@ async function refresh(params?: any) {
 		return false;
 	}
 
-	Object.assign(reqParams, params);
+	assign(reqParams, params);
 
 	loading.value = true;
 
@@ -432,15 +433,7 @@ function onContextMenu(e: any, item: ClViewGroup.Item) {
 		},
 		list: [
 			{
-				label: '复制Key',
-				callback(done) {
-					done();
-					copy(item.key);
-					ElMessage.success('复制成功');
-				}
-			},
-			{
-				label: '编辑',
+				label: t('编辑'),
 				hidden: !config.service._permission.update,
 				callback(done) {
 					done();
@@ -448,7 +441,7 @@ function onContextMenu(e: any, item: ClViewGroup.Item) {
 				}
 			},
 			{
-				label: '删除',
+				label: t('删除'),
 				hidden: !config.service._permission.delete,
 				callback(done) {
 					done();
@@ -498,10 +491,16 @@ defineExpose({
 		height: 26px;
 		width: 26px;
 		font-size: 16px;
-		border-radius: 4px;
+		border-radius: 6px;
+		color: var(--el-text-color-regular);
 
 		&:hover {
 			background-color: var(--el-fill-color-light);
+			color: var(--el-text-color-primary);
+		}
+
+		&.is-fold {
+			transform: rotate(180deg);
 		}
 	}
 
@@ -528,12 +527,12 @@ defineExpose({
 			height: 40px;
 			width: 40px;
 			border-radius: 100%;
-			background-color: var(--color-primary);
+			background-color: var(--el-color-primary);
 			box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
 
-			.el-icon {
+			.cl-svg {
 				color: #fff;
-				font-size: 24px;
+				font-size: 18px;
 			}
 		}
 
@@ -552,24 +551,23 @@ defineExpose({
 				height: 40px;
 				font-size: 14px;
 				padding: 0 10px;
+				border-bottom: 1px solid var(--el-border-color-extra-light);
 
 				.label {
 					flex: 1;
 				}
 
-				.el-icon {
+				.icon {
 					margin-left: 5px;
-					cursor: pointer;
 				}
 			}
 
 			.search {
-				height: 40px;
-				padding: 0 10px;
+				padding: 10px;
 
-				:deep(.el-input__inner) {
-					&::placeholder {
-						font-size: 12px;
+				:deep(.el-input) {
+					.el-input__wrapper {
+						border-radius: 6px;
 					}
 				}
 			}
@@ -602,29 +600,23 @@ defineExpose({
 							align-items: center;
 							list-style: none;
 							box-sizing: border-box;
-							padding: 10px 34px 10px 10px;
+							padding: 10px 12px;
 							margin: 0 10px;
 							cursor: pointer;
-							font-size: 12px;
+							font-size: 14px;
 							margin-bottom: 10px;
-							border-radius: 4px;
+							border-radius: 6px;
 							color: var(--el-text-color-regular);
 							position: relative;
 							background-color: var(--el-fill-color-lighter);
-							line-height: 1;
-
-							.arrow-right {
-								position: absolute;
-								right: 10px !important;
-							}
 
 							&.is-active {
-								background-color: var(--color-primary);
+								background-color: var(--el-color-primary);
 								color: #fff;
 							}
 
-							&:hover {
-								opacity: 0.8;
+							&:hover:not(.is-active) {
+								background-color: var(--el-fill-color-light);
 							}
 						}
 					}
@@ -657,6 +649,7 @@ defineExpose({
 			height: 40px;
 			position: relative;
 			font-size: 14px;
+			border-bottom: 1px solid var(--el-border-color-extra-light);
 
 			.title {
 				white-space: nowrap;
@@ -667,6 +660,10 @@ defineExpose({
 				position: absolute;
 				left: 10px;
 				background-color: var(--el-fill-color-lighter);
+
+				&:hover {
+					background-color: var(--el-fill-color-light);
+				}
 			}
 		}
 

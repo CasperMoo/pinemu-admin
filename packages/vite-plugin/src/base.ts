@@ -1,9 +1,9 @@
 import type { Plugin } from "vite";
 import { createEps } from "./eps";
 import { parseJson } from "./utils";
-import { createTag } from "./tag";
-import { createMenu } from "./menu";
-import { config } from "./config";
+import { updatePlugin } from "./plugin";
+import { updateProxy } from "./proxy";
+import { createFile } from "./file";
 
 export function base(): Plugin {
 	return {
@@ -20,20 +20,30 @@ export function base(): Plugin {
 					const body = await parseJson(req);
 
 					switch (req.url) {
-						// 快速创建菜单
-						case "/__cool_createMenu":
-							await createMenu(body);
+						// 创建文件
+						case "/__cool_createFile":
+							await createFile(body);
 							break;
 
-						// 创建描述文件
+						// 创建 eps 文件
 						case "/__cool_eps":
-							await createEps(body);
+							await createEps();
+							break;
+
+						// 更新插件
+						case "/__cool_updatePlugin":
+							await updatePlugin(body);
+							break;
+
+						// 设置代理
+						case "/__cool_updateProxy":
+							await updateProxy(body);
 							break;
 
 						default:
 							return done({
 								code: 1001,
-								message: "未知请求",
+								message: "Unknown request",
 							});
 					}
 
@@ -44,13 +54,6 @@ export function base(): Plugin {
 					next();
 				}
 			});
-		},
-		transform(code, id) {
-			if (config.type == "admin") {
-				return createTag(code, id);
-			}
-
-			return code;
 		},
 	};
 }

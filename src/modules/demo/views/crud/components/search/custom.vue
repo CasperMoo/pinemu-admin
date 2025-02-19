@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">custom</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>custom</el-tag>
 			<span>自定义</span>
 		</div>
 

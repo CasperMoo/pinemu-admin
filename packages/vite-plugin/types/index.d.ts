@@ -1,6 +1,17 @@
-export type Type = "app" | "admin";
+export declare type Type = "app" | "admin";
 
-export namespace Eps {
+export declare namespace Eps {
+	interface Column {
+		comment: string;
+		nullable: boolean;
+		propertyName: string;
+		source: string;
+		type: string;
+		dict: string[] | string;
+		defaultValue: any;
+		[key: string]: any;
+	}
+
 	interface Entity {
 		api: {
 			dts: {
@@ -20,13 +31,18 @@ export namespace Eps {
 			summary: string;
 			tag: string;
 		}[];
-		columns: {
-			comment: string;
-			length: string;
-			nullable: boolean;
-			propertyName: string;
-			type: string;
-		}[];
+		columns: Column[];
+		pageColumns: Column[];
+		pageQueryOp: {
+			fieldEq: string[];
+			fieldLike: string[];
+			keyWordLikeFields: string[];
+		};
+		search: {
+			fieldEq: Column[];
+			fieldLike: Column[];
+			keyWordLikeFields: Column[];
+		};
 		module: string;
 		name: string;
 		prefix: string;
@@ -34,7 +50,7 @@ export namespace Eps {
 	}
 }
 
-export namespace Ctx {
+export declare namespace Ctx {
 	type Pages = {
 		path?: string;
 		style?: {
@@ -59,7 +75,7 @@ export namespace Ctx {
 	}
 }
 
-export namespace Config {
+export declare namespace Config {
 	type Type = "app" | "admin";
 	interface Eps {
 		enable: boolean;

@@ -1,73 +1,37 @@
-// @ts-nocheck
-import { isDev, config, proxy } from '../../config';
-import { isObject } from 'lodash-es';
+import { config } from '/@/config';
 import { request } from './request';
 import { AxiosRequestConfig } from 'axios';
 
-export function Service(
-	value:
-		| string
-		| {
-				proxy?: string;
-				namespace?: string;
-				url?: string;
-		  }
-) {
-	return function (target: any) {
-		// 命名
-		if (typeof value == 'string') {
-			target.prototype.namespace = value;
-		}
-
-		// 复杂项
-		if (isObject(value)) {
-			const { namespace, proxy: proxyName, url } = value;
-
-			target.prototype.namespace = namespace;
-
-			if (proxyName) {
-				target.prototype.url = proxy[proxyName]?.target || url;
-			} else {
-				target.prototype.url = url;
-			}
-		}
-	};
-}
-
 export class BaseService {
+	namespace?: string;
+
 	constructor(namespace?: string) {
 		if (namespace) {
 			this.namespace = namespace;
 		}
 	}
 
+	// 发送请求
 	async request(options: AxiosRequestConfig = {}) {
-		if (options.url) {
-			// 过滤 http 开头的地址
-			if (options.url.indexOf('http') < 0) {
-				let ns = '';
+		let url = options.url;
 
-				if (isDev) {
-					ns = this.proxy || config.baseUrl;
-				} else {
-					ns = this.proxy ? this.url : config.baseUrl;
-				}
+		if (url && url.indexOf('http') < 0) {
+			if (this.namespace) {
+				url = this.namespace + url;
+			}
 
-				// 拼接前缀
-				if (this.namespace) {
-					ns += '/' + this.namespace;
-				}
-
-				// 处理地址
-				if (options.proxy === undefined || options.proxy) {
-					options.url = ns + options.url;
-				}
+			if (options.proxy !== false) {
+				url = config.baseUrl + '/' + url;
 			}
 		}
 
-		return request(options);
+		return request({
+			...options,
+			url
+		});
 	}
 
+	// 获取列表
 	async list(data: any) {
 		return this.request({
 			url: '/list',
@@ -76,6 +40,7 @@ export class BaseService {
 		});
 	}
 
+	// 分页查询
 	async page(data: any) {
 		return this.request({
 			url: '/page',
@@ -84,6 +49,7 @@ export class BaseService {
 		});
 	}
 
+	// 获取信息
 	async info(params: any) {
 		return this.request({
 			url: '/info',
@@ -91,6 +57,7 @@ export class BaseService {
 		});
 	}
 
+	// 更新数据
 	async update(data: any) {
 		return this.request({
 			url: '/update',
@@ -99,6 +66,7 @@ export class BaseService {
 		});
 	}
 
+	// 删除数据
 	async delete(data: any) {
 		return this.request({
 			url: '/delete',
@@ -107,6 +75,7 @@ export class BaseService {
 		});
 	}
 
+	// 添加数据
 	async add(data: any) {
 		return this.request({
 			url: '/add',

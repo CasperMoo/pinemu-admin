@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">slot</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>slot</el-tag>
 			<span>插槽的使用</span>
 		</div>
 

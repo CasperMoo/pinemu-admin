@@ -155,7 +155,7 @@ export default defineComponent({
 								type: e == "search" ? "primary" : null,
 								size: style.size,
 								onClick: () => {
-									fns[e]();
+									fns[e]()
 								}
 							},
 							{ default: () => crud.dict.label[e] }

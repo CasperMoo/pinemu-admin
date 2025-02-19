@@ -29,17 +29,15 @@
 
 <script lang="tsx" setup>
 import { useCrud, useTable } from '@cool-vue/crud';
-import { useCool } from '/@/cool';
 import { useDict } from '/$/dict';
 import { ElMessage } from 'element-plus';
 
-const { service } = useCool();
 const { dict } = useDict();
 
 // crud
 const Crud = useCrud(
 	{
-		service: service.test
+		service: 'test'
 	},
 	app => {
 		app.refresh({ size: 10 });

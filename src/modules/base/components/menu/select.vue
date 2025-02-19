@@ -19,7 +19,11 @@
 	</div>
 </template>
 
-<script lang="ts" name="cl-menu-select" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-menu-select'
+});
+
 import { useForm } from '@cool-vue/crud';
 import { cloneDeep } from 'lodash-es';
 import { computed, ref, useModel, onMounted } from 'vue';

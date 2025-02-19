@@ -1,10 +1,14 @@
 <template>
-	<div v-loading="loading" class="page-iframe" element-loading-text="拼命加载中">
+	<div v-loading="loading" class="page-iframe" :element-loading-text="$t('拼命加载中')">
 		<iframe :ref="setRefs('iframe')" :src="url" frameborder="0"></iframe>
 	</div>
 </template>
 
-<script lang="ts" name="frame" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'frame-web'
+});
+
 import { ref, watch, onMounted } from 'vue';
 import { useCool } from '/@/cool';
 

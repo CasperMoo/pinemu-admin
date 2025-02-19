@@ -1,4 +1,4 @@
-import type { ModuleConfig } from '/@/cool';
+import { type ModuleConfig } from '/@/cool';
 
 export default (): ModuleConfig => {
 	return {
@@ -21,6 +21,13 @@ export default (): ModuleConfig => {
 					label: '动态路由参数'
 				},
 				component: () => import('./views/test/route.vue')
+			},
+			{
+				path: '/demo/test/crud',
+				meta: {
+					label: '测试'
+				},
+				component: () => import('./views/test/crud.vue')
 			}
 		]
 	};

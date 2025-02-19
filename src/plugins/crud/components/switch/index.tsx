@@ -2,7 +2,8 @@ import { useCrud } from '@cool-vue/crud';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { defineComponent, ref, watch } from 'vue';
 import { isBoolean, isFunction } from 'lodash-es';
-import { CrudProps } from '../..';
+import { CrudProps } from '../../comm';
+import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
 	name: 'cl-switch',
@@ -25,6 +26,8 @@ export default defineComponent({
 	emits: ['update:modelValue', 'change'],
 
 	setup(props, { emit }) {
+		const { t } = useI18n();
+
 		// cl-crud
 		const Crud = useCrud();
 
@@ -80,7 +83,7 @@ export default defineComponent({
 								req.then(() => {
 									emit('update:modelValue', val);
 									emit('change', val);
-									ElMessage.success('更新成功');
+									ElMessage.success(t('更新成功'));
 								}).catch(err => {
 									ElMessage.error(err.message);
 								});
@@ -91,18 +94,18 @@ export default defineComponent({
 					emit('update:modelValue', val);
 					emit('change', val);
 				}
-			}
+			};
 
 			if (props.isCheck) {
-				ElMessageBox.confirm(`确定要${val ? '开启' : '关闭'}吗？`, '提示', {
+				ElMessageBox.confirm(val ? t('确定要开启吗？') : t('确定要关闭吗？'), t('提示'), {
 					type: 'warning'
 				})
 					.then(() => {
-						next()
+						next();
 					})
-					.catch(() => null)
+					.catch(() => null);
 			} else {
-				next()
+				next();
 			}
 		}
 

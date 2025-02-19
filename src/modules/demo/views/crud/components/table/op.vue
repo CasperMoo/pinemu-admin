@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">op</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>op</el-tag>
 			<span>操作栏</span>
 		</div>
 
@@ -102,24 +102,42 @@ const Table = useTable({
 			// info 详情，cl-upsert 内的组件全部传入 disabled 参数
 			// delete 删除，调用 service 的 delete 接口删除行数据
 			buttons: [
-				'edit',
-				'info',
-				'delete',
 				{
-					label: '自定义',
+					label: '编辑',
+					type: 'primary',
 					onClick({ scope }) {
-						// scope 行作用域 { row, column, $index, store }
-						ElMessage.info('点击了自定义按钮');
+						ElMessage.info(scope.row.name);
 					}
 				},
-				'slot-btns'
+				{
+					label: '删除',
+					type: 'danger',
+					onClick({ scope }) {
+						ElMessage.info(scope.row.name);
+					}
+				},
+				{
+					label: '更多',
+					type: 'success',
+					children: [
+						{
+							label: '查看',
+							onClick({ scope }) {
+								ElMessage.info(scope.row.name);
+							}
+						},
+						{
+							label: '禁用',
+							onClick({ scope }) {
+								ElMessage.info(scope.row.name);
+							}
+						}
+					]
+				},
+				{
+					name: 'slot-btns'
+				}
 			]
-
-			// 动态返回按钮配置
-			// 用于控制是否根据状态显示按钮
-			// buttons({ scope }) {
-			//     return ['edit', 'info', 'delete']
-			// }
 		}
 	]
 });

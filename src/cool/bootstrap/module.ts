@@ -1,8 +1,9 @@
 import { type App, type Directive } from 'vue';
-import { assign, isFunction, orderBy } from 'lodash-es';
+import { assign, isFunction, orderBy, mergeWith } from 'lodash-es';
 import { filename } from '../utils';
 import { module } from '../module';
 import { hmr } from '../hooks';
+import { config } from '/@/config';
 
 // 扫描文件
 const files = import.meta.glob('/src/{modules,plugins}/*/{config.ts,service/**,directives/**}', {
@@ -77,23 +78,28 @@ export function createModule(app: App) {
 	});
 
 	const list = orderBy(module.list, 'order', 'desc').map(e => {
-		// 初始化
-		e.install?.(app, e.options);
+		if (e.enable !== false) {
+			// 初始化
+			e.install?.(app, e.options);
 
-		// 注册组件
-		e.components?.forEach(async (c: any) => {
-			const v = await (isFunction(c) ? c() : c);
-			const n = v.default || v;
+			// 注册组件
+			e.components?.forEach(async (c: any) => {
+				const v = await (isFunction(c) ? c() : c);
+				const n = v.default || v;
 
-			if (n.name) {
-				app.component(n.name, n);
-			}
-		});
+				if (n.name) {
+					app.component(n.name, n);
+				}
+			});
 
-		// 注册指令
-		e.directives?.forEach(v => {
-			app.directive(v.name, v.value);
-		});
+			// 注册指令
+			e.directives?.forEach(v => {
+				app.directive(v.name, v.value);
+			});
+
+			// 合并忽略配置
+			config.ignore = mergeWith({}, config.ignore, e.ignore, (a, b) => a?.concat(b));
+		}
 
 		// 附加值
 		e.pages?.forEach(v => {

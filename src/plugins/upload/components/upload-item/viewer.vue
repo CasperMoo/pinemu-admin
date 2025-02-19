@@ -11,17 +11,26 @@
 	</div>
 
 	<!-- 文档 -->
-	<cl-dialog v-model="doc.visible" title="文档预览" height="70vh" width="80%" :scrollbar="false">
+	<cl-dialog
+		v-model="doc.visible"
+		:title="$t('文档预览')"
+		height="70vh"
+		width="80%"
+		:scrollbar="false"
+	>
 		<div v-loading="doc.loading" class="viewer-doc">
 			<iframe :ref="setRefs('docIframe')" :src="doc.url" />
 		</div>
 	</cl-dialog>
 </template>
 
-<script lang="ts" setup name="file-viewer">
+<script lang="ts" setup>
+defineOptions({
+	name: 'file-viewer'
+});
+
 import { reactive, nextTick } from 'vue';
 import { getType } from '../../utils';
-import type { Upload } from '../../types';
 import { useCool } from '/@/cool';
 
 const { refs, setRefs } = useCool();

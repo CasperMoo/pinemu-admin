@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">config</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>config</el-tag>
 			<span>参数配置</span>
 		</div>
 

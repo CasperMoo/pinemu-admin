@@ -50,93 +50,94 @@ router.beforeResolve(() => {
 let lock = false;
 
 // 错误监听
-router.onError((err: Error) => {
+router.onError((error: Error) => {
 	if (!lock) {
 		lock = true;
 
-		ElMessage.error(`页面存在错误：${err.message}`);
-		console.error(err);
+		// 显示错误信息
+		ElMessage.error(`页面存在错误：${error.message}`);
+		console.error(error);
 
-		// 动态加载组件错误，刷新页面
-		if (err.message?.includes('Failed to fetch dynamically imported module')) {
+		// 如果是动态加载模块失败的错误，且非开发环境，则刷新页面
+		if (error.message?.includes('Failed to fetch dynamically imported module')) {
 			if (!isDev) {
 				window.location.reload();
 			}
 		}
 
+		// 短暂延迟后解锁，允许后续错误处理
 		setTimeout(() => {
 			lock = false;
 		}, 0);
 	}
 });
 
-// 添加试图，页面路由
-router.append = function (data) {
-	if (!data) {
-		return false;
+// 添加视图，页面路由
+router.append = function (routeData) {
+	if (!routeData) {
+		return false; // 如果没有路由数据，直接返回
 	}
 
-	const list = isArray(data) ? data : [data];
+	// 确保 routeData 是数组
+	const routeList = isArray(routeData) ? routeData : [routeData];
 
-	list.forEach(d => {
-		if (!d.meta) {
-			d.meta = {};
+	routeList.forEach(route => {
+		if (!route.meta) {
+			route.meta = {}; // 初始化 meta 对象
 		}
 
-		// 组件路径
-		if (!d.component) {
-			const url = d.viewPath;
+		// 如果没有指定组件路径
+		if (!route.component) {
+			const viewPath = route.viewPath;
 
-			if (url) {
-				if (url.indexOf('http') == 0) {
-					if (d.meta) {
-						d.meta.iframeUrl = url;
-					}
-
-					d.component = () => import('/$/base/views/frame.vue');
+			if (viewPath) {
+				if (viewPath.startsWith('http')) {
+					// 如果是外部链接，使用 iframe 组件
+					route.meta.iframeUrl = viewPath;
+					route.component = () => import('/$/base/views/frame.vue');
 				} else {
-					d.component = files['/src/' + url.replace('cool/', '')];
+					// 从文件系统中动态导入组件
+					route.component = files['/src/' + viewPath.replace('cool/', '')];
 				}
-			} else {
-				if (!d.redirect) {
-					d.redirect = '/404';
-				}
+			} else if (!route.redirect) {
+				// 如果没有组件路径且没有重定向，默认重定向到 404
+				route.redirect = '/404';
 			}
 		}
 
 		// 支持 props 接收参数
-		d.props = true;
+		route.props = true;
 
-		// 是否动态添加
-		d.meta.dynamic = true;
+		// 标记为动态添加的路由
+		route.meta.dynamic = true;
 
-		// 判断是页面/视图
-		if (d.isPage || d.viewPath?.includes('/pages/')) {
-			router.addRoute(d);
+		// 判断是页面还是视图，并添加到相应的路由
+		if (route.isPage || route.viewPath?.includes('/pages/')) {
+			router.addRoute(route);
 		} else {
-			router.addRoute('index', d);
+			router.addRoute('index', route);
 		}
 	});
 };
 
 // 删除路由
-router.del = function (name) {
-	const rs = router.getRoutes();
+router.del = function (routeName) {
+	const allRoutes = router.getRoutes();
 
-	rs.forEach(e => {
-		if (e.name == name) {
-			router.removeRoute(name);
+	allRoutes.forEach(route => {
+		if (route.name === routeName) {
+			router.removeRoute(routeName); // 移除指定名称的路由
 		}
 	});
 };
 
 // 清空路由
 router.clear = function () {
-	const rs = router.getRoutes();
+	const allRoutes = router.getRoutes();
 
-	rs.forEach(e => {
-		if (e.name && e.meta?.dynamic) {
-			router.removeRoute(e.name);
+	allRoutes.forEach(route => {
+		if (route.name && route.meta?.dynamic) {
+			router.removeRoute(route.name); // 移除所有动态添加的路由
 		}
 	});
 };
@@ -145,53 +146,52 @@ router.clear = function () {
 router.find = function (path: string) {
 	const { menu } = useBase();
 
-	// 已注册路由
-	const routes = router.getRoutes();
+	// 获取已注册的路由
+	const registeredRoutes = router.getRoutes();
 
-	// 路由列表
-	const list: any[] = [
-		...routes.map(e => {
-			return {
-				...e,
-				isReg: true
-			};
-		}),
-		// 菜单配置
+	// 构建路由列表，包括已注册的路由、菜单配置和模块自定义路由
+	const routeList: any[] = [
+		...registeredRoutes.map(route => ({
+			...route,
+			isReg: true
+		})),
 		...menu.routes,
-		// 模块中自定义
-		...module.list.map(e => (e.views || [])?.concat(e.pages || [])).flat(1)
+		...module.list.flatMap(module => (module.views || []).concat(module.pages || []))
 	];
 
-	let isReg = false;
-	let route: (typeof list)[number] | undefined;
+	let isRegistered = false;
+	let matchedRoute: (typeof routeList)[number] | undefined;
 
-	// 匹配器
-	const matcher = createRouterMatcher(list, {});
+	// 创建路由匹配器
+	const matcher = createRouterMatcher(routeList, {});
 
-	// 获取路由
-	matcher.getRoutes().find(e => {
-		const r = new RegExp(e.re);
+	// 查找匹配的路由
+	matcher.getRoutes().find(route => {
+		const routeRegex = new RegExp(route.re);
 
-		if (r.test(path)) {
-			if (path == '/') {
-				route = list.find(e => e.meta?.isHome);
+		if (routeRegex.test(path)) {
+			if (path === '/') {
+				// 如果路径是根路径，查找标记为首页的路由
+				matchedRoute = routeList.find(route => route.meta?.isHome);
 			} else {
-				route = list.find(a => a.path == e.record.path && a.name != 'index');
+				// 否则查找路径匹配且名称不是 'index' 的路由
+				matchedRoute = routeList.find(
+					r => r.path === route.record.path && r.name !== 'index'
+				);
 			}
 
-			if (route) {
-				isReg = !!route.isReg;
+			if (matchedRoute) {
+				isRegistered = !!matchedRoute.isReg; // 检查路由是否已注册
 			}
 
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	});
 
 	return {
-		route,
-		isReg
+		route: matchedRoute,
+		isReg: isRegistered
 	};
 };
 
@@ -200,51 +200,48 @@ router.beforeEach(async (to, from, next) => {
 	// 等待应用配置加载完
 	await Loading.wait();
 
-	// 数据缓存
+	// 获取用户和进程数据
 	const { user, process } = useBase();
 
 	// 查找路由信息
 	const { isReg, route } = router.find(to.path);
 
-	// 路由不存在
+	// 如果路由不存在
 	if (!route) {
-		next(user.token ? '/404' : '/login');
+		next(user.token ? '/404' : '/login'); // 根据用户登录状态重定向
 		return;
 	}
 
-	// 路由未注册
+	// 如果路由未注册
 	if (!isReg) {
-		// 注册路由
-		router.append(route);
-
-		// 重定向原路径
-		next(to.fullPath);
+		router.append(route); // 注册路由
+		next(to.fullPath); // 重定向到原路径
 		return;
 	}
 
-	// 登录成功
+	// 如果用户已登录
 	if (user.token) {
-		// 在登录页
 		if (to.path.includes('/login')) {
-			// Token 未过期
+			// 如果在登录页且 Token 未过期，重定向到首页
 			if (!storage.isExpired('token')) {
-				// 回到首页
 				next('/');
 				return;
 			}
 		} else {
-			// 添加路由进程
-			process.add(to);
+			process.add(to); // 添加路由进程
 		}
 	} else {
-		// 忽略部分 Token 验证
-		if (!config.ignore.token.find(e => to.path == e)) {
+		// 清除用户信息
+		user.clear();
+
+		// 如果路径不在忽略 Token 验证的列表中，重定向到登录页
+		if (!config.ignore.token.some(ignorePath => to.path === ignorePath)) {
 			next('/login');
 			return;
 		}
 	}
 
-	next();
+	next(); // 继续导航
 });
 
 export { router };

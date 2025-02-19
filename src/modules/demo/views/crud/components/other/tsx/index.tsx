@@ -52,7 +52,7 @@ export default defineComponent({
 			return (
 				<div class="scope">
 					<div class="h">
-						<el-tag size="small" effect="dark">
+						<el-tag size="small" effect="dark" disable-transitions>
 							tsx
 						</el-tag>
 						<span>tsx示例</span>

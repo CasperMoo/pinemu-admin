@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">formatter</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>formatter</el-tag>
 			<span>数据格式化</span>
 		</div>
 
@@ -33,9 +33,6 @@
 <script setup lang="tsx">
 import { useCrud, useTable } from '@cool-vue/crud';
 import { ref } from 'vue';
-import { useDict } from '/$/dict';
-
-const { dict } = useDict();
 
 // cl-crud 配置
 const Crud = useCrud(

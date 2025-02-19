@@ -10,7 +10,11 @@
 </template>
 
 <!-- 【很重要】必须要有name，避免注册后和其他冲突 -->
-<script setup lang="ts" name="select-work2">
+<script setup lang="ts">
+defineOptions({
+	name: 'select-work2'
+});
+
 import { ref, useModel } from 'vue';
 
 const props = defineProps({

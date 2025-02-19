@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import { isEmpty, orderBy } from 'lodash-es';
 import { export_json_to_excel } from '../utils';
 import { deepFind } from '/$/dict/utils';
+import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
 	name: 'cl-export-btn',
@@ -28,6 +29,8 @@ export default defineComponent({
 	},
 
 	setup(props, { slots }) {
+		const { t } = useI18n();
+
 		// crud
 		const Crud = useCrud();
 
@@ -86,7 +89,7 @@ export default defineComponent({
 								return [];
 							});
 					} else {
-						console.error('useCrud 中未设置 service 参数');
+						console.error('[cl-crud] Service is required');
 						return [];
 					}
 				}
@@ -98,7 +101,7 @@ export default defineComponent({
 			if (typeof props.filename === 'function') {
 				return await props?.filename();
 			} else {
-				return props.filename || `报表（${dayjs().format('YYYY-MM-DD HH_mm_ss')}）`;
+				return props.filename || `Doc（${dayjs().format('YYYY-MM-DD HH_mm_ss')}）`;
 			}
 		}
 
@@ -118,7 +121,7 @@ export default defineComponent({
 
 			if (!data) {
 				loading.value = false;
-				return ElMessage.error('导出数据异常');
+				return ElMessage.error(t('导出数据异常'));
 			}
 
 			// 文件名
@@ -141,7 +144,7 @@ export default defineComponent({
 
 		function open() {
 			if (!props.columns) {
-				return console.error('<cl-export-btn /> columns is required');
+				return console.error('[cl-export-btn] Columns is required');
 			}
 
 			// 表格列
@@ -156,7 +159,7 @@ export default defineComponent({
 			);
 
 			Form.value?.open({
-				title: '导出',
+				title: t('导出'),
 				width: '600px',
 				props: {
 					labelPosition: 'top'
@@ -166,7 +169,7 @@ export default defineComponent({
 				},
 				items: [
 					{
-						label: '选择列',
+						label: t('选择列'),
 						prop: 'checked',
 						component: {
 							name: 'el-checkbox-group',
@@ -182,7 +185,7 @@ export default defineComponent({
 				on: {
 					submit(data, { close, done }) {
 						if (isEmpty(data.checked)) {
-							ElMessage.warning('请先选择要导出的列');
+							ElMessage.warning(t('请先选择要导出的列'));
 							done();
 						} else {
 							toExport(columns.filter(e => data.checked.includes(e.prop)));
@@ -196,7 +199,7 @@ export default defineComponent({
 		return () => {
 			return (
 				<el-button loading={loading.value} onClick={open}>
-					{slots.default ? slots.default() : '导出'}
+					{slots.default ? slots.default() : t('导出')}
 
 					<cl-form ref={Form} />
 				</el-button>

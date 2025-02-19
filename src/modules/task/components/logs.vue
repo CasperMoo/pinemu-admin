@@ -5,7 +5,7 @@
 				<!-- 刷新按钮 -->
 				<cl-refresh-btn />
 				<!-- 状态 -->
-				<cl-filter label="状态">
+				<cl-filter :label="$t('状态')">
 					<cl-select :options="options.status" prop="status" :width="120" />
 				</cl-filter>
 			</cl-row>
@@ -25,11 +25,17 @@
 </template>
 
 <script lang="ts" setup>
+defineOptions({
+	name: 'task-logs'
+});
+
 import { useCrud, useTable } from '@cool-vue/crud';
 import { nextTick, reactive, ref } from 'vue';
 import { useCool } from '/@/cool';
+import { useI18n } from 'vue-i18n';
 
 const { service } = useCool();
+const { t } = useI18n();
 
 // 是否可见
 const visible = ref(false);
@@ -41,12 +47,12 @@ const title = ref('');
 const options = reactive({
 	status: [
 		{
-			label: '成功',
+			label: t('成功'),
 			value: 1,
 			type: 'success'
 		},
 		{
-			label: '失败',
+			label: t('失败'),
 			value: 0,
 			type: 'danger'
 		}
@@ -62,19 +68,19 @@ const Table = useTable({
 			type: 'index'
 		},
 		{
-			label: '描述',
+			label: t('描述'),
 			prop: 'detail',
 			showOverflowTooltip: true,
 			minWidth: 200
 		},
 		{
-			label: '执行状态',
+			label: t('执行状态'),
 			prop: 'status',
 			minWidth: 120,
 			dict: options.status
 		},
 		{
-			label: '执行时间',
+			label: t('执行时间'),
 			prop: 'createTime',
 			minWidth: 170
 		}
@@ -94,7 +100,7 @@ const Crud = useCrud({
 // 打开
 function open(data: Eps.TaskInfoEntity) {
 	visible.value = true;
-	title.value = `日志列表（${data.name}）`;
+	title.value = t('日志列表（{name}）', { name: data.name });
 
 	nextTick(() => {
 		Crud.value?.refresh({ id: data.id, page: 1 });

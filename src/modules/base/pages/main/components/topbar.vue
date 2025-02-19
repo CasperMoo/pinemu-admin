@@ -1,14 +1,13 @@
 <template>
-	<a-menu v-if="app.info.menu.isGroup" />
-
 	<div class="app-topbar">
-		<div class="app-topbar__collapse" @click="app.fold()">
+		<div class="cl-comm__icon mr-[10px]" @click="app.fold()">
 			<cl-svg name="fold" v-if="app.isFold" />
 			<cl-svg name="expand" v-else />
 		</div>
 
 		<!-- 路由导航 -->
-		<route-nav />
+		<a-menu v-if="app.info.menu.isGroup" />
+		<route-nav v-else />
 
 		<div class="flex1"></div>
 
@@ -28,16 +27,16 @@
 				@command="onCommand"
 			>
 				<div class="app-topbar__user">
-					<el-text class="name">{{ user.info.nickName }}</el-text>
-					<cl-avatar :size="28" :src="user.info.headImg" />
+					<el-text class="mr-[10px]">{{ user.info.nickName }}</el-text>
+					<cl-avatar :size="26" :src="user.info.headImg" />
 				</div>
 
 				<template #dropdown>
 					<div class="user">
-						<cl-avatar :size="32" :src="user.info.headImg" />
+						<cl-avatar :size="34" :src="user.info.headImg" />
 
 						<div class="det">
-							<el-text tag="p" size="small">{{ user.info.nickName }}</el-text>
+							<el-text size="small" tag="p">{{ user.info.nickName }}</el-text>
 							<el-text size="small" type="info">{{ user.info.email }}</el-text>
 						</div>
 					</div>
@@ -45,11 +44,11 @@
 					<el-dropdown-menu>
 						<el-dropdown-item command="my">
 							<cl-svg name="my" />
-							<span>个人中心</span>
+							<span>{{ t('个人中心') }}</span>
 						</el-dropdown-item>
 						<el-dropdown-item command="exit">
 							<cl-svg name="exit" />
-							<span>退出登录</span>
+							<span>{{ t('退出登录') }}</span>
 						</el-dropdown-item>
 					</el-dropdown-menu>
 				</template>
@@ -58,17 +57,23 @@
 	</div>
 </template>
 
-<script lang="ts" name="app-topbar" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'app-topbar'
+});
+
 import { computed, markRaw, onMounted, reactive } from 'vue';
 import { isFunction, orderBy } from 'lodash-es';
 import { useBase } from '/$/base';
 import { module, useCool } from '/@/cool';
+import { ElMessageBox } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 import RouteNav from './route-nav.vue';
 import AMenu from './amenu.vue';
-import { ElMessageBox } from 'element-plus';
 
 const { router, service, browser } = useCool();
 const { user, app } = useBase();
+const { t } = useI18n();
 
 // 命令事件
 async function onCommand(name: string) {
@@ -77,7 +82,7 @@ async function onCommand(name: string) {
 			router.push('/my/info');
 			break;
 		case 'exit':
-			ElMessageBox.confirm('确定退出登录吗？', '提示', {
+			ElMessageBox.confirm(t('确定退出登录吗？'), t('提示'), {
 				type: 'warning'
 			})
 				.then(async () => {
@@ -94,19 +99,24 @@ const toolbar = reactive({
 	list: [] as any[],
 
 	async init() {
-		const arr = orderBy(module.list.map(e => e.toolbar).filter(Boolean), 'order');
+		const arr = orderBy(
+			module.list.filter(e => e.enable !== false && !!e.toolbar).map(e => e.toolbar),
+			'order'
+		);
 
 		this.list = await Promise.all(
-			arr.map(async e => {
-				if (e) {
-					const c = await (isFunction(e.component) ? e.component() : e.component);
+			arr
+				.filter(e => e?.component)
+				.map(async e => {
+					if (e) {
+						const c = await (isFunction(e.component) ? e.component() : e.component);
 
-					return {
-						...e,
-						component: markRaw(c.default)
-					};
-				}
-			})
+						return {
+							...e,
+							component: markRaw(c.default || c)
+						};
+					}
+				})
 		);
 	}
 });
@@ -131,30 +141,12 @@ onMounted(() => {
 .app-topbar {
 	display: flex;
 	align-items: center;
-	height: 50px;
+	height: 46px;
 	padding: 0 10px;
 	background-color: var(--el-bg-color);
 	border-bottom: 1px solid var(--el-border-color-extra-light);
 	box-sizing: border-box;
 	transition: height 0.2s ease-in-out;
-
-	&__collapse {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 30px;
-		width: 30px;
-		cursor: pointer;
-		border-radius: 4px;
-
-		.cl-svg {
-			font-size: 14px;
-		}
-
-		&:hover {
-			background-color: var(--el-color-info-light-9);
-		}
-	}
 
 	.flex1 {
 		flex: 1;
@@ -162,7 +154,7 @@ onMounted(() => {
 
 	&__tools {
 		display: flex;
-		margin-right: 20px;
+		margin-right: 10px;
 
 		& > li {
 			display: flex;
@@ -171,6 +163,7 @@ onMounted(() => {
 			list-style: none;
 			height: 45px;
 			cursor: pointer;
+			margin-left: 10px;
 		}
 	}
 
@@ -178,12 +171,20 @@ onMounted(() => {
 		display: flex;
 		align-items: center;
 		outline: none;
-		margin-right: 10px;
 		cursor: pointer;
+		white-space: nowrap;
+		padding: 5px 5px 5px 10px;
+		border-radius: 6px;
 
-		.name {
-			white-space: nowrap;
-			margin-right: 10px;
+		&:hover {
+			background-color: var(--el-fill-color-light);
+		}
+	}
+
+	:deep(.cl-comm__icon) {
+		&:hover {
+			border-color: var(--el-color-primary);
+			background-color: transparent;
 		}
 	}
 }
@@ -191,12 +192,6 @@ onMounted(() => {
 
 <style lang="scss">
 .app-topbar__user-popper {
-	border-radius: 6px;
-
-	.el-popper__arrow {
-		display: none;
-	}
-
 	.el-dropdown-menu__item {
 		padding: 6px 12px;
 		font-size: 12px;
@@ -212,12 +207,13 @@ onMounted(() => {
 		.det {
 			margin-left: 10px;
 			flex: 1;
+			font-size: 12px;
 		}
 	}
 
 	.cl-svg {
-		margin-right: 6px;
-		font-size: 14px;
+		margin-right: 8px;
+		font-size: 16px;
 	}
 }
 </style>

@@ -8,7 +8,11 @@
 </template>
 
 <!--【很重要】必须要有name，避免注册后和其他冲突 -->
-<script setup lang="ts" name="select-status">
+<script setup lang="ts">
+defineOptions({
+	name: 'select-status'
+});
+
 import { useForm } from '@cool-vue/crud';
 import { computed, ref } from 'vue';
 

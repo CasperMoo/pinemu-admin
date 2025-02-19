@@ -8,8 +8,9 @@
 				type="success"
 				:disabled="Table?.selection.length == 0"
 				@click="restore()"
-				>批量恢复</el-button
 			>
+				{{ $t('批量恢复') }}
+			</el-button>
 
 			<cl-flex1 />
 			<!-- 关键字搜索 -->
@@ -29,13 +30,20 @@
 	</cl-crud>
 </template>
 
-<script lang="ts" name="recycle-data" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'recycle-data'
+});
+
 import { useCrud, useTable } from '@cool-vue/crud';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { onActivated } from 'vue';
 import { useCool } from '/@/cool';
+import { useI18n } from 'vue-i18n';
 
 const { service } = useCool();
+
+const { t } = useI18n();
 
 // cl-table
 const Table = useTable({
@@ -43,9 +51,9 @@ const Table = useTable({
 		{
 			type: 'selection'
 		},
-		{ label: '操作人', prop: 'userName', minWidth: 120 },
+		{ label: t('操作人'), prop: 'userName', minWidth: 120 },
 		{
-			label: '被删除的数据',
+			label: t('被删除的数据'),
 			prop: 'data',
 			minWidth: 200,
 			component: {
@@ -56,13 +64,13 @@ const Table = useTable({
 			}
 		},
 		{
-			label: '请求的接口',
+			label: t('请求的接口'),
 			prop: 'url',
 			showOverflowTooltip: true,
 			minWidth: 150
 		},
 		{
-			label: '请求参数',
+			label: t('请求参数'),
 			prop: 'params',
 			minWidth: 150,
 			component: {
@@ -72,9 +80,9 @@ const Table = useTable({
 				}
 			}
 		},
-		{ label: '删除条数', prop: 'count', minWidth: 120, sortable: 'custom' },
+		{ label: t('删除条数'), prop: 'count', minWidth: 120, sortable: 'custom' },
 		{
-			label: '创建时间',
+			label: t('创建时间'),
 			prop: 'createTime',
 			minWidth: 170,
 			sortable: 'desc'
@@ -84,7 +92,7 @@ const Table = useTable({
 			width: 120,
 			buttons: [
 				{
-					label: '恢复',
+					label: t('恢复'),
 					hidden: !service.recycle.data._permission.restore,
 					type: 'success',
 					onClick({ scope }) {
@@ -110,7 +118,7 @@ function refresh(params?: any) {
 function restore(id?: string) {
 	const ids = id ? [id] : Table.value?.selection.map(e => e.id);
 
-	ElMessageBox.confirm('此操作将恢复被删除的数据，是否继续？', '提示', {
+	ElMessageBox.confirm(t('此操作将恢复被删除的数据，是否继续？'), t('提示'), {
 		type: 'warning'
 	})
 		.then(() => {
@@ -119,7 +127,7 @@ function restore(id?: string) {
 					ids
 				})
 				.then(() => {
-					ElMessage.success('数据恢复成功');
+					ElMessage.success(t('数据恢复成功'));
 					refresh();
 				})
 				.catch(err => {

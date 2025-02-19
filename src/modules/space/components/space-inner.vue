@@ -5,7 +5,7 @@
 				<div class="cl-upload-space-inner__right">
 					<!-- 操作栏 -->
 					<div class="cl-upload-space-inner__header">
-						<el-button @click="refresh({ page: 1 })">刷新</el-button>
+						<el-button @click="refresh({ page: 1 })">{{ $t('刷新') }}</el-button>
 
 						<div :style="{ margin: '0px 10px' }">
 							<cl-upload
@@ -19,7 +19,7 @@
 								@success="onSuccess"
 								@upload="onUpload"
 							>
-								<el-button type="primary">点击上传</el-button>
+								<el-button type="primary">{{ $t('点击上传') }}</el-button>
 							</cl-upload>
 						</div>
 
@@ -28,7 +28,7 @@
 								type="danger"
 								:disabled="selection.length == 0"
 								@click="remove()"
-								>删除选中文件</el-button
+								>{{ $t('删除选中文件') }}</el-button
 							>
 						</template>
 					</div>
@@ -67,14 +67,14 @@
 							<el-icon class="el-icon--upload">
 								<upload-filled />
 							</el-icon>
-							<p>将文件拖到此处，或点击按钮上传</p>
+							<p>{{ $t('将文件拖到此处，或点击按钮上传') }}</p>
 						</div>
 					</el-scrollbar>
 
-					<div class="cl-upload-space-inner__footer">
+					<div class="cl-upload-space-inner__footer cl-pagination">
 						<el-pagination
 							v-model:current-page="pagination.page"
-							:small="browser.isMini ? true : false"
+							:size="browser.isMini ? 'small' : 'default'"
 							:total="pagination.total"
 							:default-page-size="pagination.size"
 							background
@@ -82,9 +82,9 @@
 							@current-change="refresh()"
 						/>
 
-						<span v-show="!browser.isMini" class="total"
-							>共 {{ pagination.total }} 条</span
-						>
+						<span v-show="!browser.isMini" class="total">{{
+							$t('共 {total} 条', { total: pagination.total })
+						}}</span>
 					</div>
 				</div>
 			</template>
@@ -92,13 +92,19 @@
 	</div>
 </template>
 
-<script lang="ts" name="cl-upload-space-inner" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-upload-space-inner'
+});
+
 import { provide, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { UploadFilled } from '@element-plus/icons-vue';
 import { useCool } from '/@/cool';
 import { useViewGroup } from '/@/plugins/view';
 import UploadItem from '/@/plugins/upload/components/upload-item/index.vue';
+import { useI18n } from 'vue-i18n';
+import { assign } from 'lodash-es';
 
 const props = defineProps({
 	limit: {
@@ -112,10 +118,11 @@ const props = defineProps({
 const emit = defineEmits(['selection-change', 'confirm']);
 
 const { service, browser, refs, setRefs } = useCool();
+const { t } = useI18n();
 
 const { ViewGroup } = useViewGroup({
-	label: '分类',
-	title: '文件列表',
+	label: t('分类'),
+	title: t('文件列表'),
 	service: service.space.type,
 	onEdit() {
 		return {
@@ -128,7 +135,7 @@ const { ViewGroup } = useViewGroup({
 			},
 			items: [
 				{
-					label: '名称',
+					label: t('名称'),
 					prop: 'name',
 					value: '',
 					required: true,
@@ -200,7 +207,7 @@ const reqParams = {
 // 刷新列表
 async function refresh(params?: any) {
 	// 合并参数
-	Object.assign(reqParams, {
+	assign(reqParams, {
 		type: props.accept?.split('/')[0].replace('*', '') || undefined,
 		...pagination,
 		...params
@@ -213,7 +220,7 @@ async function refresh(params?: any) {
 
 	await service.space.info.page(reqParams).then(res => {
 		// 设置分页
-		Object.assign(pagination, res.pagination);
+		assign(pagination, res.pagination);
 
 		// 设置列表
 		list.value = res.list as Eps.SpaceInfoEntity[];
@@ -236,7 +243,7 @@ function select(item: Eps.SpaceInfoEntity) {
 			if (selection.value.length < props.limit) {
 				selection.value.push(item);
 			} else {
-				ElMessage.warning(`最多只能选择${props.limit}个文件`);
+				ElMessage.warning(t('最多只能选择{limit}个文件', { limit: props.limit }));
 			}
 		}
 	}
@@ -252,11 +259,11 @@ function remove(item?: Eps.SpaceInfoEntity) {
 	// 已选文件 id
 	const ids = item ? [item.id] : selection.value.map(e => e.id);
 
-	ElMessageBox.confirm('此操作将删除文件, 是否继续?', '提示', {
+	ElMessageBox.confirm(t('此操作将删除文件, 是否继续?'), t('提示'), {
 		type: 'warning'
 	})
 		.then(() => {
-			ElMessage.success('删除成功');
+			ElMessage.success(t('删除成功'));
 
 			// 删除文件及选择
 			ids.forEach(id => {
@@ -415,7 +422,7 @@ defineExpose({
 			cursor: pointer;
 
 			&:hover {
-				border-color: var(--color-primary);
+				border-color: var(--el-color-primary);
 			}
 
 			i {

@@ -10,7 +10,11 @@
 	</div>
 </template>
 
-<script lang="ts" name="app-views" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'app-views'
+});
+
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useBase } from '/$/base';
 import { useCool } from '/@/cool';

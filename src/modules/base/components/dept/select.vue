@@ -15,11 +15,15 @@
 			default-expand-all
 			@change="onChange"
 			@check="onCheckChange"
-		></el-tree-select>
+		/>
 	</div>
 </template>
 
-<script lang="ts" name="cl-dept-select" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-dept-select'
+});
+
 import { ElMessage } from 'element-plus';
 import { onMounted, ref, useModel } from 'vue';
 import { useCool } from '/@/cool';

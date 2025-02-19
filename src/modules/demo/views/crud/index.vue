@@ -25,7 +25,11 @@
 	</el-scrollbar>
 </template>
 
-<script lang="ts" setup name="demo-crud">
+<script lang="ts" setup>
+defineOptions({
+	name: 'demo-crud'
+});
+
 import { ref, onActivated } from 'vue';
 import { useCool } from '/@/cool';
 
@@ -34,6 +38,8 @@ import CrudAll from './components/crud/all.vue';
 import CrudDict from './components/crud/dict.vue';
 import CrudEvent from './components/crud/event.vue';
 import CrudService from './components/crud/service.vue';
+import CrudUserSelect from './components/crud/user-select.vue';
+import CrudSelectTable from './components/crud/select-table.vue';
 
 import FormOpen from './components/form/open.vue';
 import FormConfig from './components/form/config.vue';
@@ -64,7 +70,8 @@ import TableDict from './components/table/dict.vue';
 import TableSpanMethod from './components/table/span-method.vue';
 import TableColumnCustom from './components/table/column-custom.vue';
 import TableComponent from './components/table/component/index.vue';
-import TablePlugin from './components/table/plugin/index.vue';
+import TablePluginBase from './components/table/plugin/base.vue';
+import TablePluginRowEdit from './components/table/plugin/row-edit.vue';
 
 import UpsertBase from './components/upsert/base.vue';
 import UpsertEvent from './components/upsert/event.vue';
@@ -75,6 +82,7 @@ import SearchBase from './components/search/base.vue';
 import SearchCustom from './components/search/custom.vue';
 import SearchCollapse from './components/search/collapse.vue';
 import SearchLayout from './components/search/layout.vue';
+import SearchPlugin from './components/search/plugin.vue';
 
 import AdvSearchBase from './components/adv-search/base.vue';
 import AdvSearchCustom from './components/adv-search/custom.vue';
@@ -96,7 +104,7 @@ const list = [
 			},
 			{
 				label: '高级',
-				children: [CrudAll]
+				children: [CrudAll, CrudUserSelect, CrudSelectTable]
 			}
 		]
 	},
@@ -122,7 +130,11 @@ const list = [
 			},
 			{
 				label: '高级',
-				children: [TableColumnCustom, TableComponent, TablePlugin]
+				children: [TableColumnCustom, TableComponent]
+			},
+			{
+				label: '插件',
+				children: [TablePluginBase, TablePluginRowEdit]
 			}
 		]
 	},
@@ -160,7 +172,11 @@ const list = [
 			},
 			{
 				label: '高级',
-				children: [FormRules, FormComponent, FormPlugin]
+				children: [FormRules, FormComponent]
+			},
+			{
+				label: '插件',
+				children: [FormPlugin]
 			}
 		]
 	},
@@ -170,6 +186,10 @@ const list = [
 			{
 				label: '基础',
 				children: [SearchBase, SearchCustom, SearchCollapse, SearchLayout]
+			},
+			{
+				label: '插件',
+				children: [SearchPlugin]
 			}
 		]
 	},
@@ -226,8 +246,8 @@ onActivated(() => {
 		.h {
 			display: flex;
 			align-items: center;
-			height: 30px;
-			padding: 10px;
+			height: 40px;
+			padding: 0 10px;
 			font-size: 12px;
 
 			.el-tag {
@@ -237,7 +257,7 @@ onActivated(() => {
 
 		.c {
 			height: 50px;
-			padding: 10px;
+			padding: 0 10px;
 			box-sizing: border-box;
 
 			&._svg {
@@ -258,7 +278,7 @@ onActivated(() => {
 						position: absolute;
 						bottom: -2px;
 						left: 0;
-						background-color: var(--color-primary);
+						background-color: var(--el-color-primary);
 					}
 				}
 			}

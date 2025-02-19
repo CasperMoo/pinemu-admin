@@ -5,21 +5,10 @@
 			<cl-refresh-btn />
 			<!-- 删除按钮 -->
 			<cl-multi-delete-btn />
-			<!-- 登录方式 -->
-			<cl-filter label="登录方式">
-				<cl-select :options="options.loginType" prop="loginType" :width="120" />
-			</cl-filter>
-			<!-- 性别 -->
-			<cl-filter label="性别">
-				<cl-select :options="options.gender" prop="gender" :width="120" />
-			</cl-filter>
-			<!-- 状态 -->
-			<cl-filter label="状态">
-				<cl-select :options="options.status" prop="status" :width="120" />
-			</cl-filter>
 			<cl-flex1 />
-			<!-- 关键字搜索 -->
-			<cl-search-key placeholder="搜索昵称、手机号" />
+
+			<!-- 搜索 -->
+			<cl-search ref="Search" />
 		</cl-row>
 
 		<cl-row>
@@ -38,61 +27,66 @@
 	</cl-crud>
 </template>
 
-<script lang="ts" name="user-list" setup>
-import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
+<script lang="ts" setup>
+defineOptions({
+	name: 'user-list'
+});
+
+import { useCrud, useSearch, useTable, useUpsert } from '@cool-vue/crud';
+import { useI18n } from 'vue-i18n';
 import { useCool } from '/@/cool';
 import { reactive } from 'vue';
 
+const { t } = useI18n();
 const { service } = useCool();
 
-// 数据选项
 const options = reactive({
 	loginType: [
 		{
-			label: '小程序',
+			label: t('小程序'),
 			value: 0,
 			type: 'danger'
 		},
 		{
-			label: '公众号',
+			label: t('公众号'),
 			value: 1,
 			type: 'success'
 		},
 		{
-			label: 'H5',
+			label: t('H5'),
 			value: 2
 		}
 	],
 	gender: [
 		{
-			label: '未知',
+			label: t('未知'),
 			value: 0,
 			type: 'info'
 		},
 		{
-			label: '男',
+			label: t('男'),
 			value: 1,
 			type: 'success'
 		},
 		{
-			label: '女',
+			label: t('女'),
 			value: 2,
 			type: 'danger'
 		}
 	],
 	status: [
 		{
-			label: '禁用',
+			label: t('禁用'),
 			value: 0,
 			type: 'danger'
 		},
 		{
-			label: '正常',
+			label: t('正常'),
 			value: 1,
 			type: 'success'
 		},
 		{
-			label: '已注销',
+			label: t('已注销'),
 			value: 2,
 			type: 'warning'
 		}
@@ -107,12 +101,12 @@ const Table = useTable({
 			width: 60
 		},
 		{
-			label: '昵称',
+			label: t('昵称'),
 			prop: 'nickName',
 			minWidth: 150
 		},
 		{
-			label: '头像',
+			label: t('头像'),
 			prop: 'avatarUrl',
 			minWidth: 100,
 			component: {
@@ -120,62 +114,57 @@ const Table = useTable({
 			}
 		},
 		{
-			label: '手机',
+			label: t('手机号'),
 			prop: 'phone',
 			minWidth: 120
 		},
 		{
-			label: '性别',
+			label: t('性别'),
 			prop: 'gender',
 			dict: options.gender,
-			minWidth: 100
+			minWidth: 120
 		},
 		{
-			label: '登录方式',
+			label: t('登录方式'),
 			prop: 'loginType',
 			dict: options.loginType,
-			minWidth: 100
+			minWidth: 120
 		},
 		{
-			label: '状态',
+			label: t('状态'),
 			prop: 'status',
 			minWidth: 120,
 			dict: options.status
 		},
 		{
-			label: '创建时间',
+			label: t('创建时间'),
 			prop: 'createTime',
 			sortable: 'desc',
 			minWidth: 170
 		},
 		{
-			label: '操作',
-			type: 'op',
-			buttons: ['edit', 'delete']
+			type: 'op'
 		}
 	]
 });
 
 // cl-upsert
 const Upsert = useUpsert({
-	dialog: {
-		width: '600px'
-	},
 	items: [
 		{
 			prop: 'avatarUrl',
-			label: '头像',
+			label: t('头像'),
 			component: { name: 'cl-upload' }
 		},
 		{
 			prop: 'nickName',
-			label: '昵称',
+			label: t('昵称'),
 			component: { name: 'el-input' },
 			required: true
 		},
 		{
 			prop: 'phone',
-			label: '手机号',
+			label: t('手机号'),
 			component: {
 				name: 'el-input',
 				props: {
@@ -185,7 +174,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'gender',
-			label: '性别',
+			label: t('性别'),
 			value: 1,
 			component: {
 				name: 'el-radio-group',
@@ -194,7 +183,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'status',
-			label: '状态',
+			label: t('状态'),
 			value: 1,
 			component: {
 				name: 'el-radio-group',
@@ -203,6 +192,9 @@ const Upsert = useUpsert({
 		}
 	]
 });
+
+// cl-search
+const Search = useSearch();
 
 // cl-crud
 const Crud = useCrud(

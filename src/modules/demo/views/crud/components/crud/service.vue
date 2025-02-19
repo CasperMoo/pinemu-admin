@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">service</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>service</el-tag>
 			<span>Service 配置</span>
 		</div>
 

@@ -7,8 +7,6 @@
 
 		<template #right>
 			<cl-crud ref="Crud">
-				<cl-adv-search ref="AdvSearch" />
-
 				<cl-row>
 					<!-- 刷新按钮 -->
 					<cl-refresh-btn />
@@ -23,12 +21,10 @@
 						:disabled="Table?.selection.length == 0"
 						@click="toMove()"
 					>
-						转移
+						{{ $t('转移') }}
 					</el-button>
 					<cl-flex1 />
-					<cl-search-key placeholder="搜索用户名、姓名" />
-
-					<cl-adv-btn />
+					<cl-search-key :placeholder="$t('搜索用户名、姓名')" />
 				</cl-row>
 
 				<cl-row>
@@ -38,10 +34,9 @@
 							<el-button
 								v-permission="service.base.sys.user.permission.move"
 								text
-								bg
 								@click="toMove(scope.row)"
 							>
-								转移
+								{{ $t('转移') }}
 							</el-button>
 						</template>
 					</cl-table>
@@ -62,17 +57,24 @@
 	</cl-view-group>
 </template>
 
-<script lang="ts" name="sys-user" setup>
-import { useTable, useUpsert, useCrud, setFocus, useAdvSearch } from '@cool-vue/crud';
+<script lang="ts" setup>
+defineOptions({
+	name: 'sys-user'
+});
+
+import { useTable, useUpsert, useCrud } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import DeptList from './components/dept-list.vue';
 import UserMove from './components/user-move.vue';
 import { useViewGroup } from '/@/plugins/view';
+import { useI18n } from 'vue-i18n';
+import { Plugins } from '/#/crud';
 
 const { service, refs, setRefs } = useCool();
+const { t } = useI18n();
 
 const { ViewGroup } = useViewGroup({
-	title: '用户列表'
+	title: t('用户列表')
 });
 
 // cl-crud
@@ -89,34 +91,37 @@ const Table = useTable({
 		},
 		{
 			prop: 'headImg',
-			label: '头像',
+			label: t('头像'),
 			component: {
-				name: 'cl-avatar'
+				name: 'cl-avatar',
+				props: {
+					size: 32
+				}
 			}
 		},
 		{
 			prop: 'username',
-			label: '用户名',
+			label: t('用户名'),
 			minWidth: 150
 		},
 		{
 			prop: 'name',
-			label: '姓名',
+			label: t('姓名'),
 			minWidth: 120
 		},
 		{
 			prop: 'nickName',
-			label: '昵称',
+			label: t('昵称'),
 			minWidth: 120
 		},
 		{
 			prop: 'departmentName',
-			label: '部门名称',
+			label: t('部门名称'),
 			minWidth: 120
 		},
 		{
 			prop: 'roleName',
-			label: '角色',
+			label: t('角色'),
 			headerAlign: 'center',
 			minWidth: 160,
 			dict: [],
@@ -126,7 +131,7 @@ const Table = useTable({
 		},
 		{
 			prop: 'status',
-			label: '状态',
+			label: t('状态'),
 			minWidth: 100,
 			component: {
 				name: 'cl-switch'
@@ -134,25 +139,25 @@ const Table = useTable({
 		},
 		{
 			prop: 'phone',
-			label: '手机号码',
+			label: t('手机号码'),
 			minWidth: 120
 		},
 		{
 			prop: 'remark',
-			label: '备注',
+			label: t('备注'),
 			minWidth: 200,
 			showOverflowTooltip: true
 		},
 		{
 			prop: 'createTime',
-			label: '创建时间',
+			label: t('创建时间'),
 			sortable: 'desc',
 			minWidth: 170
 		},
 		{
 			type: 'op',
 			buttons: ['slot-btn', 'edit', 'delete'],
-			width: 240
+			width: 270
 		}
 	]
 });
@@ -166,17 +171,17 @@ const Upsert = useUpsert({
 	items: [
 		{
 			prop: 'headImg',
-			label: '头像',
+			label: t('头像'),
 			component: {
 				name: 'cl-upload',
 				props: {
-					text: '选择头像'
+					text: t('选择头像')
 				}
 			}
 		},
 		{
 			prop: 'name',
-			label: '姓名',
+			label: t('姓名'),
 			span: 12,
 			required: true,
 			component: {
@@ -185,7 +190,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'nickName',
-			label: '昵称',
+			label: t('昵称'),
 			required: true,
 			span: 12,
 			component: {
@@ -194,7 +199,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'username',
-			label: '用户名',
+			label: t('用户名'),
 			required: true,
 			span: 12,
 			component: {
@@ -204,7 +209,7 @@ const Upsert = useUpsert({
 		() => {
 			return {
 				prop: 'password',
-				label: '密码',
+				label: t('密码'),
 				span: 12,
 				required: Upsert.value?.mode == 'add',
 				component: {
@@ -219,14 +224,14 @@ const Upsert = useUpsert({
 					{
 						min: 6,
 						max: 16,
-						message: '密码长度在 6 到 16 个字符'
+						message: t('密码长度在 6 到 16 个字符')
 					}
 				]
 			};
 		},
 		{
 			prop: 'roleIdList',
-			label: '角色',
+			label: t('角色'),
 			value: [],
 			required: true,
 			component: {
@@ -240,7 +245,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'phone',
-			label: '手机号码',
+			label: t('手机号码'),
 			span: 12,
 			component: {
 				name: 'el-input'
@@ -248,7 +253,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'email',
-			label: '邮箱',
+			label: t('邮箱'),
 			span: 12,
 			component: {
 				name: 'el-input'
@@ -256,7 +261,7 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'remark',
-			label: '备注',
+			label: t('备注'),
 			component: {
 				name: 'el-input',
 				props: {
@@ -267,17 +272,17 @@ const Upsert = useUpsert({
 		},
 		{
 			prop: 'status',
-			label: '状态',
+			label: t('状态'),
 			value: 1,
 			component: {
 				name: 'el-radio-group',
 				options: [
 					{
-						label: '启用',
+						label: t('启用'),
 						value: 1
 					},
 					{
-						label: '禁用',
+						label: t('禁用'),
 						value: 0
 					}
 				]
@@ -307,7 +312,7 @@ const Upsert = useUpsert({
 		});
 	},
 
-	plugins: [setFocus('name')]
+	plugins: [Plugins.Form.setFocus('name')]
 });
 
 // 刷新列表
@@ -334,16 +339,4 @@ async function toMove(item?: Eps.BaseSysDepartmentEntity) {
 
 	refs.userMove.open(ids);
 }
-
-const AdvSearch = useAdvSearch({
-	items: [
-		{
-			label: '11',
-			prop: 'name',
-			component: {
-				name: 'el-input'
-			}
-		}
-	]
-});
 </script>

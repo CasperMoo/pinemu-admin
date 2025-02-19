@@ -1,16 +1,18 @@
 {
 	"extends": "@vue/tsconfig/tsconfig.dom.json",
 	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
 		"experimentalDecorators": true,
 		"verbatimModuleSyntax": false,
 		"noImplicitAny": false,
 
 		"types": [
-			"element-plus/global",
-			"@cool-vue/vite-plugin/client",
-			"@cool-vue/crud/index",
 			"./build/cool/eps",
-			"./env"
+			"./env",
+			"@cool-vue/crud/index",
+			"@cool-vue/vite-plugin/client",
+			"element-plus/global"
 		],
 		"paths": {
 			"/@/*": ["./src/*"],

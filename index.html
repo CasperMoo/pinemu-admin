@@ -16,6 +16,8 @@
 			body,
 			#app {
 				height: 100%;
+				font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+					'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
 			}
 
 			* {
@@ -60,41 +62,49 @@
 				letter-spacing: 5px;
 				font-weight: bold;
 				margin-bottom: 30px;
+				min-height: 50px;
 			}
 
 			.preload__title {
 				color: #fff;
 				font-size: 14px;
 				margin: 30px 0 20px 0;
+				min-height: 20px;
 			}
 
 			.preload__sub-title {
 				color: #ababab;
 				font-size: 12px;
+				min-height: 20px;
 			}
 
-			.preload__footer {
-				text-align: center;
-				padding: 10px 0 20px 0;
+			.preload__name,
+			.preload__title,
+			.preload__sub-title {
+				animation: s 0.5s ease-in;
 			}
 
-			.preload__footer a {
-				font-size: 12px;
-				color: #ababab;
-				text-decoration: none;
+			@keyframes s {
+				from {
+					opacity: 0;
+				}
+				to {
+					opacity: 1;
+				}
 			}
 
 			.preload__loading {
-				height: 30px;
-				width: 30px;
+				height: 44px;
+				width: 44px;
 				border-radius: 30px;
 				border: 7px solid currentColor;
-				border-bottom-color: #2f3447 !important;
+				border-bottom-color: #2f3447;
 				position: relative;
 				animation:
 					r 1s infinite cubic-bezier(0.17, 0.67, 0.83, 0.67),
 					bc 2s infinite ease-in;
 				transform: rotate(0deg);
+				box-sizing: border-box;
 			}
 
 			@keyframes r {
@@ -154,14 +164,10 @@
 	<body>
 		<div class="preload__wrap" id="Loading">
 			<div class="preload__container">
-				<p class="preload__name">%VITE_NAME%</p>
+				<p class="preload__name"></p>
 				<div class="preload__loading"></div>
-				<p class="preload__title">正在加载资源...</p>
-				<p class="preload__sub-title">初次加载资源可能需要较多时间 请耐心等待</p>
-			</div>
-
-			<div class="preload__footer">
-				<a href="https://cool-js.com" target="_blank"> https://cool-js.com </a>
+				<p class="preload__title"></p>
+				<p class="preload__sub-title"></p>
 			</div>
 		</div>
 

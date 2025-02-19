@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">disabled</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>disabled</el-tag>
 			<span>组件禁用</span>
 		</div>
 

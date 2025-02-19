@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">summary</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>summary</el-tag>
 			<span>表尾合计行</span>
 		</div>
 

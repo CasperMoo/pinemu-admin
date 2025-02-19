@@ -1,23 +1,18 @@
-import type { Merge, ModuleConfig } from '/@/cool';
+import { type ModuleConfig, type Merge } from '/@/cool';
+import { config } from '/@/config';
+import { Plugins } from './plugins';
 
 // npm
-import Crud, { locale, setFocus } from '@cool-vue/crud';
+import { Crud, locale } from '@cool-vue/crud';
 import '@cool-vue/crud/dist/index.css';
 
 // 调试、自定义crud
-// import Crud, { locale, setFocus } from '/~/crud/src';
+// import { Crud, locale } from '/~/crud/src';
 // import '/~/crud/src/static/index.scss';
 
 export default (): Merge<ModuleConfig, CrudOptions> => {
 	return {
 		order: 99,
-		label: 'CRUD',
-		description: '快速增删改查及一系列辅助组件',
-		author: 'COOL',
-		version: '1.1.2',
-		updateTime: '2024-12-31',
-		demo: '/demo/crud',
-		doc: 'https://vue.cool-admin.com/src/guide/plugins/crud.html',
 
 		// 组件全注册
 		components: Object.values(import.meta.glob('./components/**/*.{vue,tsx}')),
@@ -33,10 +28,18 @@ export default (): Merge<ModuleConfig, CrudOptions> => {
 					// contextMenu: []
 				},
 				form: {
+					labelPosition: 'top',
 					// 插件列表
 					plugins: [
 						// 自动聚焦插件
-						setFocus()
+						Plugins.Form.setFocus()
+					]
+				},
+				search: {
+					// 插件列表
+					plugins: [
+						// 自动添加搜索组件
+						Plugins.Search.setAuto()
 					]
 				}
 			},
@@ -47,11 +50,19 @@ export default (): Merge<ModuleConfig, CrudOptions> => {
 					order: 'sort'
 				},
 				// 按钮及提示文案
-				label: locale.zhCn
+				label: locale[config.i18n.locale]
 			}
 		},
 
 		// 安装
-		install: Crud.install
+		install: Crud.install,
+
+		label: 'CRUD',
+		description: '快速增删改查及一系列辅助组件',
+		author: 'COOL',
+		version: '1.1.2',
+		updateTime: '2024-12-31',
+		doc: 'https://vue.cool-admin.com/src/guide/plugins/crud.html',
+		demo: '/demo/crud'
 	};
 };

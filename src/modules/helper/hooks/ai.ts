@@ -2,7 +2,7 @@ import { module } from '/@/cool';
 import { useBase } from '/$/base';
 
 export function useAi() {
-	const { host } = module.config('helper');
+	const { api } = module.config('helper');
 	const { user } = useBase();
 
 	// 调用流程
@@ -16,7 +16,7 @@ export function useAi() {
 		let cacheText = '';
 
 		return new Promise((resolve, reject) => {
-			fetch(host + '/open/code/gen/data', {
+			fetch(api + '/open/code/gen/data', {
 				method: 'POST',
 				headers: {
 					Authorization: user.token,

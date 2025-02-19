@@ -1,10 +1,14 @@
 <template>
-	<cl-editor-preview v-if="!isHide" :ref="setRefs('preview')" name="monaco" :tabs="tabs">
+	<cl-editor-preview v-if="!isHide" :ref="setRefs('preview')" type="code" :tabs="tabs">
 		<el-button @click="open">代码</el-button>
 	</cl-editor-preview>
 </template>
 
-<script setup lang="ts" name="demo-code">
+<script setup lang="ts">
+defineOptions({
+	name: 'demo-code'
+});
+
 import { useCool } from '/@/cool';
 import { type PropType, computed } from 'vue';
 import { demo } from 'virtual:demo';

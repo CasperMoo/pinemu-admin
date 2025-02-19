@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import vueDevTools from 'vite-plugin-vue-devtools';
 import compression from 'vite-plugin-compression';
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { proxy } from './src/config/proxy';
 import { cool } from '@cool-vue/vite-plugin';
@@ -27,12 +28,16 @@ export default ({ mode }: ConfigEnv): UserConfig => {
 				proxy,
 				eps: {
 					enable: true
-				}
+				},
+				demo: true
 			}),
 			visualizer({
 				open: false,
 				gzipSize: true,
 				brotliSize: true
+			}),
+			VueI18nPlugin({
+				include: [toPath('./src/{modules,plugins}/**/locales/**')]
 			})
 		],
 		base: '/',
@@ -60,7 +65,7 @@ export default ({ mode }: ConfigEnv): UserConfig => {
 			}
 		},
 		esbuild: {
-			// drop: isDev ? [] : ["console", "debugger"]
+			drop: isDev ? [] : ['console', 'debugger']
 		},
 		build: {
 			minify: 'esbuild',

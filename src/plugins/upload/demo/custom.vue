@@ -1,6 +1,6 @@
 <template>
 	<cl-upload type="file" multiple draggable custom-class="custom-upload">
-		<el-button :icon="Upload">上传</el-button>
+		<el-button :icon="Upload">{{ $t('上传') }}</el-button>
 
 		<template #item="{ item }">
 			<div v-show="item.url" class="item">{{ item.url }}</div>

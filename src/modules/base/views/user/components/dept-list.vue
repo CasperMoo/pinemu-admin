@@ -1,29 +1,32 @@
 <template>
 	<div class="dept-tree">
 		<div class="dept-tree__header">
-			<el-text>组织架构</el-text>
+			<el-text>{{ t('组织架构') }}</el-text>
 
 			<div class="dept-tree__op">
-				<div class="item" @click="refresh()">
-					<el-tooltip content="刷新">
-						<el-icon>
-							<refresh-icon />
-						</el-icon>
-					</el-tooltip>
+				<div class="btns" v-if="isDrag">
+					<div class="item" @click="treeOrder(true)">
+						<cl-svg name="success" />
+					</div>
+
+					<div class="item" @click="treeOrder(false)">
+						<cl-svg name="fail" />
+					</div>
 				</div>
 
-				<div class="item" v-if="drag && !browser.isMini" @click="isDrag = true">
-					<el-tooltip content="拖动排序">
-						<el-icon>
-							<operation />
-						</el-icon>
-					</el-tooltip>
-				</div>
+				<template v-else>
+					<div class="item" @click="refresh()">
+						<el-tooltip :content="t('刷新')">
+							<cl-svg name="refresh" />
+						</el-tooltip>
+					</div>
 
-				<div class="btns" v-show="isDrag">
-					<el-button type="success" size="small" @click="treeOrder(true)">保存</el-button>
-					<el-button size="small" @click="treeOrder(false)">取消</el-button>
-				</div>
+					<div class="item" v-if="drag && !browser.isMini" @click="isDrag = true">
+						<el-tooltip :content="t('拖动排序')">
+							<cl-svg name="sort" />
+						</el-tooltip>
+					</div>
+				</template>
 			</div>
 		</div>
 
@@ -73,7 +76,11 @@
 	</div>
 </template>
 
-<script lang="ts" name="dept-list" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'dept-list'
+});
+
 import { nextTick, onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useCool } from '/@/cool';
@@ -83,6 +90,7 @@ import { ContextMenu, useForm } from '@cool-vue/crud';
 import { Refresh as RefreshIcon, Operation, MoreFilled } from '@element-plus/icons-vue';
 import { checkPerm } from '/$/base';
 import { useViewGroup } from '/@/plugins/view';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
 	drag: {
@@ -100,6 +108,7 @@ const emit = defineEmits(['refresh', 'user-add']);
 const { service, browser } = useCool();
 const Form = useForm();
 const { ViewGroup } = useViewGroup();
+const { t } = useI18n();
 
 // 树形列表
 const list = ref<Eps.BaseSysDepartmentEntity[]>([]);
@@ -161,14 +170,14 @@ function rowEdit(item: Eps.BaseSysDepartmentEntity) {
 	const method = item.id ? 'update' : 'add';
 
 	Form.value?.open({
-		title: '编辑部门',
+		title: t('编辑部门'),
 		width: '550px',
 		props: {
 			labelWidth: '100px'
 		},
 		items: [
 			{
-				label: '部门名称',
+				label: t('部门名称'),
 				prop: 'name',
 				component: {
 					name: 'el-input'
@@ -176,7 +185,7 @@ function rowEdit(item: Eps.BaseSysDepartmentEntity) {
 				required: true
 			},
 			{
-				label: '上级部门',
+				label: t('上级部门'),
 				prop: 'parentName',
 				component: {
 					name: 'el-input',
@@ -186,7 +195,7 @@ function rowEdit(item: Eps.BaseSysDepartmentEntity) {
 				}
 			},
 			{
-				label: '排序',
+				label: t('排序'),
 				prop: 'orderNum',
 				component: {
 					name: 'el-input-number',
@@ -210,7 +219,7 @@ function rowEdit(item: Eps.BaseSysDepartmentEntity) {
 					orderNum: data.orderNum
 				})
 					.then(() => {
-						ElMessage.success(`新增部门 “${data.name}” 成功`);
+						ElMessage.success(t('新增部门 “{name}” 成功', { name: data.name }));
 						close();
 						refresh();
 					})
@@ -238,11 +247,14 @@ function rowDel(item: Eps.BaseSysDepartmentEntity) {
 				}
 
 				if (f) {
-					ElMessage.success('删除成功');
+					ElMessage.success(t('删除成功'));
 				} else {
 					ElMessageBox.confirm(
-						`“${item.name}” 部门的用户已成功转移到 “${item.parentName}” 部门。`,
-						'删除成功'
+						t('“{name}” 部门的用户已成功转移到 “{parentName}” 部门。', {
+							name: item.name,
+							parentName: item.parentName
+						}),
+						t('删除成功')
 					);
 				}
 			});
@@ -250,12 +262,16 @@ function rowDel(item: Eps.BaseSysDepartmentEntity) {
 		refresh();
 	}
 
-	ElMessageBox.confirm(`此操作将会删除 “${item.name}” 部门的所有用户，是否确认？`, '提示', {
-		type: 'warning',
-		confirmButtonText: '直接删除',
-		cancelButtonText: '保留用户',
-		distinguishCancelAndClose: true
-	})
+	ElMessageBox.confirm(
+		t('此操作将会删除 “{name}” 部门的所有用户，是否确认？', { name: item.name }),
+		t('提示'),
+		{
+			type: 'warning',
+			confirmButtonText: t('直接删除'),
+			cancelButtonText: t('保留用户'),
+			distinguishCancelAndClose: true
+		}
+	)
 		.then(() => {
 			del(true);
 		})
@@ -269,7 +285,7 @@ function rowDel(item: Eps.BaseSysDepartmentEntity) {
 // 部门排序
 function treeOrder(f: boolean) {
 	if (f) {
-		ElMessageBox.confirm('部门架构已发生改变，是否保存？', '提示', {
+		ElMessageBox.confirm(t('部门架构已发生改变，是否保存？'), t('提示'), {
 			type: 'warning'
 		})
 			.then(async () => {
@@ -299,7 +315,7 @@ function treeOrder(f: boolean) {
 						})
 					)
 					.then(() => {
-						ElMessage.success('更新排序成功');
+						ElMessage.success(t('更新排序成功'));
 					})
 					.catch(err => {
 						ElMessage.error(err.message);
@@ -326,7 +342,7 @@ function onContextMenu(e: any, d?: any, n?: any) {
 	ContextMenu.open(e, {
 		list: [
 			{
-				label: '新增',
+				label: t('新增'),
 				hidden: (n && n.level >= props.level) || !checkPerm(perm.add),
 				callback(done) {
 					rowEdit({
@@ -338,7 +354,7 @@ function onContextMenu(e: any, d?: any, n?: any) {
 				}
 			},
 			{
-				label: '编辑',
+				label: t('编辑'),
 				hidden: !checkPerm(perm.update),
 				callback(done) {
 					rowEdit(d);
@@ -346,7 +362,7 @@ function onContextMenu(e: any, d?: any, n?: any) {
 				}
 			},
 			{
-				label: '删除',
+				label: t('删除'),
 				hidden: !d.parentId || !checkPerm(perm.delete),
 				callback(done) {
 					rowDel(d);
@@ -354,7 +370,7 @@ function onContextMenu(e: any, d?: any, n?: any) {
 				}
 			},
 			{
-				label: '新增成员',
+				label: t('新增成员'),
 				hidden: !checkPerm(perm.add),
 				callback(done) {
 					emit('user-add', d);
@@ -387,7 +403,7 @@ onMounted(function () {
 		justify-content: space-between;
 		height: 40px;
 		padding: 0 10px;
-		position: relative;
+		border-bottom: 1px solid var(--el-border-color-extra-light);
 	}
 
 	&__op {
@@ -401,10 +417,15 @@ onMounted(function () {
 			list-style: none;
 			margin-left: 5px;
 			cursor: pointer;
-			border-radius: 4px;
+			border-radius: 6px;
 			font-size: 16px;
 			height: 26px;
 			width: 26px;
+			color: var(--el-text-color-primary);
+
+			.cl-svg {
+				outline: none;
+			}
 
 			&:hover {
 				background-color: var(--el-fill-color-light);
@@ -412,20 +433,35 @@ onMounted(function () {
 		}
 
 		.btns {
-			margin-left: 10px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
 
-			.el-button + .el-button {
-				margin-left: 10px;
+			.item {
+				&:hover {
+					&:first-child {
+						color: var(--el-color-success);
+					}
+
+					&:last-child {
+						color: var(--el-color-danger);
+					}
+				}
 			}
 		}
 	}
 
 	&__container {
 		height: calc(100% - 40px);
+		padding: 10px;
 
 		:deep(.el-tree-node__content) {
-			height: 36px;
-			margin: 0 5px;
+			height: 38px;
+			border-radius: 4px;
+
+			.el-tree-node__expand-icon {
+				margin-left: 5px;
+			}
 		}
 	}
 
@@ -447,7 +483,7 @@ onMounted(function () {
 			white-space: nowrap;
 
 			&.is-active {
-				color: var(--color-primary);
+				color: var(--el-color-primary);
 			}
 		}
 

@@ -1,6 +1,6 @@
 <template>
 	<slot>
-		<el-button v-if="showBtn" @click="open()">{{ text }}</el-button>
+		<el-button v-if="showBtn" @click="open()">{{ btnText }}</el-button>
 	</slot>
 
 	<cl-dialog
@@ -8,7 +8,7 @@
 		:height="height"
 		:width="width"
 		:title="title"
-		:scrollbar="isScroll"
+		scrollbar
 		append-to-body
 	>
 		<div class="cl-editor-preview">
@@ -35,26 +35,32 @@
 					preview
 					v-if="name"
 				/>
-				<el-text v-else>{{ content }}</el-text>
+
+				<div class="content" v-else>{{ content }}</div>
 
 				<slot name="append"></slot>
 			</div>
 		</div>
 
 		<template #footer>
-			<el-button @click="close">关闭</el-button>
-			<el-button v-if="isCopy" type="success" @click="toCopy">复制</el-button>
+			<el-button @click="close">{{ $t('关闭') }}</el-button>
+			<el-button v-if="isCopy" type="success" @click="toCopy">{{ $t('复制') }}</el-button>
 		</template>
 	</cl-dialog>
 </template>
 
-<script lang="ts" name="cl-editor-preview" setup>
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-editor-preview'
+});
+
 import { useClipboard } from '@vueuse/core';
 import { ElMessage } from 'element-plus';
 import { isObject, isString } from 'lodash-es';
-import { nextTick, ref, computed, type PropType, useAttrs, mergeProps } from 'vue';
+import { nextTick, ref, computed, type PropType } from 'vue';
 import { useCool } from '/@/cool';
-import { CrudProps } from '../../crud';
+import { CrudProps } from '/#/crud';
+import { useI18n } from 'vue-i18n';
 
 interface TabItem {
 	name: string;
@@ -67,9 +73,10 @@ const props = defineProps({
 	modelValue: String,
 	title: String,
 	name: String,
-	text: {
-		type: String,
-		default: '点击查看'
+	text: String,
+	type: {
+		type: String as PropType<'code' | 'text'>,
+		default: 'text'
 	},
 	showBtn: {
 		type: Boolean,
@@ -92,6 +99,7 @@ const props = defineProps({
 
 const { refs, setRefs } = useCool();
 const { copy } = useClipboard();
+const { t } = useI18n();
 
 // 是否可见
 const visible = ref(false);
@@ -110,11 +118,8 @@ const list = ref<TabItem[]>([]);
 
 // 是否代码预览
 const isCode = computed(() => {
-	return props.name == 'monaco';
+	return props.type == 'code';
 });
-
-// 是否可以滚动
-const isScroll = computed(() => !isCode.value);
 
 // 是否可以复制
 const isCopy = computed(() => isCode);
@@ -129,7 +134,12 @@ const editConfig = computed(() => {
 
 // 标题
 const title = computed(() => {
-	return props.title || (isCode.value ? '代码预览' : '文本预览');
+	return props.title || (isCode.value ? t('代码预览') : t('文本预览'));
+});
+
+// 按钮
+const btnText = computed(() => {
+	return props.text || t('点击查看');
 });
 
 // 打开
@@ -151,8 +161,6 @@ async function open(data?: string | TabItem[]) {
 
 	visible.value = true;
 }
-
-function onOpened() {}
 
 // 设置内容
 function setContent(val: any) {
@@ -189,7 +197,7 @@ function close() {
 // 复制
 function toCopy() {
 	copy(content.value);
-	ElMessage.success('复制成功');
+	ElMessage.success(t('复制成功'));
 }
 
 defineExpose({
@@ -210,6 +218,13 @@ defineExpose({
 
 	&__container {
 		flex: 1;
+
+		.content {
+			white-space: pre-wrap;
+			background-color: var(--el-fill-color-light);
+			border-radius: 8px;
+			padding: 10px;
+		}
 	}
 }
 </style>

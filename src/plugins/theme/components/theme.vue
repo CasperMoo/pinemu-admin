@@ -1,24 +1,22 @@
 <template>
-	<div class="cl-theme__icon" @click="open">
-		<el-badge type="primary" is-dot>
-			<cl-svg name="icon-discover" :size="16" />
-		</el-badge>
+	<div class="cl-comm__icon" @click="open">
+		<cl-svg name="theme" />
 	</div>
 
-	<div v-if="theme.name == 'default'" class="cl-theme-dark">
-		<el-switch v-model="isDark" inline-prompt :active-icon="Moon" :inactive-icon="Sunny" />
+	<div class="cl-comm__icon ml-[10px]" @click="setDark">
+		<cl-svg :name="isDark ? 'light' : 'dark'" />
 	</div>
 
 	<el-drawer
 		v-model="visible"
-		title="设置主题"
+		:title="$t('设置主题')"
 		size="350px"
 		modal-class="drawer-theme"
 		append-to-body
 	>
 		<div class="cl-theme__drawer">
 			<el-form label-position="top">
-				<el-form-item label="推荐">
+				<el-form-item :label="$t('推荐')">
 					<ul class="cl-theme__comd">
 						<li v-for="(item, name) in themes" :key="name" @click="setComd(item)">
 							<div
@@ -35,54 +33,52 @@
 					</ul>
 				</el-form-item>
 
-				<el-form-item label="自定义主色">
+				<el-form-item :label="$t('自定义主色')">
 					<el-color-picker v-model="form.color" @change="setColor" />
-					<span
-						:style="{
-							marginLeft: '10px'
-						}"
-						>{{ form.color }}</span
-					>
+					<el-text size="small" class="ml-[10px]">{{ form.color }}</el-text>
 				</el-form-item>
 
-				<el-form-item label="菜单分组显示">
-					<el-switch v-model="form.theme.isGroup" @change="setGroup"></el-switch>
+				<el-form-item :label="$t('菜单分组显示')">
+					<el-switch v-model="form.theme.isGroup" @change="setGroup" />
 				</el-form-item>
 
-				<el-form-item label="转场动画">
+				<el-form-item :label="$t('转场动画')">
 					<el-switch
 						v-model="form.theme.transition"
 						active-value="slide"
 						inactive-value="none"
 						@change="setTransition"
-					></el-switch>
+					/>
 				</el-form-item>
 			</el-form>
 		</div>
 	</el-drawer>
 </template>
 
-<script lang="ts" setup name="cl-theme">
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-theme'
+});
+
 import { reactive, ref } from 'vue';
-import { Check, Moon, Sunny } from '@element-plus/icons-vue';
+import { Check } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { useBase } from '/$/base';
 import { useDark } from '@vueuse/core';
-import { storage } from '/@/cool';
-import type { Theme } from '../types';
-import { setTheme, themes } from '../utils';
+import { useI18n } from 'vue-i18n';
+import { assign } from 'lodash-es';
+import { useTheme } from '../hooks';
 
 const { menu } = useBase();
+const { t } = useI18n();
+const { theme, setTheme, changeDark, themes } = useTheme();
 
 // 是否暗黑模式
-const isDark = ref(useDark());
-
-// 当前主题
-const theme = reactive<Theme>(storage.get('theme'));
+const isDark = useDark();
 
 // 表单
 const form = reactive<{ color: string; theme: Theme }>({
-	color: theme.color || '',
+	color: theme?.color || '',
 	theme
 });
 
@@ -105,13 +101,20 @@ function setColor(color: any) {
 	clearDark();
 }
 
+// 设置暗黑模式
+function setDark(el: any) {
+	changeDark(el.srcElement, !isDark.value, () => {
+		isDark.value = !isDark.value;
+		setTheme({ color: form.color, dark: isDark.value });
+	});
+}
+
 // 设置推荐
 function setComd(item: any) {
-	Object.assign(form.theme, item);
+	assign(form.theme, item);
 	form.color = item.color;
 	setTheme(item);
-	clearDark();
-	ElMessage.success(`切换主题：${item.label}`);
+	ElMessage.success(`${t('切换主题')}: ${item.label}`);
 }
 
 // 设置分组
@@ -166,22 +169,6 @@ function setTransition(val: any) {
 			}
 		}
 	}
-
-	&__icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		height: 100%;
-		width: 45px;
-
-		.el-badge {
-			display: flex;
-		}
-
-		&:hover {
-			color: var(--color-primary);
-		}
-	}
 }
 
 .drawer-theme {
@@ -192,6 +179,23 @@ function setTransition(val: any) {
 
 	.el-drawer__title {
 		font-size: 16px;
+	}
+
+	.el-color-picker {
+		&__trigger {
+			padding: 0;
+			border: 0;
+			height: 20px;
+			width: 20px;
+		}
+
+		&__color {
+			border: 0;
+
+			&-inner {
+				border-radius: 4px;
+			}
+		}
 	}
 }
 </style>

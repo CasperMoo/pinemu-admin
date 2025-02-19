@@ -1,3 +1,4 @@
+import { storage } from '../cool';
 import dev from './dev';
 import prod from './prod';
 
@@ -21,36 +22,42 @@ export const config = {
 		// 路由
 		router: {
 			// 模式
-			mode: 'history',
+			mode: import.meta.env.MODE == 'static' ? 'hash' : 'history',
 			// 转场动画
 			transition: 'slide'
-		},
+		}
+	},
 
-		// 字体图标库
-		iconfont: []
+	// 国际化配置
+	i18n: {
+		locale: storage.get('locale') || 'zh-cn',
+		languages: [
+			{
+				label: '中文',
+				value: 'zh-cn'
+			},
+			{
+				label: '繁体中文',
+				value: 'zh-tw'
+			},
+			{
+				label: 'English',
+				value: 'en'
+			}
+		]
 	},
 
 	// 忽略规则
 	ignore: {
 		// 不显示请求进度条
-		NProgress: [
-			'/__cool_eps',
-			'/base/open/eps',
-			'/base/comm/person',
-			'/base/comm/permmenu',
-			'/base/comm/upload',
-			'/base/comm/uploadMode',
-			'/dict/info/data',
-			'/space/info/add'
-		],
+		NProgress: ['__cool_*'],
 		// 页面不需要登录验证
-		token: ['/login', '/401', '/403', '/404', '/500', '/502']
+		token: []
 	},
 
-	// 调试
-	test: {
-		token: '',
-		eps: true
+	// 高德地图配置
+	amap: {
+		key: ''
 	},
 
 	// 当前环境

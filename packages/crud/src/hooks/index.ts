@@ -1,6 +1,6 @@
 import { Mitt } from "../utils/mitt";
 import { isFunction } from "lodash-es";
-import { computed, getCurrentInstance, inject, reactive } from "vue";
+import { getCurrentInstance, inject, reactive } from "vue";
 
 export function useCore() {
 	const crud = inject("crud") as ClCrud.Ref;

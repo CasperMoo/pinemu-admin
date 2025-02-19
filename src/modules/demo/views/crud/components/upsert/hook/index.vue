@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">hook</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>hook</el-tag>
 			<span>Hook的使用</span>
 		</div>
 

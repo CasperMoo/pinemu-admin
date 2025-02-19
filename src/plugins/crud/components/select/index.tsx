@@ -1,20 +1,22 @@
-import { useCrud } from '@cool-vue/crud';
+import { useCrud, useForm } from '@cool-vue/crud';
 import { isEmpty, isString } from 'lodash-es';
 import { computed, defineComponent, type PropType, type Ref, toValue, useModel } from 'vue';
 import { parsePx } from '/@/cool/utils';
-import type { Dict } from '/$/dict/types';
+import { useI18n } from 'vue-i18n';
+import { useCool } from '/@/cool';
+import { CrudProps } from '../../comm';
 
 export default defineComponent({
 	name: 'cl-select',
 
 	props: {
+		...CrudProps,
 		modelValue: [String, Number, Array],
 		options: {
 			type: [Array, Object] as PropType<any[] | Ref<any[]>>,
 			default: () => []
 		},
 		prop: String,
-		scope: null,
 		labelKey: {
 			type: String,
 			default: 'label'
@@ -30,8 +32,8 @@ export default defineComponent({
 		allLevelsId: Boolean,
 		// 是否父子不互相关联
 		checkStrictly: Boolean,
-		// 是否搜索
-		isSearch: {
+		// 值变化刷新
+		refreshOnChange: {
 			type: Boolean,
 			default: true
 		}
@@ -39,17 +41,24 @@ export default defineComponent({
 
 	emits: ['update:modelValue', 'change'],
 
-	setup(props, { emit }) {
+	setup(props, { emit, expose }) {
+		const { refs, setRefs } = useCool();
+		const { t } = useI18n();
+
 		// cl-crud
 		const Crud = useCrud();
+
+		// cl-form
+		const Form = useForm();
+
+		// 是否用于搜索
+		const isSearch = computed(() => !Form.value || Form.value?.name === 'search');
 
 		// 选中值
 		const value = useModel(props, 'modelValue');
 
 		// 列表
-		const list = computed(() => {
-			return toValue(props.options) || [];
-		});
+		const list = computed(() => toValue(props.options) || []);
 
 		// 获取值
 		function getValue(val: any): any | any[] {
@@ -86,10 +95,22 @@ export default defineComponent({
 			emit('update:modelValue', v);
 			emit('change', v);
 
-			if (props.prop && props.isSearch) {
-				Crud.value?.refresh({ page: 1, [props.prop]: v });
+			if (isSearch.value) {
+				if (props.prop && props.refreshOnChange) {
+					Crud.value?.refresh({ page: 1, [props.prop]: v });
+				}
 			}
 		}
+
+		// 聚焦
+		function focus() {
+			refs.select?.focus();
+			refs.select?.$.proxy.$el?.querySelector('.el-select__wrapper')?.click();
+		}
+
+		expose({
+			focus
+		});
 
 		return () => {
 			// 样式
@@ -98,7 +119,7 @@ export default defineComponent({
 			};
 
 			// 占位符
-			const placeholder = props.isSearch ? '全部' : '请选择';
+			const placeholder = isSearch.value ? t('全部') : t('请选择');
 
 			// 树形下拉框
 			const TreeSelect = (
@@ -115,6 +136,7 @@ export default defineComponent({
 					}}
 					style={style}
 					onChange={onChange}
+					ref={setRefs('select')}
 				/>
 			);
 
@@ -127,6 +149,7 @@ export default defineComponent({
 					placeholder={placeholder}
 					style={style}
 					onChange={onChange}
+					ref={setRefs('select')}
 				>
 					{list.value?.map(e => {
 						return isString(e) ? (

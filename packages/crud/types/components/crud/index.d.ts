@@ -1,11 +1,11 @@
-declare const _default: import("vue").DefineComponent<import("vue").ExtractPropTypes<{
+declare const _default: import('vue').DefineComponent<import('vue').ExtractPropTypes<{
     name: StringConstructor;
     border: BooleanConstructor;
     padding: {
         type: StringConstructor;
         default: string;
     };
-}>, () => any, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<import("vue").ExtractPropTypes<{
+}>, () => any, {}, {}, {}, import('vue').ComponentOptionsMixin, import('vue').ComponentOptionsMixin, {}, string, import('vue').PublicProps, Readonly<import('vue').ExtractPropTypes<{
     name: StringConstructor;
     border: BooleanConstructor;
     padding: {
@@ -15,5 +15,5 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
 }>> & Readonly<{}>, {
     border: boolean;
     padding: string;
-}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
+}, {}, {}, {}, string, import('vue').ComponentProvideOptions, true, {}, any>;
 export default _default;

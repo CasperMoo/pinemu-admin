@@ -16,7 +16,6 @@ export declare const locale: {
         advSearch: string;
         searchKey: string;
         placeholder: string;
-        placeholderSelect: string;
         tips: string;
         saveSuccess: string;
         deleteSuccess: string;
@@ -49,7 +48,6 @@ export declare const locale: {
         advSearch: string;
         searchKey: string;
         placeholder: string;
-        placeholderSelect: string;
         tips: string;
         saveSuccess: string;
         deleteSuccess: string;
@@ -65,7 +63,7 @@ export declare const locale: {
         collapse: string;
         expand: string;
     };
-    zhCn: {
+    "zh-cn": {
         op: string;
         add: string;
         delete: string;
@@ -82,7 +80,6 @@ export declare const locale: {
         advSearch: string;
         searchKey: string;
         placeholder: string;
-        placeholderSelect: string;
         tips: string;
         saveSuccess: string;
         deleteSuccess: string;
@@ -98,7 +95,7 @@ export declare const locale: {
         collapse: string;
         expand: string;
     };
-    zhTw: {
+    "zh-tw": {
         op: string;
         add: string;
         delete: string;
@@ -115,7 +112,6 @@ export declare const locale: {
         advSearch: string;
         searchKey: string;
         placeholder: string;
-        placeholderSelect: string;
         tips: string;
         saveSuccess: string;
         deleteSuccess: string;

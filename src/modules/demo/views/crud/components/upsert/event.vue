@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">event</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>event</el-tag>
 			<span>打开、关闭、提交等事件</span>
 		</div>
 
@@ -175,7 +175,7 @@ const Upsert = useUpsert({
 
 		// 场景2：提交前、后的操作
 		// 之前，模拟获取 userId
-		const userId = await service.test.info({ id: 1 });
+		const userId = await service.base.sys.user.info({ id: 1 });
 
 		// 返回值
 		const res = await next({

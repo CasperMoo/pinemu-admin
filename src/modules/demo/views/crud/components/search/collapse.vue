@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">collapse</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>collapse</el-tag>
 			<span>折叠</span>
 		</div>
 
@@ -12,10 +12,8 @@
 			<!-- 折叠表格组件 -->
 			<cl-dialog v-model="visible" title="折叠" width="80%">
 				<cl-crud ref="Crud">
-					<!--【很重要】搜索组件 -->
-					<div class="search">
-						<cl-search ref="Search" :reset-btn="true" collapse />
-					</div>
+					<!--【collapse】折叠参数，【inline】是否行内 -->
+					<cl-search ref="Search" reset-btn collapse :inline="false" />
 
 					<cl-row>
 						<cl-table ref="Table" />
@@ -109,12 +107,4 @@ function open() {
 	visible.value = true;
 }
 </script>
-
-<style lang="scss" scoped>
-.search {
-	padding: 15px;
-	background-color: var(--view-bg-color);
-	border-radius: 8px;
-	margin-bottom: 10px;
-}
-</style>
+x

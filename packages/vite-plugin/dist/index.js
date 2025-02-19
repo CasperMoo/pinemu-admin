@@ -1,13 +1,12 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('fs'), require('path'), require('axios'), require('lodash'), require('prettier'), require('@vue/compiler-sfc'), require('magic-string'), require('glob'), require('svgo')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'fs', 'path', 'axios', 'lodash', 'prettier', '@vue/compiler-sfc', 'magic-string', 'glob', 'svgo'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.index = {}, global.fs, global.path, global.axios, global.lodash, global.prettier, global.compilerSfc, global.magicString, global.glob, global.svgo));
-})(this, (function (exports, fs, path, axios, lodash, prettier, compilerSfc, magicString, glob, svgo) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('fs'), require('path'), require('prettier'), require('axios'), require('lodash'), require('glob'), require('node:util'), require('svgo')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'fs', 'path', 'prettier', 'axios', 'lodash', 'glob', 'node:util', 'svgo'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.index = {}, global.fs, global.path, global.prettier, global.axios, global.lodash, global.glob, global.util, global.svgo));
+})(this, (function (exports, fs, path, prettier, axios, lodash, glob, util, svgo) { 'use strict';
 
     const config = {
         type: "admin",
         reqUrl: "",
-        demo: false,
         eps: {
             enable: true,
             api: "",
@@ -109,13 +108,23 @@
             });
         });
     }
+    // 格式化内容
+    function formatContent(content, options) {
+        return prettier.format(content, {
+            parser: "typescript",
+            useTabs: true,
+            tabWidth: 4,
+            endOfLine: "lf",
+            semi: true,
+            ...options,
+        });
+    }
     function error(message) {
         console.log("\x1B[31m%s\x1B[0m", message);
     }
 
     const service = {};
     let list = [];
-    let customList = [];
     // 获取请求地址
     function getEpsUrl() {
         let url = config.eps.api;
@@ -140,17 +149,28 @@
     function getNames(v) {
         return Object.keys(v).filter((e) => !["namespace", "permission"].includes(e));
     }
+    // 找字段
+    function findColumns(sources, item) {
+        const columns = [item.columns, item.pageColumns].flat().filter(Boolean);
+        return (sources || [])
+            .map((e) => columns.find((c) => c.source == e))
+            .filter(Boolean);
+    }
+    // 格式化代码
+    async function formatCode(text) {
+        return prettier.format(text, {
+            parser: "typescript",
+            useTabs: true,
+            tabWidth: 4,
+            endOfLine: "lf",
+            semi: true,
+            singleQuote: false,
+            printWidth: 100,
+            trailingComma: "none",
+        });
+    }
     // 获取数据
-    async function getData(data) {
-        // 自定义数据
-        if (!lodash.isEmpty(data)) {
-            customList = (data || []).map((e) => {
-                return {
-                    ...e,
-                    isLocal: true,
-                };
-            });
-        }
+    async function getData() {
         // 读取本地数据
         list = readFile(getEpsPath("eps.json"), true) || [];
         // 请求地址
@@ -168,25 +188,13 @@
                 }
             }
             else {
-                error(`[cool-eps] ${message || "获取数据失败"}`);
+                error(`[cool-eps] ${message || "Failed to fetch data"}`);
             }
         })
             .catch(() => {
-            error(`[cool-eps] 后端未启动 ➜ ${url}`);
+            error(`[cool-eps] API service is not running → ${url}`);
         });
-        // 合并自定义数据
-        if (lodash.isArray(customList)) {
-            customList.forEach((e) => {
-                const d = list.find((a) => e.prefix === a.prefix);
-                if (d) {
-                    lodash.merge(d, e);
-                }
-                else {
-                    list.push(e);
-                }
-            });
-        }
-        // 设置默认值
+        // 初始化处理
         list.forEach((e) => {
             if (!e.namespace) {
                 e.namespace = "";
@@ -196,6 +204,13 @@
             }
             if (!e.columns) {
                 e.columns = [];
+            }
+            if (!e.search) {
+                e.search = {
+                    fieldEq: findColumns(e.pageQueryOp?.fieldEq, e),
+                    fieldLike: findColumns(e.pageQueryOp?.fieldLike, e),
+                    keyWordLikeFields: findColumns(e.pageQueryOp?.keyWordLikeFields, e),
+                };
             }
         });
     }
@@ -212,6 +227,7 @@
                         path: e.path,
                     };
                 }),
+                search: e.search,
             };
         });
         const content = JSON.stringify(arr);
@@ -254,7 +270,18 @@
                 if (!item.name)
                     continue;
                 let t = `interface ${formatName(item.name)} {`;
-                for (const col of item.columns || []) {
+                // 合并多个列
+                const columns = [];
+                [item.columns, item.pageColumns]
+                    .flat()
+                    .filter(Boolean)
+                    .forEach((e) => {
+                    const d = columns.find((c) => c.source == e.source);
+                    if (!d) {
+                        columns.push(e);
+                    }
+                });
+                for (const col of columns || []) {
                     t += `
 					/**
 					 * ${col.comment}
@@ -280,7 +307,7 @@
             return t0;
         }
         // 创建 Service
-        function createDts() {
+        async function createDts() {
             let controller = "";
             let chain = "";
             // 处理数据
@@ -417,26 +444,19 @@
 
 				${chain}
 			}
+
+			${await createDict()}
 		`;
         }
         // 文件内容
         const text = `
 		declare namespace Eps {
 			${createEntity()}
-			${createDts()}
+			${await createDts()}
 		}
 	`;
         // 文本内容
-        const content = await prettier.format(text, {
-            parser: "typescript",
-            useTabs: true,
-            tabWidth: 4,
-            endOfLine: "lf",
-            semi: true,
-            singleQuote: false,
-            printWidth: 100,
-            trailingComma: "none",
-        });
+        const content = await formatCode(text);
         const local_content = readFile(getEpsPath("eps.d.ts"));
         // 是否需要更新
         if (content != local_content) {
@@ -476,6 +496,15 @@
                         if (!d[k].namespace) {
                             d[k].namespace = path;
                         }
+                        // 创建权限
+                        if (d[k].namespace) {
+                            getNames(d[k]).forEach((i) => {
+                                d[k].permission[i] =
+                                    `${d[k].namespace.replace(`${id}/`, "")}/${i}`.replace(/\//g, ":");
+                            });
+                        }
+                        // 创建搜索
+                        d[k].search = e.search;
                         // 创建方法
                         e.api.forEach((a) => {
                             // 方法名
@@ -484,24 +513,29 @@
                                 d[k][n] = a;
                             }
                         });
-                        // 创建权限
-                        if (d[k].namespace) {
-                            getNames(d[k]).forEach((i) => {
-                                d[k].permission[i] =
-                                    `${d[k].namespace.replace(`${id}/`, "")}/${i}`.replace(/\//g, ":");
-                            });
-                        }
                     }
                 }
             }
             deep(service, 0);
         });
     }
+    // 创建 dict
+    async function createDict() {
+        return axios
+            .get(config.reqUrl + "/" + config.type + "/dict/info/types")
+            .then(async (res) => {
+            const { code, data } = res.data;
+            if (code === 1000) {
+                return `type DictKey = ${data.map((e) => `"${e.key}"`).join(" | ")}`;
+            }
+        })
+            .catch((err) => { });
+    }
     // 创建 eps
-    async function createEps(query) {
+    async function createEps() {
         if (config.eps.enable) {
             // 获取数据
-            await getData(query?.list || []);
+            await getData();
             // 创建 service
             createService();
             // 创建目录
@@ -524,55 +558,91 @@
         }
     }
 
-    function createTag(code, id) {
-        if (/\.vue$/.test(id)) {
-            let s;
-            const str = () => s || (s = new magicString(code));
-            const { descriptor } = compilerSfc.parse(code);
-            if (!descriptor.script && descriptor.scriptSetup) {
-                const res = compilerSfc.compileScript(descriptor, { id });
-                const { name, lang } = res.attrs;
-                str().appendLeft(0, `<script lang="${lang}">
-					import { defineComponent } from 'vue'
-					export default defineComponent({
-						name: "${name}"
-					})
-				<\/script>`);
-                return {
-                    map: str().generateMap(),
-                    code: str().toString(),
-                };
+    function getPlugin(name) {
+        let code = readFile(rootDir(`./src/plugins/${name}/config.ts`));
+        // 设置插件配置
+        const set = (key, value) => {
+            const regex = new RegExp(`(return\\s*{[^}]*?\\b${key}\\b\\s*:\\s*)([^,}]+)`);
+            if (regex.test(code)) {
+                code = code.replace(regex, `$1${JSON.stringify(value)}`);
+            }
+            else {
+                const insertPos = code.indexOf("return {") + 8;
+                code =
+                    code.slice(0, insertPos) +
+                        `\n  ${key}: ${JSON.stringify(value)},` +
+                        code.slice(insertPos);
+            }
+        };
+        // 保存插件配置
+        const save = async () => {
+            const content = await formatContent(code);
+            writeFile(rootDir(`./src/plugins/${name}/config.ts`), content);
+        };
+        return {
+            set,
+            save,
+        };
+    }
+    // 修改插件
+    async function updatePlugin(options) {
+        const plugin = getPlugin(options.name);
+        if (options.enable !== undefined) {
+            plugin.set("enable", options.enable);
+        }
+        await plugin.save();
+    }
+
+    function getPath() {
+        return rootDir(`.${config.type == "admin" ? "/src" : ""}/config/proxy.ts`);
+    }
+    async function updateProxy(data) {
+        let code = readFile(getPath());
+        const regex = /const\s+value\s*=\s*['"]([^'"]+)['"]/;
+        if (regex.test(code)) {
+            code = code.replace(regex, `const value = '${data.name}'`);
+        }
+        writeFile(getPath(), code);
+    }
+    function getProxyTarget(proxy) {
+        const code = readFile(getPath());
+        const regex = /const\s+value\s*=\s*['"]([^'"]+)['"]/;
+        const match = code.match(regex);
+        if (match) {
+            const value = match[1];
+            try {
+                const { target, rewrite } = proxy[`/${value}/`];
+                return target + rewrite(`/${value}`);
+            }
+            catch (err) {
+                error(`[cool-proxy] Error：${value} → ` + getPath());
+                return "";
             }
         }
-        return null;
     }
 
     // 创建文件
-    async function createMenu(options) {
-        // 格式化内容
-        const content = await prettier.format(options.code, {
-            parser: "vue",
-            useTabs: true,
-            tabWidth: 4,
-            endOfLine: "lf",
-            semi: true,
-            jsxBracketSameLine: true,
-            singleQuote: false,
-            printWidth: 100,
-            trailingComma: "none",
-        });
-        // 目录路径
-        const dir = (options.viewPath || "").split("/");
-        // 文件名
-        const fname = dir.pop();
-        // 源码路径
-        const srcPath = `./src/${dir.join("/")}`;
-        // 创建目录
-        createDir(srcPath, true);
-        // 创建文件
-        fs.createWriteStream(path.join(srcPath, fname || "demo"), {
-            flags: "w",
-        }).write(content);
+    async function createFile(data) {
+        const list = lodash.isArray(data) ? data : [data];
+        for (const item of list) {
+            const { path: path$1, code } = item;
+            // 格式化内容
+            const content = await formatContent(code, {
+                parser: "vue",
+            });
+            // 目录路径
+            const dir = (path$1 || "").split("/");
+            // 文件名
+            const fname = dir.pop();
+            // 源码路径
+            const srcPath = `./src/${dir.join("/")}`;
+            // 创建目录
+            createDir(srcPath, true);
+            // 创建文件
+            fs.createWriteStream(path.join(srcPath, fname), {
+                flags: "w",
+            }).write(content);
+        }
     }
 
     function base() {
@@ -588,18 +658,26 @@
                     if (req.originalUrl?.includes("__cool")) {
                         const body = await parseJson(req);
                         switch (req.url) {
-                            // 快速创建菜单
-                            case "/__cool_createMenu":
-                                await createMenu(body);
+                            // 创建文件
+                            case "/__cool_createFile":
+                                await createFile(body);
                                 break;
-                            // 创建描述文件
+                            // 创建 eps 文件
                             case "/__cool_eps":
-                                await createEps(body);
+                                await createEps();
+                                break;
+                            // 更新插件
+                            case "/__cool_updatePlugin":
+                                await updatePlugin(body);
+                                break;
+                            // 设置代理
+                            case "/__cool_updateProxy":
+                                await updateProxy(body);
                                 break;
                             default:
                                 return done({
                                     code: 1001,
-                                    message: "未知请求",
+                                    message: "Unknown request",
                                 });
                         }
                         done({
@@ -610,12 +688,6 @@
                         next();
                     }
                 });
-            },
-            transform(code, id) {
-                if (config.type == "admin") {
-                    return createTag(code, id);
-                }
-                return code;
             },
         };
     }
@@ -707,7 +779,7 @@
                 };
             }
             // 是否需要更新 pages.json
-            if (!lodash.isEqual(order(ctxData), order(ctx))) {
+            if (!util.isDeepStrictEqual(order(ctxData), order(ctx))) {
                 console.log("[cool-ctx] pages updated");
                 writeFile(ctxPath, JSON.stringify(ctx, null, 4));
             }
@@ -813,6 +885,7 @@ if (typeof window !== 'undefined') {
             "virtual:svg-register",
             "virtual:svg-icons",
         ];
+        createEps();
         return {
             name: "vite-cool-virtual",
             enforce: "pre",
@@ -883,7 +956,7 @@ if (typeof window !== 'undefined') {
         // 应用类型，admin | app
         config.type = options.type;
         // 请求地址
-        config.reqUrl = options.proxy["/dev/"].target;
+        config.reqUrl = getProxyTarget(options.proxy);
         // Eps
         if (options.eps) {
             const { dist, mapping, api, enable = true } = options.eps;

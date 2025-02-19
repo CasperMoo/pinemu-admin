@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">tips</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>tips</el-tag>
 			<span>代码类型提示</span>
 		</div>
 

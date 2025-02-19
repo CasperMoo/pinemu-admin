@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">plugin</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>plugin</el-tag>
 			<span>插件的使用</span>
 		</div>
 

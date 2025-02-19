@@ -1,7 +1,10 @@
-import type { ModuleConfig } from '/@/cool';
+import { type ModuleConfig } from '/@/cool';
 
 export default (): ModuleConfig => {
 	return {
+		enable: true,
+		components: [() => import('./components/wang.vue')],
+
 		label: 'Wang 编辑器',
 		description: '基于 wangEditor 封装的富文本编辑器',
 		author: 'COOL',
@@ -13,7 +16,6 @@ export default (): ModuleConfig => {
 				component: () => import('./demo/base.vue')
 			}
 		],
-		doc: 'https://www.wangeditor.com',
-		components: [() => import('./components/wang.vue')]
+		doc: 'https://www.wangeditor.com'
 	};
 };

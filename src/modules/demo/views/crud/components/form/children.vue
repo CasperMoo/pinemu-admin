@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">children</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>children</el-tag>
 			<span>层级显示</span>
 		</div>
 

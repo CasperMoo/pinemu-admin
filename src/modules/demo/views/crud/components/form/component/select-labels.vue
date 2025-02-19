@@ -12,7 +12,11 @@
 </template>
 
 <!--【很重要】必须要有name，避免注册后和其他冲突 -->
-<script setup lang="ts" name="select-labels">
+<script setup lang="ts">
+defineOptions({
+	name: 'select-labels'
+});
+
 import { ref } from 'vue';
 
 const props = defineProps({

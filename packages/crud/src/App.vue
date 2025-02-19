@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<div class="title">CRUD DEMO v7</div>
+		<div class="title">CRUD DEMO v8</div>
 
 		<cl-crud ref="Crud">
 			<div class="search">
@@ -38,12 +38,12 @@
 			</cl-row>
 
 			<cl-upsert ref="Upsert"></cl-upsert>
+			<cl-form ref="Form"></cl-form>
 		</cl-crud>
 	</div>
 </template>
 
 <script setup lang="tsx">
-import { computed } from "vue";
 import { useTable, useForm, useUpsert, useCrud, useSearch } from "./hooks";
 import { EditPen } from "@element-plus/icons-vue";
 
@@ -60,26 +60,40 @@ const Upsert = useUpsert<Data>({
 			props: {
 				labels: [
 					{
-						label: "A",
+						label: "基础",
 						value: "A",
 						icon: EditPen
 					},
 					{
-						label: "B",
+						label: "高级",
 						value: "B"
 					}
 				]
 			}
 		},
 		{
-			group: "B",
+			group: "A",
 			prop: "age",
+			label: "年龄",
 			component: {
 				name: "el-input"
 			}
 		},
 		{
+			group: "A",
+			prop: "name",
+			label: "昵称",
+			component: {
+				name: "el-input"
+			},
+			hidden({ scope }) {
+				return scope.age < 18;
+			}
+		},
+		{
 			group: "B",
+			prop: "phone",
+			label: "手机",
 			component: {
 				name: "el-input"
 			},
@@ -90,17 +104,12 @@ const Upsert = useUpsert<Data>({
 		() => {
 			return {
 				group: "A",
-				hidden: Upsert.value?.mode == "add",
-				hook: {
-					bind(value, { form }) {
-						return "";
-					},
-					submit(value, { form }) {}
-				}
+				hidden: Upsert.value?.mode == "add"
 			};
 		}
 	],
 	onOpened(data) {
+		console.log(data);
 		Upsert.value?.setForm("age", "18");
 	}
 });
@@ -182,7 +191,6 @@ const Search = useSearch({
 			},
 			hook: {
 				reset() {
-					console.log(1111);
 					return [];
 				}
 			}
@@ -196,12 +204,5 @@ const Search = useSearch({
 	text-align: center;
 	font-size: 14px;
 	font-weight: bold;
-}
-
-.search {
-	background-color: #f7f7f7;
-	border-radius: 8px;
-	padding: 10px;
-	margin-bottom: 10px;
 }
 </style>

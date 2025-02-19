@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">group</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>group</el-tag>
 			<span>分组显示</span>
 		</div>
 

@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">open</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>open</el-tag>
 			<span>起步</span>
 		</div>
 
@@ -60,7 +60,9 @@ function open() {
 		],
 		on: {
 			// 打开时触发
-			open() {},
+			open() {
+				console.log(Form.value?.validateField);
+			},
 
 			// 关闭时触发。当配置该方法时，关闭事件会被阻断，使用 done() 关闭窗口
 			close(action, done) {

@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">span-method</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>span-method</el-tag>
 			<span>合并行或列</span>
 		</div>
 
@@ -34,7 +34,6 @@
 import { useCrud, useTable } from '@cool-vue/crud';
 import { ref } from 'vue';
 import { useDict } from '/$/dict';
-import { type TableColumnCtx } from 'element-plus';
 
 const { dict } = useDict();
 
@@ -86,7 +85,7 @@ const Table = useTable({
 
 interface SpanMethodProps {
 	row: any;
-	column: TableColumnCtx<any>;
+	column: any;
 	rowIndex: number;
 	columnIndex: number;
 }

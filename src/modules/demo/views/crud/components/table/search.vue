@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">search</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>search</el-tag>
 			<span>表头搜索</span>
 		</div>
 
@@ -30,10 +30,11 @@
 	</div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="tsx">
 import { useCrud, useTable } from '@cool-vue/crud';
 import { ref } from 'vue';
 import { useDict } from '/$/dict';
+import { Plus } from '@element-plus/icons-vue';
 
 const { dict } = useDict();
 
@@ -79,6 +80,9 @@ const Table = useTable({
 
 			//【很重要】搜索参数配置
 			search: {
+				// 是否显示搜索图标
+				icon: () => <Plus />,
+
 				// 自定义渲染组件
 				component: {
 					name: 'el-input',
@@ -104,13 +108,14 @@ const Table = useTable({
 
 			//【很重要】搜索参数配置
 			search: {
-				refreshOnChange: false, // cl-select 自带 onChange 刷新，故不需要这个参数
+				// 是否显示搜索图标
+				icon: () => <cl-svg name="icon-app" size={13} />,
+				// 自定义渲染组件
 				component: {
 					name: 'cl-select',
 					props: {
-						tree: true, // 树形方式选择
-						checkStrictly: true, // 任意层级都能点
-						options: dict.get('occupation') // 使用字典数据
+						placeholder: '搜索工作',
+						options: dict.get('occupation')
 					}
 				}
 			}
@@ -119,18 +124,7 @@ const Table = useTable({
 			label: '创建时间',
 			prop: 'createTime',
 			minWidth: 170,
-			sortable: 'desc',
-
-			//【很重要】搜索参数配置
-			search: {
-				component: {
-					name: 'cl-date-picker', // cl-date-picker 自带 onChange 刷新
-					props: {
-						type: 'date',
-						valueFormat: 'YYYY-MM-DD'
-					}
-				}
-			}
+			sortable: 'desc'
 		}
 	]
 });

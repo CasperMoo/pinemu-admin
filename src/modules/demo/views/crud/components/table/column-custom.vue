@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark">column-custom</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>column-custom</el-tag>
 			<span>自定义列展示</span>
 		</div>
 

@@ -11,15 +11,19 @@
 		/>
 
 		<el-radio-group v-if="quickBtn && isRange" v-model="quickType" @change="onQuickTypeChange">
-			<el-radio-button value="day">今日</el-radio-button>
-			<el-radio-button value="week">本周</el-radio-button>
-			<el-radio-button value="month">本月</el-radio-button>
-			<el-radio-button value="year">今年</el-radio-button>
+			<el-radio-button value="day">{{ $t('今日') }}</el-radio-button>
+			<el-radio-button value="week">{{ $t('本周') }}</el-radio-button>
+			<el-radio-button value="month">{{ $t('本月') }}</el-radio-button>
+			<el-radio-button value="year">{{ $t('今年') }}</el-radio-button>
 		</el-radio-group>
 	</div>
 </template>
 
-<script lang="ts" setup name="cl-date-picker">
+<script lang="ts" setup>
+defineOptions({
+	name: 'cl-date-picker'
+});
+
 import { useCrud } from '@cool-vue/crud';
 import dayjs from 'dayjs';
 import { type PropType, computed, ref, useModel } from 'vue';
@@ -108,7 +112,7 @@ function onChange(value: any) {
 		};
 	} else {
 		params = {
-			// @ts-expect-error
+			// @ts-ignore
 			[props.prop]: value
 		};
 	}
