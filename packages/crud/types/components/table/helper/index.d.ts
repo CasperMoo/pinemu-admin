@@ -1027,6 +1027,9 @@ export declare function useTable(props: any): {
         on?: {
             [key: string]: (...args: any[]) => void;
         };
+        props?: {
+            [key: string]: any;
+        };
         plugins?: ClTable.Plugin[];
         onRowContextmenu?: (row: any, column: any, event: any) => void;
     };

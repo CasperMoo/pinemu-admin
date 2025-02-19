@@ -126,6 +126,7 @@ export default defineComponent({
 					<el-table class="cl-table" ref={Table} v-loading={crud.loading} />,
 					{
 						...config.on,
+						...config.props,
 
 						// config
 						maxHeight: config.autoHeight ? ctx.maxHeight.value : null,
@@ -145,7 +146,6 @@ export default defineComponent({
 						highlightCurrentRow: style.table.highlightCurrentRow,
 						resizable: style.table.resizable,
 						stripe: style.table.stripe,
-
 					},
 					{
 						default() {

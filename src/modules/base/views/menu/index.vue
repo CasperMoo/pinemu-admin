@@ -23,17 +23,7 @@
 		</cl-row>
 
 		<cl-row>
-			<cl-table
-				ref="Table"
-				row-key="id"
-				lazy
-				:load="onChildrenLoad"
-				:tree-props="{
-					children: 'children',
-					hasChildren: 'hasChildren'
-				}"
-				@row-click="onRowClick"
-			>
+			<cl-table ref="Table">
 				<!-- 图标 -->
 				<template #column-icon="{ scope }">
 					<cl-svg :name="scope.row.icon" :size="16" />
@@ -97,22 +87,14 @@ defineOptions({
 
 import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
-import { deepTree } from '/@/cool/utils';
 import { useStore } from '/$/base/store';
-import { isEmpty } from 'lodash-es';
+import { reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { Plugins } from '/#/crud';
 import MenuImp from './components/imp.vue';
 import MenuExp from './components/exp.vue';
 import AutoMenu from '/$/helper/components/auto-menu.vue';
 import AutoPerms from '/$/helper/components/auto-perms.vue';
-import { onMounted, reactive } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { Plugins } from '/#/crud';
-
-interface Item extends Eps.BaseSysMenuEntity {
-	children?: Item[];
-	_children?: Item[];
-	hasChildren?: boolean;
-}
 
 const { service, mitt } = useCool();
 const { menu } = useStore();
@@ -219,8 +201,9 @@ const Table = useTable({
 		{
 			prop: 'orderNum',
 			label: t('排序号'),
-			width: 90,
-			fixed: 'right'
+			width: 100,
+			fixed: 'right',
+			sortable: 'asc'
 		},
 		{
 			prop: 'updateTime',
@@ -246,6 +229,17 @@ const Table = useTable({
 				];
 			}
 		}
+	],
+	plugins: [
+		Plugins.Table.toTree({
+			lazy: true,
+			async onRefresh() {
+				return service.base.sys.menu.list().then(res => {
+					menu.get();
+					return res;
+				});
+			}
+		})
 	]
 });
 
@@ -372,16 +366,13 @@ const Upsert = useUpsert({
 // cl-crud
 const Crud = useCrud(
 	{
-		service: service.base.sys.menu,
-		onRefresh(_, { render }) {
-			service.base.sys.menu.list().then(list => {
-				render(onData(list));
-				menu.get();
-			});
-		}
+		service: service.base.sys.menu
 	},
 	app => {
-		app.refresh();
+		app.refresh({
+			prop: 'orderNum',
+			order: 'asc'
+		});
 	}
 );
 
@@ -390,49 +381,8 @@ function refresh(params?: any) {
 	Crud.value?.refresh(params);
 }
 
-// 解决子集过多导致展开卡顿
-function onData(list: Item[]) {
-	const data = deepTree(list);
-
-	// 递归处理
-	const deep = (arr: Item[]) => {
-		arr.forEach(e => {
-			const nodes: { [key: number]: Item[] } =
-				Table.value?.Table.store.states.lazyTreeNodeMap.value || {};
-
-			if (nodes[e.id!]) {
-				nodes[e.id!] = e.children || [];
-			}
-
-			if (!isEmpty(e.children)) {
-				e.hasChildren = true;
-				e._children = e.children;
-				delete e.children;
-
-				deep(e._children || []);
-			}
-		});
-	};
-
-	deep(data);
-
-	return data;
-}
-
-// 监听子节点数据的加载
-function onChildrenLoad(row: Item, treeNode: unknown, resolve: (data: Item[]) => void) {
-	resolve(row._children || []);
-}
-
-// 行点击展开
-function onRowClick(row: Item) {
-	if (row._children) {
-		Table.value?.Table.store.loadOrToggle(row);
-	}
-}
-
 // 子集新增
-function append({ type = 0, id }: Item) {
+function append({ type = 0, id }: Eps.BaseSysMenuEntity) {
 	Crud.value?.rowAppend({
 		parentId: id,
 		parentType: type,
@@ -443,7 +393,7 @@ function append({ type = 0, id }: Item) {
 }
 
 // 设置权限
-function addPermission({ id }: Item) {
+function addPermission({ id }: Eps.BaseSysMenuEntity) {
 	Crud.value?.rowAppend({
 		parentId: id,
 		type: 2
@@ -451,8 +401,4 @@ function addPermission({ id }: Item) {
 }
 
 mitt.on('helper.createMenu', refresh);
-
-onMounted(() => {
-	console.log(Table.value);
-});
 </script>

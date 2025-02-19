@@ -18,18 +18,7 @@
 
 				<cl-row>
 					<!-- 数据表格 -->
-					<cl-table ref="Table" row-key="id" @row-click="onRowClick">
-						<template #slot-btn="{ scope }">
-							<el-button
-								text
-								type="success"
-								@click="append(scope.row)"
-								v-permission="service.dict.info.permission.add"
-							>
-								{{ $t('新增') }}
-							</el-button>
-						</template>
-					</cl-table>
+					<cl-table ref="Table" />
 				</cl-row>
 
 				<cl-row>
@@ -39,22 +28,21 @@
 				<!-- 新增、编辑 -->
 				<cl-upsert ref="Upsert">
 					<template #slot-value="{ scope }">
-						<div class="form-value">
+						<div>
 							<el-input
 								v-model="scope.value"
 								:placeholder="$t('请填写值')"
 								clearable
 								type="textarea"
 								:rows="4"
+								class="mb-2"
 							/>
 
-							<div class="op">
-								<cl-upload-space
-									:text="$t('使用文件')"
-									:limit="1"
-									@confirm="onFileConfirm"
-								/>
-							</div>
+							<cl-upload-space
+								:text="$t('使用文件')"
+								:limit="1"
+								@confirm="onFileConfirm"
+							/>
 						</div>
 					</template>
 				</cl-upsert>
@@ -70,9 +58,6 @@ defineOptions({
 
 import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
-import { computed } from 'vue';
-import { deepTree } from '/@/cool/utils';
-import { cloneDeep } from 'lodash-es';
 import { useDict } from '../index';
 import { useViewGroup } from '/@/plugins/view';
 import { useI18n } from 'vue-i18n';
@@ -89,7 +74,9 @@ const { ViewGroup } = useViewGroup({
 	onSelect(item) {
 		refresh({
 			typeId: item.id,
-			page: 1
+			page: 1,
+			prop: 'orderNum',
+			order: 'desc'
 		});
 	},
 	onEdit() {
@@ -139,41 +126,14 @@ const Upsert = useUpsert({
 			label: t('上级节点'),
 			prop: 'parentId',
 			component: {
-				name: 'el-tree-select',
+				name: 'cl-select',
 				props: {
-					data: computed(() => {
-						const data = cloneDeep(Table.value?.data);
-
-						function deep(d: any, f: boolean) {
-							if (d.id && d.id == Upsert.value?.getForm('id')) {
-								f = true;
-							}
-
-							if (f) {
-								d.disabled = true;
-							}
-
-							if (d.children) {
-								d.children.forEach((e: any) => {
-									deep(e, f);
-								});
-							}
-						}
-
-						deep({ children: data }, false);
-
-						return data;
-					}),
-					props: {
-						label: 'name',
-						value: 'id',
-						children: 'children',
-						disabled: 'disabled'
-					},
-					clearable: true,
-					filterable: true,
-					'default-expand-all': true,
-					'check-strictly': true
+					labelKey: 'name',
+					valueKey: 'id',
+					checkStrictly: true,
+					tree: true,
+					current: true,
+					defaultExpandAll: true
 				}
 			}
 		},
@@ -271,41 +231,42 @@ const Table = useTable({
 		{
 			type: 'op',
 			width: 250,
-			buttons: ['slot-btn', 'edit', 'delete']
+			buttons: [
+				{
+					label: t('新增'),
+					type: 'success',
+					hidden: !service.dict.info._permission.add,
+					onClick({ scope }) {
+						append(scope.row);
+					}
+				},
+				'edit',
+				'delete'
+			]
 		}
+	],
+	plugins: [
+		Plugins.Table.toTree({
+			async onRefresh(params) {
+				return service.dict.info.list(params).then(res => {
+					// 刷新字典
+					dict.refresh([ViewGroup.value?.selected?.key]);
+
+					return res;
+				});
+			}
+		})
 	]
 });
 
 // cl-crud
 const Crud = useCrud({
-	service: service.dict.info,
-	onRefresh(params, { render }) {
-		service.dict.info
-			.list({
-				...params,
-				page: undefined,
-				size: undefined
-			})
-			.then(res => {
-				// 渲染数据
-				render(deepTree(res, params.sort));
-
-				// 刷新字典
-				dict.refresh([ViewGroup.value?.selected?.key]);
-			});
-	}
+	service: service.dict.info
 });
 
 // 刷新
 function refresh(params?: any) {
 	Crud.value?.refresh(params);
-}
-
-// 行点击展开
-function onRowClick(row: any, column: any) {
-	if (column?.property && row.children) {
-		Table.value?.toggleRowExpansion(row);
-	}
 }
 
 // 追加子集
@@ -321,11 +282,3 @@ function onFileConfirm(selection: any[]) {
 	Upsert.value?.setForm('value', selection[0]?.url);
 }
 </script>
-
-<style lang="scss" scoped>
-.form-value {
-	.op {
-		margin-top: 10px;
-	}
-}
-</style>

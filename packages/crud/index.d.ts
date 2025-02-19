@@ -407,6 +407,9 @@ declare namespace ClTable {
 		on?: {
 			[key: string]: (...args: any[]) => void;
 		};
+		props?: {
+			[key: string]: any;
+		};
 		plugins?: Plugin[];
 		onRowContextmenu?(row: T, column: any, event: any): void;
 	}

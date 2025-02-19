@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@cool-vue/crud':
-        specifier: ^8.0.0
-        version: 8.0.0(typescript@5.5.4)
+        specifier: ^8.0.1
+        version: 8.0.1(typescript@5.5.4)
       '@element-plus/icons-vue':
         specifier: ^2.3.1
         version: 2.3.1(vue@3.5.13(typescript@5.5.4))
@@ -331,8 +331,8 @@ packages:
     resolution: {integrity: sha512-Y3IR1cRnOxOCDvMmNiym7XpXQ93iGDDPHx+Zj+NM+rg0fBaShfQLkg+hKPaZCEvg5N/LeCo4+Rj/i3FuJsIQaw==}
     engines: {node: '>=6.9.0'}
 
-  '@cool-vue/crud@8.0.0':
-    resolution: {integrity: sha512-4KneWQBEwf9WNkhNe97p+ua7ae5+tANhRP9DdiclJSXvriSEjdXV5VzeMh4vnJJFtYkNBMZWKIti+MCWzPNW9Q==}
+  '@cool-vue/crud@8.0.1':
+    resolution: {integrity: sha512-qITCLcmc5gCiqF2J2I5KsiywqTc/+4Umqy9MBx1dFsYvYfrGcqoRcybcz8cTO4CEDyIv0icymt4PRuKOf01igw==}
 
   '@cool-vue/vite-plugin@8.0.0':
     resolution: {integrity: sha512-XNVTF+NUyyW5qVfyOusD6KUVT5IbbX11zI5PuFjUXXwMjMauwGN2/BT7/TM5IoWwa7Cwul8TPG5rr+h3KyA5sg==}
@@ -3079,7 +3079,7 @@ snapshots:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
 
-  '@cool-vue/crud@8.0.0(typescript@5.5.4)':
+  '@cool-vue/crud@8.0.1(typescript@5.5.4)':
     dependencies:
       '@vue/runtime-core': 3.5.13
       element-plus: 2.9.4(vue@3.5.13(typescript@5.5.4))

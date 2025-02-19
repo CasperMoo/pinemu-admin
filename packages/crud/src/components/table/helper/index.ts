@@ -25,6 +25,11 @@ export function useTable(props: any) {
 		config.on = {};
 	}
 
+	// 参数
+	if (!config.props) {
+		config.props = {};
+	}
+
 	return { Table, config };
 }
 
