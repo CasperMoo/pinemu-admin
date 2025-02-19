@@ -25,11 +25,9 @@ Ai时代，很多老旧的框架已经无法满足现代化的开发需求，Coo
 
 ## 地址
 
--   [📌 v6 vue3 + element-plus + ts + vite](https://github.com/cool-team-official/cool-admin-vue/tree/6.x)
+- [📌 v7 版本](https://github.com/cool-team-official/cool-admin-vue/tree/7.x)
 
--   [⚡️ v5 vue3 + element-plus + ts + vite](https://github.com/cool-team-official/cool-admin-vue/tree/5.x)
-
--   [🌐 码云仓库地址](https://gitee.com/cool-team-official/cool-admin-vue)
+- [🌐 码云仓库](https://gitee.com/cool-team-official/cool-admin-vue)
 
 ## 视频教程
 
