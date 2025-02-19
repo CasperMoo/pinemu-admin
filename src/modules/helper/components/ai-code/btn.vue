@@ -1,8 +1,8 @@
 <template>
 	<div class="cl-comm__icon" @click="toCode">
-		<span class="mr-2">Ai</span>
-		<cl-svg name="quick" />
-		<span class="ml-2">{{ $t('极速编码') }}</span>
+		Ai
+		<cl-svg name="quick" class="ml-2 mr-2" />
+		{{ $t('极速编码') }}
 	</div>
 </template>
 
@@ -22,13 +22,11 @@ function toCode() {
 	padding: 0 10px;
 	border-color: var(--el-color-primary);
 	color: var(--el-color-primary);
+	font-size: 14px;
+	line-height: 1;
 
 	.cl-svg {
 		color: var(--el-color-primary);
-	}
-
-	span {
-		font-size: 14px;
 	}
 }
 </style>

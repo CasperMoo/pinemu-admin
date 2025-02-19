@@ -98,6 +98,12 @@ const form = reactive({
 	verifyCode: ''
 });
 
+// 演示模式
+if (import.meta.env.MODE == 'demo') {
+	form.username = 'admin';
+	form.password = '123456';
+}
+
 // 登录
 async function toLogin() {
 	if (!form.username) {
