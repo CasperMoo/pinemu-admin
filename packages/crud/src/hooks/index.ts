@@ -60,10 +60,15 @@ export function useProxy(ctx: any) {
 }
 
 export function useElApi(keys: string[], el: any) {
-	return keys.reduce((apis, key) => {
-		apis[key] = computed(() => el.value?.[key]);
-		return apis;
-	}, {} as obj);
+	const apis: obj = {};
+
+	keys.forEach((e) => {
+		apis[e] = (...args: any[]) => {
+			return el.value[e](...args);
+		};
+	});
+
+	return apis;
 }
 
 export * from "./crud";
