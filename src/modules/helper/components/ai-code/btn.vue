@@ -26,5 +26,9 @@ function toCode() {
 	.cl-svg {
 		color: var(--el-color-primary);
 	}
+
+	span {
+		font-size: 14px;
+	}
 }
 </style>
