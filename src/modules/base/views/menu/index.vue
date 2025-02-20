@@ -232,13 +232,7 @@ const Table = useTable({
 	],
 	plugins: [
 		Plugins.Table.toTree({
-			lazy: true,
-			async onRefresh() {
-				return service.base.sys.menu.list().then(res => {
-					menu.get();
-					return res;
-				});
-			}
+			lazy: true
 		})
 	]
 });
@@ -366,7 +360,13 @@ const Upsert = useUpsert({
 // cl-crud
 const Crud = useCrud(
 	{
-		service: service.base.sys.menu
+		service: service.base.sys.menu,
+		onRefresh(params, { render }) {
+			service.base.sys.menu.list(params).then(res => {
+				menu.get();
+				render(res);
+			});
+		}
 	},
 	app => {
 		app.refresh({

@@ -245,23 +245,20 @@ const Table = useTable({
 			]
 		}
 	],
-	plugins: [
-		Plugins.Table.toTree({
-			async onRefresh(params) {
-				return service.dict.info.list(params).then(res => {
-					// 刷新字典
-					dict.refresh([ViewGroup.value?.selected?.key]);
-
-					return res;
-				});
-			}
-		})
-	]
+	plugins: [Plugins.Table.toTree()]
 });
 
 // cl-crud
 const Crud = useCrud({
-	service: service.dict.info
+	service: service.dict.info,
+	onRefresh(params, { render }) {
+		service.dict.info.list(params).then(res => {
+			render(res);
+
+			// 刷新字典
+			dict.refresh([ViewGroup.value?.selected?.key]);
+		});
+	}
 });
 
 // 刷新

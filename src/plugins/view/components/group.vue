@@ -173,26 +173,17 @@ defineOptions({
 
 import { useI18n } from 'vue-i18n';
 import { inject, nextTick, onMounted, reactive, ref, useSlots } from 'vue';
-import {
-	ArrowLeft,
-	ArrowRight,
-	ArrowRightBold,
-	Refresh as IconRefresh,
-	Plus,
-	Search
-} from '@element-plus/icons-vue';
+import { Search } from '@element-plus/icons-vue';
 import { useBrowser, useCool } from '/@/cool';
 import { ContextMenu, useForm } from '@cool-vue/crud';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { assign, isEmpty, merge } from 'lodash-es';
 import { deepTree } from '/@/cool/utils';
-import { useClipboard } from '@vueuse/core';
 
 const { browser, onScreenChange } = useBrowser();
 const slots = useSlots();
 const Form = useForm();
 const { refs, setRefs } = useCool();
-const { copy } = useClipboard();
 const { t } = useI18n();
 
 // 配置

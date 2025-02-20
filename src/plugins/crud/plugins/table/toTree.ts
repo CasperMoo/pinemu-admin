@@ -1,6 +1,6 @@
-import { useCrud } from "@cool-vue/crud";
-import { deepTree } from "/@/cool/utils";
-import { isEmpty } from "lodash-es";
+import { useCrud } from '@cool-vue/crud';
+import { deepTree } from '/@/cool/utils';
+import { isEmpty } from 'lodash-es';
 
 interface Item extends Eps.BaseSysMenuEntity {
 	children?: Item[];
@@ -22,26 +22,48 @@ export function toTree(
 
 		// 设置刷新方法
 		if (Crud.value) {
-			Crud.value.config.onRefresh = (params: any, { render }: any) => {
-				const req = options.onRefresh
-					? options.onRefresh(params)
-					: Crud.value?.service.list(params);
+			// 原 cl-crud 的 onRefresh
+			const onRefresh = Crud.value.config.onRefresh;
 
-				if (req) {
-					req.then((list) => {
-						render(onData(list, params.sort));
-					});
-				}
+			// 重写 onRefresh
+			Crud.value.config.onRefresh = async (
+				params: Parameters<ClCrud.Config['onRefresh']>[0],
+				{ render, next, done }: Parameters<ClCrud.Config['onRefresh']>[1]
+			) => {
+				const req: Promise<any[]> = new Promise(resolve => {
+					if (onRefresh) {
+						const _next = async (params?: any) => {
+							const res = await next(params);
+							resolve(res.list);
+						};
+
+						const _render = (list: any[]) => {
+							resolve(list);
+						};
+
+						onRefresh(params, { render: _render, next: _next, done });
+					} else {
+						resolve(
+							options.onRefresh
+								? options.onRefresh(params)
+								: Crud.value?.service[Crud.value.dict.api.list](params)
+						);
+					}
+				});
+
+				const list = await req;
+
+				render(onData(list, params.sort));
 			};
 		}
 
 		// 数据处理
-		const onData = (list: Item[], sort: "desc" | "asc") => {
+		const onData = (list: Item[], sort: 'desc' | 'asc') => {
 			const data = deepTree(list, sort);
 
 			// 递归处理
 			const deep = (arr: Item[]) => {
-				arr.forEach((e) => {
+				arr.forEach(e => {
 					const nodes: { [key: number]: Item[] } =
 						exposed.Table.value?.store.states.lazyTreeNodeMap.value || {};
 
@@ -69,10 +91,10 @@ export function toTree(
 
 		// 层级参数
 		exposed.config.props.lazy = true;
-		exposed.config.props["row-key"] = "id";
-		exposed.config.props["tree-props"] = {
-			children: "children",
-			hasChildren: "hasChildren"
+		exposed.config.props['row-key'] = 'id';
+		exposed.config.props['tree-props'] = {
+			children: 'children',
+			hasChildren: 'hasChildren'
 		};
 
 		// 层级事件

@@ -1,6 +1,16 @@
-import { useCrud, useForm, } from '@cool-vue/crud';
+import { useCrud, useForm } from '@cool-vue/crud';
 import { cloneDeep, isEmpty, isFunction, isString } from 'lodash-es';
-import { computed, defineComponent, onMounted, type PropType, ref, type Ref, toValue, useModel } from 'vue';
+import {
+	computed,
+	defineComponent,
+	onActivated,
+	onMounted,
+	type PropType,
+	ref,
+	type Ref,
+	toValue,
+	useModel
+} from 'vue';
 import { deepTree, parsePx } from '/@/cool/utils';
 import { useI18n } from 'vue-i18n';
 import { useCool } from '/@/cool';
@@ -25,8 +35,6 @@ export default defineComponent({
 			type: String,
 			default: 'value'
 		},
-		// 请求接口，如果是字符串，则使用 crud 下的方法
-		api: [String, Function],
 		width: [String, Number],
 
 		// 是否树形
@@ -39,11 +47,19 @@ export default defineComponent({
 		defaultExpandAll: Boolean,
 		// 顶级标签
 		topLabel: String,
-
 		// 是否选择当前表格数据，如果是，则不能选择自身及其下级
 		current: Boolean,
+
+		// 请求接口，如果是字符串，则使用 crud 下的方法
+		api: [String, Function],
+
 		// 值变化刷新
 		refreshOnChange: {
+			type: Boolean,
+			default: true
+		},
+		// 是否在激活时刷新
+		refreshOnActivated: {
 			type: Boolean,
 			default: true
 		}
@@ -52,7 +68,7 @@ export default defineComponent({
 	emits: ['update:modelValue', 'change'],
 
 	setup(props, { emit, expose }) {
-		const { refs, setRefs } = useCool();
+		const { refs, setRefs, route } = useCool();
 		const { t } = useI18n();
 
 		// cl-crud
@@ -65,14 +81,14 @@ export default defineComponent({
 		const isSearch = computed(() => !Form.value || Form.value?.name === 'search');
 
 		// 选项
-		const options = ref<Dict.Item[]>()
+		const options = ref<Dict.Item[]>();
 
 		// 选中值
 		const value = useModel(props, 'modelValue');
 
 		// 列表
 		const list = computed(() => {
-			let data: any[] = []
+			let data: any[] = [];
 
 			if (props.current) {
 				data = cloneDeep(toValue(Crud.value?.['cl-table']?.data));
@@ -95,7 +111,6 @@ export default defineComponent({
 				}
 
 				deep({ children: data }, false);
-
 			} else {
 				data = toValue(options.value || props.options) || [];
 			}
@@ -108,10 +123,10 @@ export default defineComponent({
 						[props.valueKey]: 0,
 						children: data
 					}
-				]
+				];
 			}
 
-			return data
+			return data;
 		});
 
 		// 获取值
@@ -164,26 +179,36 @@ export default defineComponent({
 
 		// 获取选项数据
 		function refresh() {
-			let req: Promise<any> | null = null
+			let req: Promise<any> | null = null;
 
 			if (isString(props.api)) {
-				req = Crud.value?.service[props.api]()
+				req = Crud.value?.service[props.api]();
 			}
 
 			if (isFunction(props.api)) {
-				req = props.api()
+				req = props.api();
 			}
 
 			if (req) {
 				req.then(res => {
 					options.value = deepTree(res);
-				})
+				});
 			}
 		}
 
 		onMounted(() => {
-			refresh()
-		})
+			if (props.api) {
+				refresh();
+
+				onActivated(() => {
+					if (props.refreshOnActivated) {
+						if (!Form.value || Form.value?.name == 'search') {
+							refresh();
+						}
+					}
+				});
+			}
+		});
 
 		expose({
 			focus
@@ -197,7 +222,6 @@ export default defineComponent({
 
 			// 占位符
 			const placeholder = isSearch.value ? t('全部') : t('请选择');
-
 
 			// 树形下拉框
 			const TreeSelect = (
