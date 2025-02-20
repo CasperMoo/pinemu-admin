@@ -481,16 +481,19 @@ function createService() {
 
 // 创建 dict
 async function createDict() {
-	return axios
-		.get(config.reqUrl + "/" + config.type + "/dict/info/types")
-		.then(async (res) => {
-			const { code, data } = res.data;
+	return axios.get(config.reqUrl + "/" + config.type + "/dict/info/types").then((res) => {
+		const { code, data } = res.data as { code: number; data: any[] };
 
-			if (code === 1000) {
-				return `type DictKey = ${data.map((e: any) => `"${e.key}"`).join(" | ")}`;
+		if (code === 1000) {
+			let v = "string";
+
+			if (!isEmpty(data)) {
+				v = data.map((e) => `"${e.key}"`).join(" | ");
 			}
-		})
-		.catch((err) => {});
+
+			return `type DictKey = ${v}`;
+		}
+	});
 }
 
 // 创建 eps

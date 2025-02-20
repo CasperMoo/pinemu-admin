@@ -521,15 +521,16 @@
     }
     // 创建 dict
     async function createDict() {
-        return axios
-            .get(config.reqUrl + "/" + config.type + "/dict/info/types")
-            .then(async (res) => {
+        return axios.get(config.reqUrl + "/" + config.type + "/dict/info/types").then((res) => {
             const { code, data } = res.data;
             if (code === 1000) {
-                return `type DictKey = ${data.map((e) => `"${e.key}"`).join(" | ")}`;
+                let v = "string";
+                if (!lodash.isEmpty(data)) {
+                    v = data.map((e) => `"${e.key}"`).join(" | ");
+                }
+                return `type DictKey = ${v}`;
             }
-        })
-            .catch((err) => { });
+        });
     }
     // 创建 eps
     async function createEps() {
