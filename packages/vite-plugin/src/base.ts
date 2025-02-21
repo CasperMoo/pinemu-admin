@@ -4,6 +4,8 @@ import { parseJson } from "./utils";
 import { updatePlugin } from "./plugin";
 import { updateProxy } from "./proxy";
 import { createFile } from "./file";
+import { config } from "./config";
+import { createTag } from "./tag";
 
 export function base(): Plugin {
 	return {
@@ -54,6 +56,13 @@ export function base(): Plugin {
 					next();
 				}
 			});
+		},
+		transform(code, id) {
+			if (config.nameTag) {
+				return createTag(code, id);
+			}
+
+			return code;
 		},
 	};
 }

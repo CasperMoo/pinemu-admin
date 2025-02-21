@@ -92,6 +92,7 @@ export declare namespace Config {
 		proxy: any;
 		eps?: Partial<Config.Eps>;
 		demo?: boolean;
+		nameTag?: boolean;
 	}
 	interface Data {
 		type: Config.Type;

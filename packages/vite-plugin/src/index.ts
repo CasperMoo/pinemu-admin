@@ -13,6 +13,9 @@ export function cool(options: Config.Options) {
 	// 请求地址
 	config.reqUrl = getProxyTarget(options.proxy);
 
+	// 是否开启名称标签
+	config.nameTag = options.nameTag ?? true;
+
 	// Eps
 	if (options.eps) {
 		const { dist, mapping, api, enable = true } = options.eps;

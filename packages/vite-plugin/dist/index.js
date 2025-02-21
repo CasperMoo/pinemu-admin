@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('fs'), require('path'), require('prettier'), require('axios'), require('lodash'), require('glob'), require('node:util'), require('svgo')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'fs', 'path', 'prettier', 'axios', 'lodash', 'glob', 'node:util', 'svgo'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.index = {}, global.fs, global.path, global.prettier, global.axios, global.lodash, global.glob, global.util, global.svgo));
-})(this, (function (exports, fs, path, prettier, axios, lodash, glob, util, svgo) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('fs'), require('path'), require('prettier'), require('axios'), require('lodash'), require('@vue/compiler-sfc'), require('magic-string'), require('glob'), require('node:util'), require('svgo')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'fs', 'path', 'prettier', 'axios', 'lodash', '@vue/compiler-sfc', 'magic-string', 'glob', 'node:util', 'svgo'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.index = {}, global.fs, global.path, global.prettier, global.axios, global.lodash, global.compilerSfc, global.magicString, global.glob, global.util, global.svgo));
+})(this, (function (exports, fs, path, prettier, axios, lodash, compilerSfc, magicString, glob, util, svgo) { 'use strict';
 
     const config = {
         type: "admin",
@@ -521,7 +521,10 @@
     }
     // 创建 dict
     async function createDict() {
-        return axios.get(config.reqUrl + "/" + config.type + "/dict/info/types").then((res) => {
+        const url = config.reqUrl + "/" + config.type + "/dict/info/types";
+        return axios
+            .get(url)
+            .then((res) => {
             const { code, data } = res.data;
             if (code === 1000) {
                 let v = "string";
@@ -530,6 +533,9 @@
                 }
                 return `type DictKey = ${v}`;
             }
+        })
+            .catch(() => {
+            error(`[cool-eps] Error：${url}`);
         });
     }
     // 创建 eps
@@ -646,6 +652,29 @@
         }
     }
 
+    function createTag(code, id) {
+        if (/\.vue$/.test(id)) {
+            let s;
+            const str = () => s || (s = new magicString(code));
+            const { descriptor } = compilerSfc.parse(code);
+            if (!descriptor.script && descriptor.scriptSetup) {
+                const res = compilerSfc.compileScript(descriptor, { id });
+                const { name, lang } = res.attrs;
+                str().appendLeft(0, `<script lang="${lang}">
+					import { defineComponent } from 'vue'
+					export default defineComponent({
+						name: "${name}"
+					})
+				<\/script>`);
+                return {
+                    map: str().generateMap(),
+                    code: str().toString(),
+                };
+            }
+        }
+        return null;
+    }
+
     function base() {
         return {
             name: "vite-cool-base",
@@ -689,6 +718,12 @@
                         next();
                     }
                 });
+            },
+            transform(code, id) {
+                if (config.nameTag) {
+                    return createTag(code, id);
+                }
+                return code;
             },
         };
     }
@@ -958,6 +993,8 @@ if (typeof window !== 'undefined') {
         config.type = options.type;
         // 请求地址
         config.reqUrl = getProxyTarget(options.proxy);
+        // 是否开启名称标签
+        config.nameTag = options.nameTag ?? true;
         // Eps
         if (options.eps) {
             const { dist, mapping, api, enable = true } = options.eps;

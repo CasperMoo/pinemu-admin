@@ -49,7 +49,6 @@ function open() {
 				}
 			},
 			{
-				label: '年龄',
 				prop: 'age',
 				component: {
 					name: 'el-input-number'
