@@ -48,7 +48,7 @@ function toCode() {
 		animation: shine 3s infinite linear;
 		animation-fill-mode: forwards;
 		-webkit-text-size-adjust: none;
-		font-size: 13px;
+		font-size: 12px;
 		line-height: 1;
 	}
 
