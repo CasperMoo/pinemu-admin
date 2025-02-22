@@ -89,6 +89,7 @@ import AdvSearchCustom from './components/adv-search/custom.vue';
 
 import OtherTsx from './components/other/tsx';
 import OtherTips from './components/other/tips.vue';
+import OtherContextMenu from './components/other/context-menu.vue';
 
 const { route, router } = useCool();
 
@@ -207,7 +208,7 @@ const list = [
 		children: [
 			{
 				label: '高级',
-				children: [OtherTsx, OtherTips]
+				children: [OtherTsx, OtherTips, OtherContextMenu]
 			}
 		]
 	}

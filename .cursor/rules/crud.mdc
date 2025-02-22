@@ -1095,6 +1095,137 @@ function open() {
 
 ```
 
+## 选择表格 示例
+
+```vue
+<template>
+	<div class="scope">
+		<div class="h">
+			<el-tag size="small" effect="dark" disable-transitions>select-table</el-tag>
+			<span>选择表格</span>
+		</div>
+
+		<div class="c">
+			<el-button @click="open">预览</el-button>
+			<demo-code :files="['crud/select-table.vue']" />
+
+			<!-- 自定义表格组件 -->
+			<cl-form ref="Form" />
+		</div>
+
+		<div class="f">
+			<span class="date">2025-02-07</span>
+		</div>
+	</div>
+</template>
+
+<script setup lang="ts">
+import { useForm } from '@cool-vue/crud';
+import { useCool } from '/@/cool';
+import UserSelect from '/$/user/components/user-select.vue';
+
+const { service } = useCool();
+const Form = useForm();
+
+const columns = [
+	{
+		label: '头像',
+		prop: 'headImg',
+		component: {
+			name: 'cl-avatar'
+		}
+	},
+	{
+		label: '昵称',
+		prop: 'nickName'
+	},
+	{
+		label: '创建时间',
+		prop: 'createTime'
+	}
+];
+
+function open() {
+	Form.value?.open({
+		width: '800px',
+		title: '选择表格',
+		items: [
+			{
+				label: '多选 - default',
+				prop: 'a',
+				value: [],
+				component: {
+					vm: UserSelect,
+					props: {
+						multiple: true
+					}
+				},
+				span: 12
+			},
+			{
+				label: '单选 - default',
+				prop: 'b',
+				component: {
+					name: 'cl-select-table',
+					props: {
+						pickerType: 'default',
+						multiple: false,
+						columns,
+						service: service.base.sys.user
+					}
+				},
+				span: 12
+			},
+			{
+				label: '多选 - text',
+				prop: 'c',
+				value: [],
+				component: {
+					name: 'cl-select-table',
+					props: {
+						pickerType: 'text',
+						multiple: true,
+						columns,
+						service: service.base.sys.user
+					}
+				},
+				span: 12
+			},
+			{
+				label: '单选 - text',
+				prop: 'd',
+				component: {
+					name: 'cl-select-table',
+					props: {
+						pickerType: 'text',
+						multiple: false,
+						columns,
+						service: service.base.sys.user
+					}
+				},
+				span: 12
+			},
+			{
+				label: '多选 - table',
+				prop: 'e',
+				value: [],
+				component: {
+					name: 'cl-select-table',
+					props: {
+						pickerType: 'table',
+						multiple: true,
+						columns,
+						service: service.base.sys.user
+					}
+				}
+			}
+		]
+	});
+}
+</script>
+
+```
+
 ## Service 配置 示例
 
 ```vue
@@ -1275,6 +1406,74 @@ const visible = ref(false);
 
 function open() {
 	visible.value = true;
+}
+</script>
+
+```
+
+## 选择成员 示例
+
+```vue
+<template>
+	<div class="scope">
+		<div class="h">
+			<el-tag size="small" effect="dark" disable-transitions>user-select</el-tag>
+			<span>选择成员</span>
+		</div>
+
+		<div class="c">
+			<el-button @click="open">预览</el-button>
+			<demo-code :files="['crud/user-select.vue']" />
+
+			<!-- 自定义表格组件 -->
+			<cl-form ref="Form" />
+		</div>
+
+		<div class="f">
+			<span class="date">2025-02-07</span>
+		</div>
+	</div>
+</template>
+
+<script setup lang="ts">
+import { useForm } from '@cool-vue/crud';
+
+const Form = useForm();
+
+function open() {
+	Form.value?.open({
+		title: '选择成员',
+		items: [
+			{
+				label: '单选',
+				prop: 'userId',
+				component: {
+					name: 'cl-user-select',
+					props: {
+						multiple: false,
+						onChange(val) {
+							console.log(val);
+						}
+					}
+				},
+				required: true
+			},
+			{
+				label: '多选',
+				prop: 'userIds',
+				component: {
+					name: 'cl-user-select',
+					props: {
+						multiple: true,
+						onChange(val) {
+							console.log(val);
+						}
+					}
+				},
+				required: true
+			}
+		]
+	});
 }
 </script>
 

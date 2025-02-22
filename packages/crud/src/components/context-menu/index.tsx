@@ -222,15 +222,17 @@ const ClContextMenu = defineComponent({
 											"is-active": ids.value.includes(id),
 											"is-ellipsis": e.ellipsis ?? true,
 											"is-disabled": e.disabled
-										}}>
+										}}
+										onClick={(ev: MouseEvent) => {
+											rowClick(e, id);
+											ev.stopPropagation();
+										}}
+									>
 										{/* 前缀图标 */}
 										{e.prefixIcon && <ElIcon>{h(toRaw(e.prefixIcon))}</ElIcon>}
 
 										{/* 标题 */}
-										<span
-											onClick={() => {
-												rowClick(e, id);
-											}}>
+										<span>
 											{e.label}
 										</span>
 
