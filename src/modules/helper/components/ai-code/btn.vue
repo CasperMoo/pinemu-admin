@@ -1,28 +1,32 @@
 <template>
 	<div class="cl-comm__icon" @click="toCode">
-		<div class="t1"><cl-svg name="quick" class="mr-2" /> {{ $t("AI极速编码") }}</div>
+		<cl-svg name="quick" class="icon" />
+		<div class="t1">{{ $t('AI极速编码') }}</div>
 		<div class="t2">Start</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { useCool } from "/@/cool";
+import { useCool } from '/@/cool';
 
 const { router } = useCool();
 
 function toCode() {
-	router.push("/helper/ai-code");
+	router.push('/helper/ai-code');
 }
 </script>
 
 <style lang="scss" scoped>
 .cl-comm__icon {
 	width: auto;
-	font-size: 14px;
-	line-height: 1;
 	position: relative;
 	overflow: hidden;
 	width: 120px;
+
+	.icon {
+		position: absolute;
+		left: 8px;
+	}
 
 	.t1,
 	.t2 {
@@ -31,7 +35,12 @@ function toCode() {
 		justify-content: center;
 		transition: top 0.5s;
 		letter-spacing: 1px;
-
+		position: absolute;
+		width: 100%;
+		padding-left: 18px;
+		top: 50%;
+		left: 0;
+		transform: translateY(-50%);
 		background: linear-gradient(to right, #9f9f9f 0, #fff 10%, #868686 20%);
 		background-position: 0;
 		-webkit-background-clip: text;
@@ -39,30 +48,26 @@ function toCode() {
 		animation: shine 3s infinite linear;
 		animation-fill-mode: forwards;
 		-webkit-text-size-adjust: none;
-	}
-
-	.t1 {
-		position: absolute;
-		width: 100%;
-		top: 50%;
-		left: 0;
-		transform: translateY(-50%);
+		font-size: 13px;
+		line-height: 1;
 	}
 
 	.t2 {
-		position: absolute;
-		width: 100%;
 		top: 150%;
-		left: 0;
-		transform: translateY(-50%);
 	}
 
-	&:hover .t1 {
-		top: -100%;
-	}
+	&:hover {
+		.icon {
+			color: var(--el-color-primary);
+		}
 
-	&:hover .t2 {
-		top: 50%;
+		.t1 {
+			top: -100%;
+		}
+
+		.t2 {
+			top: 50%;
+		}
 	}
 }
 
