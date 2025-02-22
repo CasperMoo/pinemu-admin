@@ -567,6 +567,7 @@ defineExpose({
 				flex: 1;
 				overflow: hidden;
 				box-sizing: border-box;
+				margin-top: 10px;
 
 				:deep(.el-tree-node__content) {
 					height: 36px;
