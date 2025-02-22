@@ -7,12 +7,14 @@ import { useI18n } from 'vue-i18n';
  * 设置自动读取
  * @param options.hideLabel 是否隐藏标签
  * @param options.customComponent 自定义组件
+ * @param options.ignoreFields 忽略的字段 prop
  * @returns
  */
 export function setAuto(
 	options: {
 		hideLabel?: boolean;
 		customComponent?: (field: ClCrud.Field) => Render.Component | null;
+		ignoreFields?: string[];
 	} = {
 		hideLabel: true
 	}
@@ -84,6 +86,10 @@ export function setAuto(
 				// 精确搜索
 				if (!isEmpty(fields)) {
 					fields.forEach(e => {
+						if (options.ignoreFields?.includes(e.propertyName)) {
+							return;
+						}
+
 						arr.push({
 							prop: e.propertyName,
 							label: options.hideLabel ? undefined : t(e.comment),
