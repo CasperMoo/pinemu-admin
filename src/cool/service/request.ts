@@ -53,7 +53,9 @@ request.interceptors.request.use(
 		}
 
 		// 设置请求头中的语言
-		req.headers['language'] = config.i18n.locale;
+		if (!req.headers['language'] !== null) {
+			req.headers['language'] = config.i18n.locale;
+		}
 
 		// 验证 token
 		if (user.token) {

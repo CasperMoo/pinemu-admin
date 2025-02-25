@@ -60,7 +60,8 @@ export function useUpload() {
 							method: 'POST',
 							headers: {
 								'Content-Type': 'multipart/form-data',
-								Authorization: isLocal ? user.token : null
+								Authorization: isLocal ? user.token : null,
+								language: null
 							},
 							timeout: 600000,
 							data: fd as any,
@@ -68,8 +69,7 @@ export function useUpload() {
 								progress = e.total ? Math.floor((e.loaded / e.total) * 100) : 0;
 								onProgress?.(progress);
 							},
-							proxy: isLocal,
-							NProgress: false
+							proxy: isLocal
 						};
 
 						if (type == 'minio') {
