@@ -897,7 +897,6 @@ onMounted(() => {
 				&-inner {
 					position: absolute;
 					inset: 1px;
-					border-radius: inherit;
 					border-radius: 8px;
 					background-color: var(--el-bg-color);
 
