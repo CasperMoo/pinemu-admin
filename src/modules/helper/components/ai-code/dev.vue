@@ -1,6 +1,6 @@
 <template>
 	<iframe
-		:src="`${helper.index}${path}`"
+		:src="`${helper.index}${path}?lang=${ctx.serviceLang}`"
 		class="iframe"
 		:class="{ 'is-hide': hide }"
 		ref="iframeRef"
@@ -13,6 +13,7 @@ defineOptions({ name: 'ai-code-dev' });
 import { onMounted, onUnmounted, ref } from 'vue';
 import { module } from '/@/cool';
 import { isString } from 'lodash-es';
+import { ctx } from 'virtual:ctx';
 
 defineProps({
 	path: String,
