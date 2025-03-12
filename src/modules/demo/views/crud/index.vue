@@ -3,6 +3,15 @@
 		<div class="crud-demo">
 			<el-tabs v-model="active" type="card" @tab-change="onTabChange">
 				<el-tab-pane v-for="(a, ai) in list" :key="ai" :label="a.title" :name="a.title">
+					<el-alert
+						type="warning"
+						:closable="false"
+						class="mb-[10px]"
+						v-if="['cl-upsert', 'cl-search', 'cl-adv-search'].includes(a.title)"
+					>
+						基于 cl-form 组件封装，以下是扩展的一些用法
+					</el-alert>
+
 					<div v-for="(b, bi) in a.children" :key="bi" class="group">
 						<p class="label"># {{ b.label }}</p>
 
@@ -55,6 +64,7 @@ import FormCrud from './components/form/crud.vue';
 import FormRules from './components/form/rules.vue';
 import FormComponent from './components/form/component/index.vue';
 import FormPlugin from './components/form/plugin/index.vue';
+import FormSetFocus from './components/form/setFocus.vue';
 
 import TableBase from './components/table/base.vue';
 import TableFormatter from './components/table/formatter.vue';
@@ -140,19 +150,6 @@ const list = [
 		]
 	},
 	{
-		title: 'cl-upsert',
-		children: [
-			{
-				label: '基础',
-				children: [UpsertBase, UpsertEvent, UpsertMode]
-			},
-			{
-				label: '高级',
-				children: [UpsertHook]
-			}
-		]
-	},
-	{
 		title: 'cl-form',
 		children: [
 			{
@@ -177,7 +174,20 @@ const list = [
 			},
 			{
 				label: '插件',
-				children: [FormPlugin]
+				children: [FormPlugin, FormSetFocus]
+			}
+		]
+	},
+	{
+		title: 'cl-upsert',
+		children: [
+			{
+				label: '基础',
+				children: [UpsertBase, UpsertEvent, UpsertMode]
+			},
+			{
+				label: '高级',
+				children: [UpsertHook]
 			}
 		]
 	},

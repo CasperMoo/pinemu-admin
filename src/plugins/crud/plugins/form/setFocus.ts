@@ -2,13 +2,17 @@ import { useRefs } from '/@/cool';
 
 /**
  * 设置聚焦，prop为空则默认第一个选项
- * @param prop
+ * @param prop 字段标识
  * @returns
  */
 export function setFocus(prop?: string): ClForm.Plugin {
 	const { refs, setRefs } = useRefs();
 
 	return ({ exposed, onOpen }) => {
+		if (prop === '') {
+			return;
+		}
+
 		const name = prop || exposed.config?.items?.[0]?.prop;
 		let _ref: any;
 
