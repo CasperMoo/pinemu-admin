@@ -63,6 +63,24 @@ function open() {
 						}
 					}
 				]
+			},
+			{
+				label: '是否必填',
+				prop: 'required',
+				component: {
+					name: 'el-switch',
+					props: {
+						onChange(val) {
+							Form.value.setData('nickname', { required: val });
+
+							// 如果不必填，可以加一步骤清空校验
+							if (!val) {
+								Form.value.clearValidate('nickname');
+							}
+						}
+					}
+				},
+				value: true
 			}
 		],
 		on: {
