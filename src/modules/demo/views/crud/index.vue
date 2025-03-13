@@ -82,6 +82,7 @@ import TableColumnCustom from './components/table/column-custom.vue';
 import TableComponent from './components/table/component/index.vue';
 import TablePluginBase from './components/table/plugin/base.vue';
 import TablePluginRowEdit from './components/table/plugin/row-edit.vue';
+import TablePluginToTree from './components/table/plugin/to-tree.vue';
 
 import UpsertBase from './components/upsert/base.vue';
 import UpsertEvent from './components/upsert/event.vue';
@@ -145,7 +146,7 @@ const list = [
 			},
 			{
 				label: '插件',
-				children: [TablePluginBase, TablePluginRowEdit]
+				children: [TablePluginBase, TablePluginRowEdit, TablePluginToTree]
 			}
 		]
 	},

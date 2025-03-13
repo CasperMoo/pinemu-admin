@@ -1,7 +1,7 @@
 <template>
 	<div class="scope">
 		<div class="h">
-			<el-tag size="small" effect="dark" disable-transitions>row-edit</el-tag>
+			<el-tag size="small" effect="dark" disable-transitions>rowEdit</el-tag>
 			<span>行编辑</span>
 		</div>
 

@@ -2,7 +2,7 @@
 	<div class="scope">
 		<div class="h">
 			<el-tag size="small" effect="dark" disable-transitions>required</el-tag>
-			<span>必填项配置</span>
+			<span>必填项配置、动态设置</span>
 		</div>
 
 		<div class="c">
@@ -71,6 +71,7 @@ function open() {
 					name: 'el-switch',
 					props: {
 						onChange(val) {
+							// 【很重要】动态设置
 							Form.value.setData('nickname', { required: val });
 
 							// 如果不必填，可以加一步骤清空校验
