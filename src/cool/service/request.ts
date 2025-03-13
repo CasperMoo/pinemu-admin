@@ -53,7 +53,7 @@ request.interceptors.request.use(
 		}
 
 		// 设置请求头中的语言
-		if (!req.headers['language'] !== null) {
+		if (req.headers['language'] !== null) {
 			req.headers['language'] = config.i18n.locale;
 		}
 

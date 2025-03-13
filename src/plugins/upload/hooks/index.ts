@@ -13,7 +13,7 @@ export function useUpload() {
 	const { t } = useI18n();
 
 	// 上传
-	async function toUpload(file: File, opts: Upload.Options = {}): Upload.Respose {
+	async function toUpload(file: File, opts: Upload.Options = {}): Upload.Response {
 		return new Promise((resolve, reject) => {
 			const executor = async () => {
 				// 合并配置
@@ -110,7 +110,7 @@ export function useUpload() {
 
 					if (isLocal) {
 						next({
-							host: '/admin/base/comm/upload'
+							host: 'admin/base/comm/upload'
 						});
 					} else {
 						service.base.comm

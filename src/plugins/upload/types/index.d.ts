@@ -22,7 +22,7 @@ declare namespace Upload {
 		[key: string]: any;
 	}
 
-	type Respose = Promise<{
+	type Response = Promise<{
 		key: string;
 		url: string;
 		fileId: string;
