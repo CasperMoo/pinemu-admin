@@ -1,6 +1,5 @@
 <template>
 	<div class="cl-comm__icon" @click="toCode">
-		<cl-svg name="quick" class="icon" />
 		<div class="t1">{{ $t('AI极速编码') }}</div>
 		<div class="t2">Start</div>
 	</div>
@@ -21,12 +20,7 @@ function toCode() {
 	width: auto;
 	position: relative;
 	overflow: hidden;
-	width: 120px;
-
-	.icon {
-		position: absolute;
-		left: 8px;
-	}
+	width: 90px;
 
 	.t1,
 	.t2 {
@@ -37,11 +31,10 @@ function toCode() {
 		letter-spacing: 1px;
 		position: absolute;
 		width: 100%;
-		padding-left: 18px;
 		top: 50%;
 		left: 0;
 		transform: translateY(-50%);
-		background: linear-gradient(to right, #9f9f9f 0, #fff 10%, #868686 20%);
+		background: linear-gradient(to right, #9f9f9f 0, #fff 10%, #666 20%);
 		background-position: 0;
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
@@ -49,7 +42,6 @@ function toCode() {
 		animation-fill-mode: forwards;
 		-webkit-text-size-adjust: none;
 		font-size: 12px;
-		line-height: 1;
 	}
 
 	.t2 {
@@ -57,10 +49,6 @@ function toCode() {
 	}
 
 	&:hover {
-		.icon {
-			color: var(--el-color-primary);
-		}
-
 		.t1 {
 			top: -100%;
 		}
@@ -76,7 +64,7 @@ function toCode() {
 		background-position: 0;
 	}
 	100% {
-		background-position: 100px;
+		background-position: 90px;
 	}
 }
 </style>

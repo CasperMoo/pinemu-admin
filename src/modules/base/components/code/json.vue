@@ -7,7 +7,7 @@
 			effect="dark"
 		>
 			<template #reference>
-				<span class="text">{{ text }}</span>
+				<span class="cl-code-json__text">{{ text }}</span>
 			</template>
 
 			<viewer />
@@ -33,7 +33,8 @@ import { computed, defineComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
-	modelValue: [String, Object],
+	content: null,
+	modelValue: null,
 	popover: Boolean,
 	height: {
 		type: [Number, String],
@@ -42,7 +43,8 @@ const props = defineProps({
 	maxHeight: {
 		type: [Number, String],
 		default: 300
-	}
+	},
+	title: String
 });
 
 const { copy } = useClipboard();
@@ -50,14 +52,14 @@ const { t } = useI18n();
 
 // 文本
 const text = computed(() => {
-	const v = props.modelValue;
+	const v = props.modelValue || props.content;
 
 	if (isString(v)) {
 		return v;
 	} else if (isObject(v)) {
 		return JSON.stringify(v, null, 4);
 	} else {
-		return '';
+		return String(v);
 	}
 });
 
@@ -72,16 +74,20 @@ const viewer = defineComponent({
 		return () => {
 			return (
 				<div class="cl-code-json">
-					<div class="op">
-						<el-button type="success" size="small" onClick={toCopy}>
-							{t('复制')}
-						</el-button>
+					<div class="cl-code-json__op">
+						{text.value != '{}' && (
+							<el-button type="success" size="small" onClick={toCopy}>
+								{t('复制')}
+							</el-button>
+						)}
 
 						{slots.op && slots.op()}
 					</div>
 
+					{props.title && <div class="cl-code-json__title">{props.title}</div>}
+
 					<el-scrollbar
-						class="scrollbar"
+						class="cl-code-json__content"
 						max-height={props.maxHeight}
 						height={props.height}
 					>
@@ -101,25 +107,35 @@ const viewer = defineComponent({
 	position: relative;
 	min-width: 200px;
 	max-width: 500px;
+	font-size: 14px;
 
-	.op {
+	&__op {
 		position: absolute;
 		right: 8px;
 		top: 8px;
 		z-index: 9;
 	}
 
-	.scrollbar {
+	&__title {
+		padding: 10px;
+		font-size: 12px;
+		color: var(--el-text-color-regular);
+
+		& + .cl-code-json__content {
+			padding-top: 0;
+		}
+	}
+
+	&__content {
+		padding: 10px;
+
 		code {
-			display: block;
-			padding: 10px;
-			font-size: 14px;
 			white-space: pre-wrap;
 		}
 	}
 
 	&__wrap {
-		.text {
+		.cl-code-json__text {
 			display: block;
 			text-overflow: ellipsis;
 			white-space: nowrap;

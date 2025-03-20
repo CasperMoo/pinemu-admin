@@ -144,7 +144,7 @@ const keyWord = ref('');
 			}
 
 			&:not(&--popup) {
-				--el-menu-base-level-padding: 24px;
+				--el-menu-base-level-padding: 23px;
 
 				.el-menu-item,
 				.el-sub-menu__title {

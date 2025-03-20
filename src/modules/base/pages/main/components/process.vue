@@ -25,7 +25,7 @@
 						@click="onTap(item, Number(index))"
 						@contextmenu.stop.prevent="openCM($event, item)"
 					>
-						<span class="label tracking-wider text-[12px]">
+						<span class="label tracking-wider">
 							{{ item.meta.label || item.name || item.path }}
 						</span>
 
@@ -209,7 +209,7 @@ onMounted(() => {
 		height: 100%;
 		flex: 1;
 		position: relative;
-		margin: 0 10px;
+		margin: 0 5px;
 	}
 
 	&__scroller {
@@ -229,8 +229,9 @@ onMounted(() => {
 		padding: 0 8px;
 		cursor: pointer;
 		color: var(--el-text-color-regular);
-		border-radius: 4px;
+		border-radius: var(--el-border-radius-base);
 		margin-right: 5px;
+		border: 1px solid var(--el-fill-color-dark);
 
 		.close {
 			width: 0;
@@ -245,6 +246,11 @@ onMounted(() => {
 			}
 		}
 
+		.label {
+			font-size: 12px;
+			line-height: 1;
+		}
+
 		&:last-child {
 			margin-right: 0;
 		}
@@ -255,6 +261,7 @@ onMounted(() => {
 
 		&.active {
 			background-color: var(--el-color-primary);
+			border-color: var(--el-color-primary);
 			color: #fff;
 		}
 

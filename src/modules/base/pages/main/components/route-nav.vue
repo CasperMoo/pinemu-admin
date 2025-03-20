@@ -7,7 +7,7 @@
 		<template v-else>
 			<el-breadcrumb :separator-icon="ArrowRightBold">
 				<el-breadcrumb-item v-for="(item, index) in list" :key="index">
-					<span class="text-[13px]">{{ item.meta?.label || item.name }}</span>
+					<span class="text-[14px]">{{ item.meta?.label || item.name }}</span>
 				</el-breadcrumb-item>
 			</el-breadcrumb>
 		</template>

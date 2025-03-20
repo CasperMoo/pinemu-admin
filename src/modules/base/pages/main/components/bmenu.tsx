@@ -54,7 +54,7 @@ export default defineComponent({
 
 					const item = (e: Menu.Item) => {
 						const arr = [
-							<cl-svg name={e.icon} size={16} />,
+							<cl-svg name={e.icon} size={18} />,
 							<span class="ml-4 tracking-wider text-[14px] mr-auto text-ellipsis overflow-hidden whitespace-nowrap">
 								{e.meta?.label}
 							</span>
