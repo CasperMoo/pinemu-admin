@@ -4,10 +4,10 @@
 			<!-- 刷新按钮 -->
 			<cl-refresh-btn />
 			<el-button
-				v-permission="service.recycle.data.permission.restore"
 				type="success"
 				:disabled="Table?.selection.length == 0"
 				@click="restore()"
+				v-permission="service.recycle.data.permission.restore"
 			>
 				{{ $t('批量恢复') }}
 			</el-button>
@@ -47,6 +47,7 @@ const { t } = useI18n();
 
 // cl-table
 const Table = useTable({
+	contextMenu: [],
 	columns: [
 		{
 			type: 'selection'
