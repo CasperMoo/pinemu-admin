@@ -55,11 +55,6 @@ export const config = {
 		token: []
 	},
 
-	// 高德地图配置
-	amap: {
-		key: ''
-	},
-
 	// 当前环境
 	...(isDev ? dev : prod)
 };
