@@ -1,6 +1,6 @@
 import { assign } from "lodash-es";
 import { TestService } from "../test/service";
-import { watch, ref, nextTick, getCurrentInstance, Ref, inject, provide } from "vue";
+import { watch, ref, nextTick, getCurrentInstance, type Ref, inject, provide } from "vue";
 
 // 获取上级
 function useParent(name: string, r: Ref) {

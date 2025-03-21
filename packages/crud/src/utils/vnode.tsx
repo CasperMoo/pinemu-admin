@@ -1,4 +1,4 @@
-import { h, resolveComponent, toRaw, VNode } from "vue";
+import { h, resolveComponent, toRaw, type VNode } from "vue";
 import { isObject } from "./index";
 import { parseExtensionComponent } from "./parse";
 import global from "./global";

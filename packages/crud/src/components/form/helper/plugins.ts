@@ -1,4 +1,4 @@
-import { Ref, WatchStopHandle, getCurrentInstance, watch } from "vue";
+import { type Ref, type WatchStopHandle, getCurrentInstance, watch } from "vue";
 import { useConfig } from "../../../hooks";
 import { uniqueFns } from "../../../utils";
 

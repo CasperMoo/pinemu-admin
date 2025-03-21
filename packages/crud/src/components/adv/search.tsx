@@ -1,4 +1,4 @@
-import { defineComponent, h, inject, mergeProps, nextTick, PropType, reactive, ref } from "vue";
+import { defineComponent, h, inject, mergeProps, nextTick, type PropType, reactive, ref } from "vue";
 import { Close } from "@element-plus/icons-vue";
 import { useBrowser, useConfig, useCore } from "../../hooks";
 import { renderNode } from "../../utils/vnode";
