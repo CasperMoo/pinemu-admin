@@ -24,6 +24,7 @@ import { startsWith } from 'lodash-es';
 import { useI18n } from 'vue-i18n';
 import { ElMessageBox } from 'element-plus';
 import AiCodeDev from '../components/ai-code/dev.vue';
+import { ctx } from 'virtual:ctx';
 
 const { router, service, refs, setRefs } = useCool();
 const menu = useMenu();
@@ -95,21 +96,34 @@ async function onMessage({
 			})
 		);
 
-		loader.setText(t('创建 Node 文件'));
+		if (ctx.serviceLang == 'Java') {
+			loader.setText(t('创建 Java 文件'));
 
-		// 创建后端文件
-		await service.base.coding.createCode({
-			codes: data.files
-				.filter(e => {
-					return startsWith(e.path, 'node');
+			// 创建后端文件
+			await service.base.coding.createCode({
+				codes: data.files.filter(e => {
+					return startsWith(e.path, 'java');
 				})
-				.map(e => {
-					return {
-						path: e.path.replace(/^node\//, 'src/modules/'),
-						content: e.content
-					};
-				})
-		});
+			});
+		}
+
+		if (ctx.serviceLang == 'Node') {
+			loader.setText(t('创建 Node 文件'));
+
+			// 创建后端文件
+			await service.base.coding.createCode({
+				codes: data.files
+					.filter(e => {
+						return startsWith(e.path, 'node');
+					})
+					.map(e => {
+						return {
+							path: e.path.replace(/^node\//, 'src/modules/'),
+							content: e.content
+						};
+					})
+			});
+		}
 
 		loader.setText(t('正在重启服务'));
 
