@@ -9,7 +9,7 @@
 			:src="url"
 			:fit="fit"
 			:lazy="lazy"
-			:preview-src-list="urls"
+			:preview-src-list="preview ? urls : undefined"
 			:style="{
 				height: style.h,
 				width: style.w
@@ -51,7 +51,11 @@ const props = defineProps({
 		type: String as PropType<'' | 'contain' | 'cover' | 'none' | 'fill' | 'scale-down'>,
 		default: 'cover'
 	},
-	compress: String as PropType<'oss' | 'none'>
+	compress: String as PropType<'oss' | 'none'>,
+	preview: {
+		type: Boolean,
+		default: true
+	}
 });
 
 const urls = computed(() => {

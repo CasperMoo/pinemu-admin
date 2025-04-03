@@ -55,8 +55,23 @@ function open() {
 					}
 				},
 				required: true
+			},
+			{
+				label: '回显',
+				prop: 'testId',
+				component: {
+					name: 'cl-user-select',
+					props: {
+						// 【很重要】立即刷新
+						immediate: true
+					}
+				}
 			}
-		]
+		],
+		form: {
+			// 【很重要】手动设置值，实际根据接口返回
+			testId: 2
+		}
 	});
 }
 </script>

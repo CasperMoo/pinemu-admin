@@ -22,15 +22,14 @@
 <script setup lang="ts">
 import { useForm } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
-import UserSelect from '/$/user/components/user-select.vue';
 
-const { service } = useCool();
+const { service, refs, setRefs } = useCool();
 const Form = useForm();
 
 const columns = [
 	{
 		label: '头像',
-		prop: 'headImg',
+		prop: 'avatarUrl',
 		component: {
 			name: 'cl-avatar'
 		}
@@ -55,9 +54,12 @@ function open() {
 				prop: 'a',
 				value: [],
 				component: {
-					vm: UserSelect,
+					name: 'cl-select-table',
 					props: {
-						multiple: true
+						pickerType: 'default',
+						multiple: true,
+						columns,
+						service: service.user.info
 					}
 				},
 				span: 12
@@ -71,7 +73,7 @@ function open() {
 						pickerType: 'default',
 						multiple: false,
 						columns,
-						service: service.base.sys.user
+						service: service.user.info
 					}
 				},
 				span: 12
@@ -86,7 +88,7 @@ function open() {
 						pickerType: 'text',
 						multiple: true,
 						columns,
-						service: service.base.sys.user
+						service: service.user.info
 					}
 				},
 				span: 12
@@ -100,10 +102,25 @@ function open() {
 						pickerType: 'text',
 						multiple: false,
 						columns,
-						service: service.base.sys.user
+						service: service.user.info
 					}
 				},
 				span: 12
+			},
+			{
+				label: '回显',
+				prop: 'f',
+				component: {
+					name: 'cl-select-table',
+					props: {
+						pickerType: 'default',
+						multiple: false,
+						columns,
+						service: service.user.info
+					},
+					// 【很重要】设置 ref
+					ref: setRefs('selectTable')
+				}
 			},
 			{
 				label: '多选 - table',
@@ -115,11 +132,24 @@ function open() {
 						pickerType: 'table',
 						multiple: true,
 						columns,
-						service: service.base.sys.user
+						service: service.user.info
 					}
 				}
 			}
-		]
+		],
+		// useUpsert 中使用 onOpened
+		on: {
+			open() {
+				// 【很重要】设置回显，实际根据接口返回
+				refs.selectTable?.set([
+					{
+						id: 1,
+						avatarUrl: 'http://....',
+						nickName: '橘子'
+					}
+				]);
+			}
+		}
 	});
 }
 </script>

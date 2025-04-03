@@ -14,9 +14,11 @@
 				</div>
 
 				<cl-crud padding="0">
-					<cl-table :ref="setRefs('table')" :data="data" :auto-height="false" />
+					<cl-row>
+						<cl-table :ref="setRefs('table')" :data="data" :auto-height="false" />
+					</cl-row>
 
-					<cl-row type="flex" align="middle" justify="end" :style="{ marginTop: '10px' }">
+					<cl-row type="flex" align="middle" justify="end">
 						<el-pagination
 							v-model:current-page="pager.page"
 							:page-size="pager.size"
@@ -39,7 +41,13 @@
 					<template v-for="(item, index) in data" :key="index">
 						<slot name="item" :item="item" :index="index">
 							<template v-if="pickerType == 'default'">
-								<cl-image :src="item[dict.img]" :size="24" class="mr-[5px]" />
+								<cl-image
+									:src="item[dict.img]"
+									:size="24"
+									:radius="5"
+									:preview="false"
+									class="mr-[5px]"
+								/>
 								<span v-if="!multiple">{{ item[dict.text] }}</span>
 							</template>
 
