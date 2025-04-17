@@ -42,6 +42,7 @@ function toCode() {
 		animation-fill-mode: forwards;
 		-webkit-text-size-adjust: none;
 		font-size: 12px;
+		text-align: center;
 	}
 
 	.t2 {

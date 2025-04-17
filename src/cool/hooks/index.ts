@@ -55,3 +55,4 @@ export function useCool() {
 // 导出其他模块的功能
 export * from './browser';
 export * from './hmr';
+export * from './mitt';

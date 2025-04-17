@@ -27,8 +27,6 @@
 					:class="{
 						'is-installed': isInstalled
 					}"
-					@dragover="onDragover"
-					@drop="onDrop"
 					@mousemove="onMousemove"
 				>
 					<el-row :gutter="10">
@@ -279,6 +277,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { marked } from 'marked';
 import { useI18n } from 'vue-i18n';
+import { usePlugin } from '../hooks';
 
 interface Plugin {
 	name?: string;
@@ -297,9 +296,10 @@ interface Plugin {
 	[key: string]: any;
 }
 
-const { router, service, refs, setRefs } = useCool();
+const { router, service, refs, setRefs, mitt } = useCool();
 const helper = module.get('helper');
 const { t } = useI18n();
+const { install } = usePlugin();
 
 // 选项卡
 const tab = reactive({
@@ -354,66 +354,15 @@ const plugin = reactive({
 	// 初始化
 	init() {
 		plugin.refresh();
-	},
 
-	// 安装
-	install(file: File) {
-		const next = (force: boolean) => {
-			const data = new FormData();
+		// 移除事件
+		mitt.off('plugin.refresh');
 
-			data.append('files', file);
-			data.append('force', String(force));
-
-			service.plugin.info
-				.request({
-					url: '/install',
-					method: 'POST',
-					data,
-					headers: {
-						'Content-Type': 'multipart/form-data'
-					}
-				})
-				.then(res => {
-					if (!res) {
-						ElMessage.success(t('插件安装成功'));
-						tab.change('installed');
-						plugin.refresh();
-
-						return;
-					}
-
-					if (res.type == 0) {
-						ElMessageBox.confirm(res.message, t('提示'), {
-							type: 'error',
-							showConfirmButton: false
-						})
-							.then(() => {
-								next(true);
-							})
-							.catch(() => null);
-					}
-
-					if (res.type == 1 || res.type == 2) {
-						ElMessageBox.confirm(res.message, t('提示'), {
-							type: 'warning',
-							confirmButtonText: t('继续')
-						})
-							.then(() => {
-								next(true);
-							})
-							.catch(() => null);
-					}
-
-					if (res.type == 3) {
-						next(true);
-					}
-				})
-				.catch(err => {
-					ElMessage.error(err.message);
-				});
-		};
-
-		next(false);
+		// 监听刷新事件
+		mitt.on('plugin.refresh', () => {
+			tab.change('installed');
+			plugin.refresh();
+		});
 	},
 
 	// 卸载
@@ -786,31 +735,8 @@ const pic = reactive({
 
 // 上传
 function onBeforeUpload(file: File) {
-	plugin.install(file);
+	install(file);
 	return false;
-}
-
-// 拖拽
-function onDragover(e: DragEvent) {
-	e.preventDefault();
-}
-
-// 放下
-function onDrop(e: DragEvent) {
-	e.preventDefault();
-
-	if (e.dataTransfer) {
-		const file = e.dataTransfer.files[0];
-
-		ElMessageBox.confirm(t('检测到插件，是否安装'), t('提示'), {
-			type: 'warning',
-			confirmButtonText: t('安装')
-		})
-			.then(() => {
-				plugin.install(file);
-			})
-			.catch(() => null);
-	}
 }
 
 // 鼠标移动

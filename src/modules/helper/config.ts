@@ -1,3 +1,4 @@
+import { usePlugin } from './hooks';
 import { type ModuleConfig } from '/@/cool';
 
 export default (): ModuleConfig => {
@@ -20,6 +21,10 @@ export default (): ModuleConfig => {
 				},
 				component: () => import('./views/ai-code.vue')
 			}
-		]
+		],
+		onLoad() {
+			const { register } = usePlugin();
+			register();
+		}
 	};
 };
