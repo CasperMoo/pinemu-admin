@@ -84,9 +84,20 @@ const Table = useTable({
 			minWidth: 150
 		},
 		{
+			label: '数据',
+			prop: 'data',
+			minWidth: 200,
+			component: {
+				name: 'cl-code-json',
+				props: {
+					popover: true
+				}
+			}
+		},
+		{
 			label: t('数据类型'),
 			prop: 'dataType',
-			minWidth: 150,
+			minWidth: 120,
 			dict: options.dataType
 		},
 		{
