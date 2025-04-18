@@ -18,18 +18,20 @@ export const usePlugin = () => {
 			if (e.dataTransfer) {
 				const file = e.dataTransfer.files[0];
 
-				ElMessageBox.confirm(
-					t('检测到插件「{name}」，是否安装？', { name: getName(file) }),
-					t('提示'),
-					{
-						type: 'warning',
-						confirmButtonText: t('安装')
-					}
-				)
-					.then(() => {
-						install(file);
-					})
-					.catch(() => null);
+				if (file.name.endsWith('.cool')) {
+					ElMessageBox.confirm(
+						t('检测到插件「{name}」，是否安装？', { name: getName(file) }),
+						t('提示'),
+						{
+							type: 'warning',
+							confirmButtonText: t('安装')
+						}
+					)
+						.then(() => {
+							install(file);
+						})
+						.catch(() => null);
+				}
 			}
 		});
 	}
