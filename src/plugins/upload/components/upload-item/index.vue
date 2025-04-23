@@ -29,7 +29,7 @@
 				<template v-else>
 					<!-- 图标 -->
 					<div class="cl-upload-item__icon">
-						<cl-svg :name="item.type" />
+						<cl-svg :name="'upload-' + item.type" />
 					</div>
 					<!-- 文件名 -->
 					<div class="cl-upload-item__name">

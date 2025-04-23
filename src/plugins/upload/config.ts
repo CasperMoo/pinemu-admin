@@ -39,13 +39,13 @@ export default (): ModuleConfig => {
 					name: '文档',
 					type: 'word',
 					color: '#53B7F4',
-					exts: ['doc', 'dot', 'wps', 'wpt', 'docx', 'dotx', 'docm', 'dotm']
+					exts: ['doc', 'docx', 'docm', 'dot', 'dotx', 'dotm']
 				},
 				{
 					name: '表格',
 					type: 'excel',
 					color: '#53D39C',
-					exts: ['xls', 'xlt', 'et', 'xlsx', 'xltx', 'xlsm', 'xltm']
+					exts: ['xls', 'xlsx', 'xlsm', 'xlt', 'xltx', 'xltm']
 				},
 				{
 					name: '演示',

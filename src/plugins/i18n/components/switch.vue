@@ -2,7 +2,7 @@
 	<div class="i18n-switch">
 		<el-dropdown trigger="click">
 			<div class="cl-comm__icon">
-				<cl-svg name="lang" />
+				<cl-svg name="i18n-lang" />
 			</div>
 
 			<template #dropdown>

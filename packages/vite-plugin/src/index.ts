@@ -4,7 +4,7 @@ import { demo } from "./demo";
 import { getProxyTarget } from "./proxy";
 import type { Config } from "../types";
 import { virtual } from "./virtual";
-import { merge } from "lodash";
+import { assign, merge } from "lodash";
 
 export function cool(options: Config.Options) {
 	// 应用类型，admin | app
@@ -15,6 +15,11 @@ export function cool(options: Config.Options) {
 
 	// 是否开启名称标签
 	config.nameTag = options.nameTag ?? true;
+
+	// svg
+	if (options.svg) {
+		assign(config.svg, options.svg);
+	}
 
 	// Eps
 	if (options.eps) {

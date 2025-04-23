@@ -78,9 +78,13 @@ export declare namespace Ctx {
 export declare namespace Config {
 	type Type = "app" | "admin";
 	interface Eps {
+		// 是否开启Eps
 		enable: boolean;
+		// 请求地址
 		api: "app" | "admin" | (string & {});
+		// 输出目录
 		dist: string;
+		// 映射
 		mapping: {
 			type?: string;
 			test?: string[];
@@ -88,11 +92,21 @@ export declare namespace Config {
 		}[];
 	}
 	interface Options {
+		// 应用类型
 		type: Config.Type;
+		// 代理配置
 		proxy: any;
+		// Eps
 		eps?: Partial<Config.Eps>;
+		// 是否开启演示模式
 		demo?: boolean;
+		// 是否开启名称标签
 		nameTag?: boolean;
+		// svg
+		svg?: {
+			// 跳过拼接模块名
+			skipNames?: string[];
+		};
 	}
 	interface Data {
 		type: Config.Type;

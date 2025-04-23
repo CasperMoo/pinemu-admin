@@ -35,7 +35,7 @@ export function fileRule(path?: string) {
 
 // 获取规则
 export function getRule(type?: string) {
-	return (rules.find(e => e.type == type) || last(rules))!;
+	return (rules.find(e => e.type == type?.replace('application/', '')) || last(rules))!;
 }
 
 // 获取类型

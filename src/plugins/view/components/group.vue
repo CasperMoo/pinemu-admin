@@ -23,6 +23,8 @@
 									<cl-svg name="plus-border" />
 								</div>
 							</el-tooltip>
+
+							<slot name="left-op"></slot>
 						</div>
 
 						<div v-if="config.enableKeySearch" class="search">
@@ -114,7 +116,11 @@
 														:selected="selected"
 														:index="index"
 													>
-														<span>{{ item.name }}</span>
+														<span
+															class="text-ellipsis overflow-hidden mr-2"
+														>
+															{{ item.name }}
+														</span>
 													</slot>
 
 													<cl-svg
@@ -143,7 +149,11 @@
 			<!-- 右侧 -->
 			<div class="cl-view-group__right">
 				<div class="head">
-					<div class="icon" :class="{ 'is-fold': !isExpand }" @click="expand()">
+					<div
+						class="icon is-bg absolute left-[10px]"
+						:class="{ 'is-fold': !isExpand }"
+						@click="expand()"
+					>
 						<cl-svg name="back" />
 					</div>
 
@@ -152,6 +162,10 @@
 							{{ config.title }}（{{ selected?.name || $t('未选择') }}）
 						</span>
 					</slot>
+
+					<div class="absolute right-[10px]">
+						<slot name="right-op"></slot>
+					</div>
 				</div>
 
 				<div v-if="selected || config.custom" class="content">
@@ -425,7 +439,7 @@ function onContextMenu(e: any, item: ClViewGroup.Item) {
 		list: [
 			{
 				label: t('编辑'),
-				hidden: !config.service._permission.update,
+				hidden: !config.service._permission?.update,
 				callback(done) {
 					done();
 					edit(item);
@@ -433,7 +447,7 @@ function onContextMenu(e: any, item: ClViewGroup.Item) {
 			},
 			{
 				label: t('删除'),
-				hidden: !config.service._permission.delete,
+				hidden: !config.service._permission?.delete,
 				callback(done) {
 					done();
 					remove(item);
@@ -474,7 +488,7 @@ defineExpose({
 	$left-width: v-bind('config.leftWidth');
 	$bg: var(--el-bg-color);
 
-	.icon {
+	:deep(.icon) {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -488,6 +502,10 @@ defineExpose({
 		&:hover {
 			background-color: var(--el-fill-color-light);
 			color: var(--el-text-color-primary);
+		}
+
+		&.is-bg {
+			background-color: var(--el-fill-color-lighter);
 		}
 
 		&.is-fold {
@@ -646,16 +664,6 @@ defineExpose({
 			.title {
 				white-space: nowrap;
 				overflow: hidden;
-			}
-
-			.icon {
-				position: absolute;
-				left: 10px;
-				background-color: var(--el-fill-color-lighter);
-
-				&:hover {
-					background-color: var(--el-fill-color-light);
-				}
 			}
 		}
 

@@ -41,6 +41,9 @@
                 },
             ],
         },
+        svg: {
+            skipNames: ["base"],
+        },
     };
 
     // 根目录
@@ -851,13 +854,23 @@
         const dirs = fs.readdirSync(dir, {
             withFileTypes: true,
         });
+        // 获取当前目录的模块名
+        const moduleName = dir.match(/[\/\\](?:src\/(?:plugins|modules)\/)([^\/\\]+)/)?.[1] || "";
         for (const d of dirs) {
             if (d.isDirectory()) {
                 arr.push(...findSvg(dir + d.name + "/"));
             }
             else {
                 if (path.extname(d.name) == ".svg") {
-                    svgIcons.push(path.basename(d.name, ".svg"));
+                    const baseName = path.basename(d.name, ".svg");
+                    // 判断是否需要跳过拼接模块名
+                    let shouldSkip = config.svg.skipNames?.includes(moduleName);
+                    // 跳过包含icon-
+                    if (baseName.includes("icon-")) {
+                        shouldSkip = true;
+                    }
+                    const iconName = shouldSkip ? baseName : `${moduleName}-${baseName}`;
+                    svgIcons.push(iconName);
                     const svg = fs.readFileSync(dir + d.name)
                         .toString()
                         .replace(/(\r)|(\n)/g, "")
@@ -876,7 +889,7 @@
                         if (!/(viewBox="[^>+].*?")/g.test($2)) {
                             content += `viewBox="0 0 ${width} ${height}"`;
                         }
-                        return `<symbol id="icon-${d.name.replace(".svg", "")}" ${content}>`;
+                        return `<symbol id="icon-${iconName}" ${content}>`;
                     })
                         .replace("</svg>", "</symbol>");
                     arr.push(svg);
@@ -995,6 +1008,10 @@ if (typeof window !== 'undefined') {
         config.reqUrl = getProxyTarget(options.proxy);
         // 是否开启名称标签
         config.nameTag = options.nameTag ?? true;
+        // svg
+        if (options.svg) {
+            lodash.assign(config.svg, options.svg);
+        }
         // Eps
         if (options.eps) {
             const { dist, mapping, api, enable = true } = options.eps;

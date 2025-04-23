@@ -38,4 +38,7 @@ export const config: Config.Data = {
 			},
 		],
 	},
+	svg: {
+		skipNames: ["base"],
+	},
 };
