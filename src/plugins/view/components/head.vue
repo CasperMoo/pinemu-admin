@@ -1,5 +1,5 @@
 <template>
-	<div class="cl-view-head" :class="{ 'is-border': border }">
+	<div class="cl-view-head">
 		<div class="cl-view-head__back" @click="router.back()">
 			<cl-svg name="back" />
 		</div>
@@ -60,11 +60,6 @@ const title = computed(() => props.title || route.query.title);
 		font-size: 14px;
 		line-height: 1;
 		margin-right: auto;
-	}
-
-	&.is-border {
-		border-bottom: 1px solid var(--el-border-color-light);
-		padding-bottom: 10px;
 	}
 }
 </style>

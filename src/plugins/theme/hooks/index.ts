@@ -141,6 +141,7 @@ export const useTheme = defineStore('theme', () => {
 	setTheme(theme);
 
 	return {
+		isDark,
 		color,
 		theme,
 		themes,
