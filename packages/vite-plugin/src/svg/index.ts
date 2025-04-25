@@ -13,7 +13,7 @@ function findSvg(dir: string) {
 	});
 
 	// 获取当前目录的模块名
-	const moduleName = dir.match(/[\/\\](?:src\/(?:plugins|modules)\/)([^\/\\]+)/)?.[1] || "";
+	const moduleName = dir.match(/[/\\](?:src[/\\](?:plugins|modules)[/\\])([^/\\]+)/)?.[1] || "";
 
 	for (const d of dirs) {
 		if (d.isDirectory()) {

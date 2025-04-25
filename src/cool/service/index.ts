@@ -7,3 +7,4 @@ export const service: Eps.Service = hmr.getData('service', {
 });
 
 export * from './base';
+export * from './stream';
