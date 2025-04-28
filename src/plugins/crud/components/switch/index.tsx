@@ -120,6 +120,7 @@ export default defineComponent({
 					model-value={status.value}
 					active-value={activeValue.value}
 					inactive-value={inactiveValue.value}
+					disabled={props.disabled}
 					onChange={onChange}
 					onClick={onClick}
 				/>
