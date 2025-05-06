@@ -1,6 +1,6 @@
 import { ElMessage } from 'element-plus';
 import { module, service } from '/@/cool';
-import { uuid } from '/@/cool/utils';
+import { extname, filename, uuid } from '/@/cool/utils';
 import { pathJoin } from '../utils';
 import { useBase } from '/$/base';
 import { type AxiosProgressEvent } from 'axios';
@@ -29,11 +29,14 @@ export function useUpload() {
 					// 本地上传
 					const isLocal = mode == 'local';
 
+					// 文件扩展名
+					const ext = extname(file.name);
+
 					// 文件名
-					const fileName = fileId + '_' + file.name;
+					const name = filename(file.name) + '_' + fileId + ext;
 
 					// Key
-					let key = isLocal ? fileName : pathJoin(prefixPath!, fileName);
+					let key = isLocal ? name : pathJoin(prefixPath!, name);
 
 					// 多种上传请求
 					const next = async ({ host, preview, data }: Upload.Request) => {

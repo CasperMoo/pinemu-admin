@@ -33,7 +33,7 @@
 					</div>
 					<!-- 文件名 -->
 					<div class="cl-upload-item__name">
-						<span>{{ fileName(item.name || url) }}</span>
+						<span>{{ item.name || url }}</span>
 						<span v-show="item.error" class="error">{{ item.error }}</span>
 					</div>
 				</template>
@@ -123,7 +123,7 @@ import { ZoomIn, Delete, VideoPause, VideoPlay } from '@element-plus/icons-vue';
 import { ContextMenu } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { extname } from '/@/cool/utils';
-import { fileName, getRule } from '../../utils';
+import { getRule } from '../../utils';
 import { ElMessage } from 'element-plus';
 import { useClipboard } from '@vueuse/core';
 import Viewer from './viewer.vue';
@@ -280,7 +280,7 @@ onMounted(() => {
 	height: 100%;
 	width: 100%;
 	cursor: pointer;
-	border-radius: 6px;
+	border-radius: 8px;
 	overflow: hidden;
 	background-color: var(--el-fill-color-light);
 	border: 1px solid var(--el-fill-color-light);
@@ -349,7 +349,7 @@ onMounted(() => {
 		top: 0;
 		height: 100%;
 		width: 100%;
-		background-color: rgba(0, 0, 0, 0.5);
+		background-color: rgba(0, 0, 0, 0.1);
 		pointer-events: none;
 		transition: opacity 0.3s;
 		opacity: 0;
@@ -388,7 +388,7 @@ onMounted(() => {
 		color: #fff;
 		font-size: 12px;
 		padding: 2px 4px;
-		border-radius: 2px;
+		border-radius: 4px;
 		text-transform: uppercase;
 		max-width: 65px;
 		box-sizing: border-box;

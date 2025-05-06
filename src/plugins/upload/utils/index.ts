@@ -19,11 +19,6 @@ export function fileSize(size = 0): string {
 	return (size / Math.pow(num, 4)).toFixed(2) + 'T';
 }
 
-// 文件名
-export function fileName(url: string) {
-	return filename(url.substring(url.indexOf('_') + 1));
-}
-
 // 文件规则
 export function fileRule(path?: string) {
 	const d = rules.find(e => {

@@ -3,5 +3,5 @@ export declare function useHeight({ config, Table }: {
     config: ClTable.Config;
 }): {
     maxHeight: import('vue').Ref<number, number>;
-    calcMaxHeight: import('lodash-es').DebouncedFunc<() => Promise<void>>;
+    calcMaxHeight: import('lodash').DebouncedFunc<() => Promise<void>>;
 };

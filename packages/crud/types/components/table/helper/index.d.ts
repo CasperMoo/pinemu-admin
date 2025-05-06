@@ -87,6 +87,10 @@ export declare function useTable(props: any): {
             type: BooleanConstructor;
             default: boolean;
         };
+        preserveExpandedContent: {
+            type: BooleanConstructor;
+            default: boolean;
+        };
     }>> & {
         onScroll?: ((...args: any[]) => any) | undefined;
         onSelect?: ((...args: any[]) => any) | undefined;
@@ -151,7 +155,7 @@ export declare function useTable(props: any): {
             width: string;
             height: string;
         } | null>;
-        debouncedUpdateLayout: import('lodash-es').DebouncedFunc<() => void>;
+        debouncedUpdateLayout: import('lodash').DebouncedFunc<() => void>;
         handleFixedMousewheel: (event: any, data: any) => void;
         setCurrentRow: (row: any) => void;
         getSelectionRows: () => any;
@@ -209,6 +213,7 @@ export declare function useTable(props: any): {
         indent: number;
         flexible: boolean;
         scrollbarTabindex: string | number;
+        preserveExpandedContent: boolean;
     }, true, {}, {}, import('vue').GlobalComponents, import('vue').GlobalDirectives, string, {}, any, import('vue').ComponentProvideOptions, {
         P: {};
         B: {};
@@ -304,6 +309,10 @@ export declare function useTable(props: any): {
             type: BooleanConstructor;
             default: boolean;
         };
+        preserveExpandedContent: {
+            type: BooleanConstructor;
+            default: boolean;
+        };
     }>> & {
         onScroll?: ((...args: any[]) => any) | undefined;
         onSelect?: ((...args: any[]) => any) | undefined;
@@ -368,7 +377,7 @@ export declare function useTable(props: any): {
             width: string;
             height: string;
         } | null>;
-        debouncedUpdateLayout: import('lodash-es').DebouncedFunc<() => void>;
+        debouncedUpdateLayout: import('lodash').DebouncedFunc<() => void>;
         handleFixedMousewheel: (event: any, data: any) => void;
         setCurrentRow: (row: any) => void;
         getSelectionRows: () => any;
@@ -426,6 +435,7 @@ export declare function useTable(props: any): {
         indent: number;
         flexible: boolean;
         scrollbarTabindex: string | number;
+        preserveExpandedContent: boolean;
     }>, import('vue').CreateComponentPublicInstanceWithMixins<Readonly<import('vue').ExtractPropTypes<{
         data: {
             type: import('vue').PropType<import('element-plus/es/components/table/src/table/defaults.mjs').DefaultRow[]>;
@@ -514,6 +524,10 @@ export declare function useTable(props: any): {
             type: BooleanConstructor;
             default: boolean;
         };
+        preserveExpandedContent: {
+            type: BooleanConstructor;
+            default: boolean;
+        };
     }>> & {
         onScroll?: ((...args: any[]) => any) | undefined;
         onSelect?: ((...args: any[]) => any) | undefined;
@@ -578,7 +592,7 @@ export declare function useTable(props: any): {
             width: string;
             height: string;
         } | null>;
-        debouncedUpdateLayout: import('lodash-es').DebouncedFunc<() => void>;
+        debouncedUpdateLayout: import('lodash').DebouncedFunc<() => void>;
         handleFixedMousewheel: (event: any, data: any) => void;
         setCurrentRow: (row: any) => void;
         getSelectionRows: () => any;
@@ -636,6 +650,7 @@ export declare function useTable(props: any): {
         indent: number;
         flexible: boolean;
         scrollbarTabindex: string | number;
+        preserveExpandedContent: boolean;
     }, true, {}, {}, import('vue').GlobalComponents, import('vue').GlobalDirectives, string, {}, any, import('vue').ComponentProvideOptions, {
         P: {};
         B: {};
@@ -731,6 +746,10 @@ export declare function useTable(props: any): {
             type: BooleanConstructor;
             default: boolean;
         };
+        preserveExpandedContent: {
+            type: BooleanConstructor;
+            default: boolean;
+        };
     }>> & {
         onScroll?: ((...args: any[]) => any) | undefined;
         onSelect?: ((...args: any[]) => any) | undefined;
@@ -795,7 +814,7 @@ export declare function useTable(props: any): {
             width: string;
             height: string;
         } | null>;
-        debouncedUpdateLayout: import('lodash-es').DebouncedFunc<() => void>;
+        debouncedUpdateLayout: import('lodash').DebouncedFunc<() => void>;
         handleFixedMousewheel: (event: any, data: any) => void;
         setCurrentRow: (row: any) => void;
         getSelectionRows: () => any;
@@ -853,6 +872,7 @@ export declare function useTable(props: any): {
         indent: number;
         flexible: boolean;
         scrollbarTabindex: string | number;
+        preserveExpandedContent: boolean;
     }>>;
     config: {
         columns: {
