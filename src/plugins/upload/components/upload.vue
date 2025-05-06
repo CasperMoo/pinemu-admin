@@ -334,6 +334,12 @@ async function onBeforeUpload(file: any, item?: Upload.Item) {
 		return true;
 	}
 
+	// 文件大小限制
+	if (file.size / 1024 / 1024 >= limitSize) {
+		ElMessage.error(t('上传文件大小不能超过 {n}MB!', { n: limitSize }));
+		return false;
+	}
+
 	// 自定义上传事件
 	if (props.beforeUpload) {
 		let r = props.beforeUpload(file, item, { next });
@@ -348,11 +354,6 @@ async function onBeforeUpload(file: any, item?: Upload.Item) {
 
 		return r;
 	} else {
-		if (file.size / 1024 / 1024 >= limitSize) {
-			ElMessage.error(t('上传文件大小不能超过 {n}MB!', { n: limitSize }));
-			return false;
-		}
-
 		return next();
 	}
 }
