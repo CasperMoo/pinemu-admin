@@ -1,5 +1,6 @@
 import { type PropType, defineComponent } from 'vue';
 import data from '../data/pca.json';
+import { useCool } from '/@/cool';
 
 export default defineComponent({
 	name: 'cl-distpicker',
@@ -12,10 +13,21 @@ export default defineComponent({
 		}
 	},
 
-	setup(props) {
+	setup(props, { expose }) {
+		const { refs, setRefs } = useCool();
+
+		function focus() {
+			refs.cascader?.togglePopperVisible();
+		}
+
+		expose({
+			focus
+		});
+
 		return () => {
 			return (
 				<el-cascader
+					ref={setRefs('cascader')}
 					clearable
 					options={data.map(e => {
 						if (props.type === 'pc') {

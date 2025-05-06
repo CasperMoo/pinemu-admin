@@ -109,7 +109,7 @@ const Table = useTable({
 			//【很重要】搜索参数配置
 			search: {
 				// 是否显示搜索图标
-				icon: () => <cl-svg name="icon-app" size={13} />,
+				icon: () => <cl-svg name="icon-app" size={14} />,
 				// 自定义渲染组件
 				component: {
 					name: 'cl-select',
