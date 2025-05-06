@@ -33,7 +33,7 @@ export function useUpload() {
 					const ext = extname(file.name);
 
 					// 文件名
-					const name = filename(file.name) + '_' + fileId + ext;
+					const name = filename(file.name) + '_' + fileId + '.' + ext;
 
 					// Key
 					let key = isLocal ? name : pathJoin(prefixPath!, name);
