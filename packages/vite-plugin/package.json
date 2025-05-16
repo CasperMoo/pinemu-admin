@@ -1,6 +1,6 @@
 {
 	"name": "@cool-vue/vite-plugin",
-	"version": "8.1.1",
+	"version": "8.1.2",
 	"description": "cool-admin、cool-uni builder",
 	"types": "./dist/index.d.ts",
 	"main": "/dist/index.js",

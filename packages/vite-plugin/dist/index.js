@@ -161,7 +161,8 @@
     }
     // 格式化代码
     async function formatCode(text) {
-        return prettier.format(text, {
+        return prettier
+            .format(text, {
             parser: "typescript",
             useTabs: true,
             tabWidth: 4,
@@ -170,6 +171,11 @@
             singleQuote: false,
             printWidth: 100,
             trailingComma: "none",
+        })
+            .catch((err) => {
+            console.log(err);
+            error(`[cool-eps] Failed to format /build/cool/eps.d.ts. Please delete the file and try again`);
+            return null;
         });
     }
     // 获取数据
@@ -265,12 +271,16 @@
         function formatName(name) {
             return (name || "").replace(/[:,\s,\/,-]/g, "");
         }
+        // 检查方法名，包含特殊字符则忽略
+        function checkName(name) {
+            return name && !["{", "}", ":"].some((e) => name.includes(e));
+        }
         // 创建 Entity
         function createEntity() {
             const ignore = [];
             let t0 = "";
             for (const item of list) {
-                if (!item.name)
+                if (!checkName(item.name))
                     continue;
                 let t = `interface ${formatName(item.name)} {`;
                 // 合并多个列
@@ -319,6 +329,9 @@
                     k = "";
                 for (const i in d) {
                     const name = k + toCamel(firstUpperCase(formatName(i)));
+                    // 检查方法名
+                    if (!checkName(name))
+                        continue;
                     if (d[i].namespace) {
                         // 查找配置
                         const item = list.find((e) => (e.prefix || "") === `/${d[i].namespace}`);
@@ -330,7 +343,10 @@
                                 const permission = [];
                                 item.api.forEach((a) => {
                                     // 方法名
-                                    const n = toCamel(formatName(a.name || lodash.last(a.path.split("/")) || ""));
+                                    const n = toCamel(formatName(a.name || lodash.last(a.path.split("/"))));
+                                    // 检查方法名
+                                    if (!checkName(n))
+                                        return;
                                     if (n) {
                                         // 参数类型
                                         let q = [];
@@ -340,7 +356,8 @@
                                             if (p.description) {
                                                 q.push(`\n/** ${p.description}  */\n`);
                                             }
-                                            if (p.name.includes(":")) {
+                                            // 检查参数名
+                                            if (!checkName(p.name)) {
                                                 return false;
                                             }
                                             const a = `${p.name}${p.required ? "" : "?"}`;
@@ -462,7 +479,7 @@
         const content = await formatCode(text);
         const local_content = readFile(getEpsPath("eps.d.ts"));
         // 是否需要更新
-        if (content != local_content) {
+        if (content && content != local_content) {
             // 创建 eps 描述文件
             fs.createWriteStream(getEpsPath("eps.d.ts"), {
                 flags: "w",
