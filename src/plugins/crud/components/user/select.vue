@@ -223,7 +223,7 @@ async function getDept() {
 async function getRole() {
 	return service.base.sys.role.list().then(res => {
 		res.forEach(e => {
-			e.children = users.value.filter(u => u.roleIds.includes(u.id));
+			e.children = users.value.filter(u => u.roleIds.includes(e.id));
 		});
 
 		data.role = res as Item[];
