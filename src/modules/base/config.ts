@@ -50,10 +50,19 @@ export default (): ModuleConfig => {
 			const loading = document.querySelector('#Loading');
 
 			if (loading) {
-				loading.querySelector('.preload__name')!.innerHTML = config.app.name;
-				loading.querySelector('.preload__title')!.innerHTML = t('正在加载资源...');
-				loading.querySelector('.preload__sub-title')!.innerHTML =
-					t('初次加载资源可能需要较多时间，请耐心等待');
+				const name = loading.querySelector('.preload__name');
+				const title = loading.querySelector('.preload__title');
+				const subTitle = loading.querySelector('.preload__sub-title');
+
+				if (name) {
+					name.innerHTML = config.app.name;
+				}
+				if (title) {
+					title.innerHTML = t('正在加载资源...');
+				}
+				if (subTitle) {
+					subTitle.innerHTML = t('初次加载资源可能需要较多时间，请耐心等待');
+				}
 			}
 		},
 		async onLoad() {
