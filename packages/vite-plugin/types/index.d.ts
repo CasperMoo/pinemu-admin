@@ -1,4 +1,4 @@
-export declare type Type = "app" | "admin";
+export declare type Type = "admin" | "app" | "uniapp-x";
 
 export declare namespace Eps {
 	interface Column {
@@ -76,7 +76,6 @@ export declare namespace Ctx {
 }
 
 export declare namespace Config {
-	type Type = "app" | "admin";
 	interface Eps {
 		// 是否开启Eps
 		enable: boolean;
@@ -93,7 +92,7 @@ export declare namespace Config {
 	}
 	interface Options {
 		// 应用类型
-		type: Config.Type;
+		type: Type;
 		// 代理配置
 		proxy: any;
 		// Eps
@@ -109,7 +108,7 @@ export declare namespace Config {
 		};
 	}
 	interface Data {
-		type: Config.Type;
+		type: Type;
 		reqUrl: string;
 		eps: Config.Eps;
 		demo: boolean;

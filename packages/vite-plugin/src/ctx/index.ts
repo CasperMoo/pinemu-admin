@@ -13,7 +13,7 @@ export async function createCtx() {
 		serviceLang: "Node",
 	};
 
-	if (config.type == "app") {
+	if (config.type == "app" || config.type == "uniapp-x") {
 		const manifest = readFile(rootDir("manifest.json"), true);
 
 		// 文件路径

@@ -20,6 +20,7 @@ function getEpsUrl() {
 
 	switch (url) {
 		case "app":
+		case "uniapp-x":
 			url = "/app/base/comm/eps";
 			break;
 
@@ -237,8 +238,8 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 		return t0;
 	}
 
-	// 创建 Service
-	async function createDts() {
+	// 创建 Controller
+	async function createController() {
 		let controller = "";
 		let chain = "";
 
@@ -311,7 +312,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 										case "/page":
 											res = `
 											{
-												pagination: { size: number; page: number; total: number; [key: string]: any };
+												pagination: { size: number; page: number; total: number; [key: string]: any; };
 												list: ${en} [];
 												[key: string]: any;
 											}
@@ -387,7 +388,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 
 			${controller}
 
-			type Service = {
+			interface Service {
 				/**
 				 * 基础请求
 				 */
@@ -396,10 +397,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 					method?: "POST" | "GET" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
 					data?: any;
 					params?: any;
-					headers?: {
-						authorization?: string;
-						[key: string]: any;
-					},
+					headers?: any,
 					timeout?: number;
 					proxy?: boolean;
 					[key: string]: any;
@@ -413,22 +411,37 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 	}
 
 	// 文件内容
-	const text = `
-		declare namespace Eps {
-			${createEntity()}
-			${await createDts()}
-		}
+	let text = `
+		${createEntity()}
+		${await createController()}
 	`;
+
+	// 文件名
+	let name = "eps.d.ts";
+
+	if (config.type == "uniapp-x") {
+		name = "eps.uts";
+		text = text
+			.replaceAll("interface ", "export interface ")
+			.replaceAll("type Dict", "export type Dict")
+			.replaceAll("[key: string]: any;", "");
+	} else {
+		text = `
+			declare namespace Eps {
+				${text}
+			}
+		`;
+	}
 
 	// 文本内容
 	const content = await formatCode(text);
 
-	const local_content = readFile(getEpsPath("eps.d.ts"));
+	const local_content = readFile(getEpsPath(name));
 
 	// 是否需要更新
 	if (content && content != local_content) {
 		// 创建 eps 描述文件
-		createWriteStream(getEpsPath("eps.d.ts"), {
+		createWriteStream(getEpsPath(name), {
 			flags: "w",
 		}).write(content);
 	}
@@ -500,9 +513,22 @@ function createService() {
 
 // 创建 dict
 async function createDict() {
-	const url = config.reqUrl + "/" + config.type + "/dict/info/types";
+	let p = "";
 
-	return axios
+	switch (config.type) {
+		case "app":
+		case "uniapp-x":
+			p = "/app";
+			break;
+
+		case "admin":
+			p = "/admin";
+			break;
+	}
+
+	const url = config.reqUrl + p + "/dict/info/types";
+
+	const text = await axios
 		.get(url)
 		.then((res) => {
 			const { code, data } = res.data as { code: number; data: any[] };
@@ -520,6 +546,8 @@ async function createDict() {
 		.catch(() => {
 			error(`[cool-eps] Error：${url}`);
 		});
+
+	return text || "";
 }
 
 // 创建 eps

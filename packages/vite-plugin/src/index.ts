@@ -5,6 +5,7 @@ import { getProxyTarget } from "./proxy";
 import type { Config } from "../types";
 import { virtual } from "./virtual";
 import { assign, merge } from "lodash";
+import { uniappX } from "./uniapp-x";
 
 export function cool(options: Config.Options) {
 	// 应用类型，admin | app
@@ -44,5 +45,5 @@ export function cool(options: Config.Options) {
 		}
 	}
 
-	return [base(), virtual(), demo(options.demo)];
+	return [base(), virtual(), uniappX(), demo(options.demo)];
 }

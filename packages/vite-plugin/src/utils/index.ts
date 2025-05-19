@@ -7,6 +7,7 @@ import prettier from "prettier";
 export function rootDir(path: string) {
 	switch (config.type) {
 		case "app":
+		case "uniapp-x":
 			return join(process.env.UNI_INPUT_DIR!, path);
 
 		default:

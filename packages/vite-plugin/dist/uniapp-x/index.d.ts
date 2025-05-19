@@ -1,5 +1,18 @@
-import type { Config } from "../types";
-export declare function cool(options: Config.Options): (import("vite").Plugin<any> | Promise<import("vite").Plugin<any>> | {
+interface PostcssRemToRpxOptions {
+    remUnit?: number;
+    remPrecision?: number;
+    rpxRatio?: number;
+}
+interface TailwindTransformOptions extends PostcssRemToRpxOptions {
+}
+/**
+ * uniappX 入口，自动注入 Tailwind 类名转换插件
+ * @param options 配置项
+ * @returns Vite 插件数组
+ */
+export declare function uniappX(options?: {
+    tailwind?: TailwindTransformOptions;
+}): {
     name: string;
     enforce: "pre";
     config(): {
@@ -21,4 +34,5 @@ export declare function cool(options: Config.Options): (import("vite").Plugin<an
             mappings: string;
         };
     } | null;
-}[])[];
+}[];
+export {};
