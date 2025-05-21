@@ -45,5 +45,10 @@ export function cool(options: Config.Options) {
 		}
 	}
 
+	// tailwind
+	if (options.tailwind) {
+		assign(config.tailwind, options.tailwind);
+	}
+
 	return [base(), virtual(), uniappX(), demo(options.demo)];
 }

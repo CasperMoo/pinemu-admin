@@ -1,6 +1,8 @@
 // @ts-ignore
 import valueParser from "postcss-value-parser";
 import { config } from "../config";
+import type { Plugin } from "vite";
+import { Config } from "../../types";
 
 /**
  * Tailwind CSS 特殊字符映射表
@@ -11,6 +13,9 @@ const TAILWIND_SAFE_CHAR_MAP: Record<string, string> = {
 	"]": "-",
 	"(": "-",
 	")": "-",
+	"{": "-",
+	"}": "-",
+	$: "-v-",
 	"#": "-h-",
 	"!": "-i-",
 	"/": "-s-",
@@ -202,23 +207,17 @@ function rgbToRgba(value: string): string {
 	return value;
 }
 
-interface PostcssRemToRpxOptions {
-	remUnit?: number;
-	remPrecision?: number;
-	rpxRatio?: number;
-}
-
 /**
  * PostCSS 插件：将 rem 单位转换为 rpx，并处理 Tailwind 特殊字符
  * @param options 配置项
  * @returns PostCSS 插件对象
  */
-function postcssRemToRpx(options: PostcssRemToRpxOptions) {
+function postcssRemToRpx() {
 	return {
 		postcssPlugin: "vite-cool-uniappx-remToRpx",
 		prepare() {
 			const handledSelectors = new Set<string>();
-			const { remUnit = 16, remPrecision = 6, rpxRatio = 2 } = options;
+			const { remUnit = 16, remPrecision = 6, rpxRatio = 2 } = config.tailwind;
 			const factor = remUnit * rpxRatio;
 
 			return {
@@ -289,37 +288,26 @@ function postcssRemToRpx(options: PostcssRemToRpxOptions) {
 }
 postcssRemToRpx.postcss = true;
 
-interface TailwindTransformOptions extends PostcssRemToRpxOptions {}
-
 /**
  * Vite 插件：自动转换 .uvue 文件中的 Tailwind 类名为安全字符
  * 并自动注入 rem 转 rpx 的 PostCSS 插件
- * @param options 配置项
- * @returns Vite 插件对象
  */
-function tailwindTransformPlugin(options: TailwindTransformOptions = {}) {
-	const merged: Required<TailwindTransformOptions> = {
-		remUnit: 16,
-		remPrecision: 6,
-		rpxRatio: 2,
-		...options,
-	};
-
+function tailwindTransformPlugin() {
 	return {
 		name: "vite-cool-uniappx-tailwind",
-		enforce: "pre" as const,
+		enforce: "pre",
 
 		config() {
 			return {
 				css: {
 					postcss: {
-						plugins: [postcssRemToRpx(merged)],
+						plugins: [postcssRemToRpx()],
 					},
 				},
 			};
 		},
 
-		transform(code: string, id: string) {
+		transform(code, id) {
 			if (!id.includes(".uvue")) return null;
 
 			let resultCode = code;
@@ -353,7 +341,7 @@ function tailwindTransformPlugin(options: TailwindTransformOptions = {}) {
 			}
 			return null;
 		},
-	};
+	} as Plugin;
 }
 
 /**
@@ -361,9 +349,11 @@ function tailwindTransformPlugin(options: TailwindTransformOptions = {}) {
  * @param options 配置项
  * @returns Vite 插件数组
  */
-export function uniappX(options?: { tailwind?: TailwindTransformOptions }) {
+export function uniappX() {
 	if (config.type == "uniapp-x") {
-		return [tailwindTransformPlugin(options?.tailwind)];
+		if (config.tailwind.enable) {
+			return [tailwindTransformPlugin()];
+		}
 	}
 
 	return [];

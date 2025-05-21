@@ -1,24 +1,2 @@
 import type { Config } from "../types";
-export declare function cool(options: Config.Options): (import("vite").Plugin<any> | Promise<import("vite").Plugin<any>> | {
-    name: string;
-    enforce: "pre";
-    config(): {
-        css: {
-            postcss: {
-                plugins: {
-                    postcssPlugin: string;
-                    prepare(): {
-                        Rule(rule: any): void;
-                        Declaration(decl: any): void;
-                    };
-                }[];
-            };
-        };
-    };
-    transform(code: string, id: string): {
-        code: string;
-        map: {
-            mappings: string;
-        };
-    } | null;
-}[])[];
+export declare function cool(options: Config.Options): (import("vite").Plugin<any> | Promise<import("vite").Plugin<any>> | import("vite").Plugin<any>[])[];
