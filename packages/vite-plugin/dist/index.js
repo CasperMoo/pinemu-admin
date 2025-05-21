@@ -1317,7 +1317,7 @@ if (typeof window !== 'undefined') {
      * Vite 插件：自动转换 .uvue 文件中的 Tailwind 类名为安全字符
      * 并自动注入 rem 转 rpx 的 PostCSS 插件
      */
-    function tailwindTransformPlugin() {
+    function tailwindPlugin() {
         return {
             name: "vite-cool-uniappx-tailwind",
             enforce: "pre",
@@ -1364,18 +1364,32 @@ if (typeof window !== 'undefined') {
             },
         };
     }
+
+    function codePlugin() {
+        return {
+            name: "vite-cool-uniappx-code",
+            transform(code, id) {
+                if (id.endsWith(".json")) {
+                    return code.replace("new UTSJSONObject", "");
+                }
+            },
+        };
+    }
+
     /**
      * uniappX 入口，自动注入 Tailwind 类名转换插件
      * @param options 配置项
      * @returns Vite 插件数组
      */
     function uniappX() {
+        const plugins = [];
         if (config.type == "uniapp-x") {
+            plugins.push(codePlugin());
             if (config.tailwind.enable) {
-                return [tailwindTransformPlugin()];
+                plugins.push(tailwindPlugin());
             }
         }
-        return [];
+        return plugins;
     }
 
     function cool(options) {
