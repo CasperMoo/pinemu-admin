@@ -106,6 +106,17 @@ export declare namespace Config {
 			// 跳过拼接模块名
 			skipNames?: string[];
 		};
+		// tailwind
+		tailwind?: {
+			// 是否开启tailwind
+			enable?: boolean;
+			// 根元素字体大小
+			remUnit?: number;
+			// 小数位数
+			remPrecision?: number;
+			// 转换比例
+			rpxRatio?: number;
+		};
 	}
 	interface Data {
 		type: Type;

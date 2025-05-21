@@ -44,6 +44,12 @@
         svg: {
             skipNames: ["base"],
         },
+        tailwind: {
+            enable: true,
+            remUnit: 16,
+            remPrecision: 6,
+            rpxRatio: 2,
+        },
     };
 
     // 根目录
@@ -1052,6 +1058,9 @@ if (typeof window !== 'undefined') {
         "]": "-",
         "(": "-",
         ")": "-",
+        "{": "-",
+        "}": "-",
+        $: "-v-",
         "#": "-h-",
         "!": "-i-",
         "/": "-s-",
@@ -1231,12 +1240,12 @@ if (typeof window !== 'undefined') {
      * @param options 配置项
      * @returns PostCSS 插件对象
      */
-    function postcssRemToRpx(options) {
+    function postcssRemToRpx() {
         return {
             postcssPlugin: "vite-cool-uniappx-remToRpx",
             prepare() {
                 const handledSelectors = new Set();
-                const { remUnit = 16, remPrecision = 6, rpxRatio = 2 } = options;
+                const { remUnit = 16, remPrecision = 6, rpxRatio = 2 } = config.tailwind;
                 const factor = remUnit * rpxRatio;
                 return {
                     Rule(rule) {
@@ -1307,16 +1316,8 @@ if (typeof window !== 'undefined') {
     /**
      * Vite 插件：自动转换 .uvue 文件中的 Tailwind 类名为安全字符
      * 并自动注入 rem 转 rpx 的 PostCSS 插件
-     * @param options 配置项
-     * @returns Vite 插件对象
      */
-    function tailwindTransformPlugin(options = {}) {
-        const merged = {
-            remUnit: 16,
-            remPrecision: 6,
-            rpxRatio: 2,
-            ...options,
-        };
+    function tailwindTransformPlugin() {
         return {
             name: "vite-cool-uniappx-tailwind",
             enforce: "pre",
@@ -1324,7 +1325,7 @@ if (typeof window !== 'undefined') {
                 return {
                     css: {
                         postcss: {
-                            plugins: [postcssRemToRpx(merged)],
+                            plugins: [postcssRemToRpx()],
                         },
                     },
                 };
@@ -1368,9 +1369,11 @@ if (typeof window !== 'undefined') {
      * @param options 配置项
      * @returns Vite 插件数组
      */
-    function uniappX(options) {
+    function uniappX() {
         if (config.type == "uniapp-x") {
-            return [tailwindTransformPlugin(options?.tailwind)];
+            if (config.tailwind.enable) {
+                return [tailwindTransformPlugin()];
+            }
         }
         return [];
     }
@@ -1403,6 +1406,10 @@ if (typeof window !== 'undefined') {
             if (mapping) {
                 lodash.merge(config.eps.mapping, mapping);
             }
+        }
+        // tailwind
+        if (options.tailwind) {
+            lodash.assign(config.tailwind, options.tailwind);
         }
         return [base(), virtual(), uniappX(), demo(options.demo)];
     }

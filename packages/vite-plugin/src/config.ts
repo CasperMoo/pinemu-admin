@@ -41,4 +41,10 @@ export const config: Config.Data = {
 	svg: {
 		skipNames: ["base"],
 	},
+	tailwind: {
+		enable: true,
+		remUnit: 16,
+		remPrecision: 6,
+		rpxRatio: 2,
+	},
 };
