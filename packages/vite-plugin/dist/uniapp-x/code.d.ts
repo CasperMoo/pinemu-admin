@@ -1,2 +1,2 @@
 import type { Plugin } from "vite";
-export declare function codePlugin(): Plugin;
+export declare function codePlugin(): Plugin[];

@@ -1,9 +1,8 @@
-import type { Config } from "../types";
-
-export const config: Config.Data = {
+export const config = {
 	type: "admin",
 	reqUrl: "",
 	demo: false,
+	nameTag: true,
 	eps: {
 		enable: true,
 		api: "",
@@ -11,7 +10,7 @@ export const config: Config.Data = {
 		mapping: [
 			{
 				// 自定义匹配
-				custom: ({ propertyName, type }) => {
+				custom: ({ propertyName, type }: { propertyName: string; type: string }) => {
 					// 如果没有，返回null或者不返回，则继续遍历其他匹配规则
 					return null;
 				},
@@ -43,8 +42,9 @@ export const config: Config.Data = {
 	},
 	tailwind: {
 		enable: true,
-		remUnit: 16,
+		remUnit: 14,
 		remPrecision: 6,
 		rpxRatio: 2,
+		darkTextClass: "dark:text-surface-50",
 	},
 };

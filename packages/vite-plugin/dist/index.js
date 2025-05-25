@@ -7,6 +7,7 @@
     const config = {
         type: "admin",
         reqUrl: "",
+        nameTag: true,
         eps: {
             enable: true,
             api: "",
@@ -46,9 +47,10 @@
         },
         tailwind: {
             enable: true,
-            remUnit: 16,
+            remUnit: 14,
             remPrecision: 6,
             rpxRatio: 2,
+            darkTextClass: "dark:text-surface-50",
         },
     };
 
@@ -1048,332 +1050,550 @@ if (typeof window !== 'undefined') {
         };
     }
 
-    // @ts-ignore
     /**
-     * Tailwind CSS 特殊字符映射表
-     * 用于将类名中的特殊字符转换为安全字符，避免编译或运行时冲突
+     * 特殊字符映射表
      */
-    const TAILWIND_SAFE_CHAR_MAP = {
-        "[": "-",
-        "]": "-",
-        "(": "-",
-        ")": "-",
-        "{": "-",
-        "}": "-",
-        $: "-v-",
-        "#": "-h-",
-        "!": "-i-",
-        "/": "-s-",
-        ":": "-c-",
-        ",": "-2c-",
+    const SAFE_CHAR_MAP = {
+        "[": "-bracket-start-",
+        "]": "-bracket-end-",
+        "(": "-paren-start-",
+        ")": "-paren-end-",
+        "{": "-brace-start-",
+        "}": "-brace-end-",
+        $: "-dollar-",
+        "#": "-hash-",
+        "!": "-important-",
+        "/": "-slash-",
+        ":": "-colon-",
+    };
+
+    /**
+     * 获取动态类名
+     */
+    const getDynamicClassNames = (value) => {
+        const names = new Set();
+        // 匹配数组中的字符串元素（如 'text-center'）
+        const arrayRegex = /['"](.*?)['"]/g;
+        let arrayMatch;
+        while ((arrayMatch = arrayRegex.exec(value)) !== null) {
+            arrayMatch[1].trim() && names.add(arrayMatch[1]);
+        }
+        // 匹配对象键（如 { 'text-a': 1 }）
+        const objKeyRegex = /[{,]\s*['"](.*?)['"]\s*:/g;
+        let objKeyMatch;
+        while ((objKeyMatch = objKeyRegex.exec(value)) !== null) {
+            objKeyMatch[1].trim() && names.add(objKeyMatch[1]);
+        }
+        // 匹配三元表达式中的字符串（如 'dark' 和 'light'）
+        const ternaryRegex = /(\?|:)\s*['"](.*?)['"]/g;
+        let ternaryMatch;
+        while ((ternaryMatch = ternaryRegex.exec(value)) !== null) {
+            ternaryMatch[2].trim() && names.add(ternaryMatch[2]);
+        }
+        return Array.from(names);
     };
     /**
-     * Tailwind CSS 常用类名前缀集合
-     * 按功能分类，便于维护和扩展
+     * 获取类名
      */
-    const TAILWIND_CLASS_PREFIXES = [
-        // 间距
-        "p-",
-        "px-",
-        "py-",
-        "pt-",
-        "pr-",
-        "pb-",
-        "pl-",
-        "m-",
-        "mx-",
-        "my-",
-        "mt-",
-        "mr-",
-        "mb-",
-        "ml-",
-        "gap-",
-        "gap-x-",
-        "gap-y-",
-        "space-x-",
-        "space-y-",
-        "inset-",
-        "top-",
-        "right-",
-        "bottom-",
-        "left-",
-        // 尺寸
-        "w-",
-        "h-",
-        "min-w-",
-        "min-h-",
-        "max-w-",
-        "max-h-",
-        // 排版
-        "text-",
-        "font-",
-        "leading-",
-        "tracking-",
-        "indent-",
-        // 边框
-        "border-",
-        "border-t-",
-        "border-r-",
-        "border-b-",
-        "border-l-",
-        "rounded-",
-        "rounded-t-",
-        "rounded-r-",
-        "rounded-b-",
-        "rounded-l-",
-        "rounded-tl-",
-        "rounded-tr-",
-        "rounded-br-",
-        "rounded-bl-",
-        // 效果
-        "shadow-",
-        "blur-",
-        "brightness-",
-        "contrast-",
-        "drop-shadow-",
-        "grayscale-",
-        "hue-rotate-",
-        "invert-",
-        "saturate-",
-        "sepia-",
-        "backdrop-blur-",
-        "backdrop-brightness-",
-        "backdrop-contrast-",
-        "backdrop-grayscale-",
-        "backdrop-hue-rotate-",
-        "backdrop-invert-",
-        "backdrop-opacity-",
-        "backdrop-saturate-",
-        "backdrop-sepia-",
-        // 动画
-        "transition-",
-        "duration-",
-        "delay-",
-        "animate-",
-        // 变换
-        "translate-x-",
-        "translate-y-",
-        "rotate-",
-        "scale-",
-        "scale-x-",
-        "scale-y-",
-        "skew-x-",
-        "skew-y-",
-        "origin-",
-        // 布局
-        "columns-",
-        "break-after-",
-        "break-before-",
-        "break-inside-",
-        // Flexbox 和 Grid
-        "basis-",
-        "grow-",
-        "shrink-",
-        "grid-cols-",
-        "grid-rows-",
-        "col-span-",
-        "row-span-",
-        "col-start-",
-        "col-end-",
-        "row-start-",
-        "row-end-",
-        // SVG
-        "stroke-",
-        "stroke-w-",
-        "fill-",
-    ];
+    function getClassNames(html) {
+        const classRegex = /(?:class|:class)\s*=\s*(["'])([\s\S]*?)\1/gi;
+        const classNames = new Set();
+        let match;
+        while ((match = classRegex.exec(html)) !== null) {
+            const isStaticClass = match[0].startsWith("class");
+            const value = match[2].trim();
+            if (isStaticClass) {
+                // 处理静态 class
+                value.split(/\s+/).forEach((name) => name && classNames.add(name));
+            }
+            else {
+                // 处理动态 :class
+                getDynamicClassNames(value).forEach((name) => classNames.add(name));
+            }
+        }
+        return Array.from(classNames);
+    }
     /**
-     * Tailwind CSS 颜色变量映射
-     * 用于移除不需要的 CSS 变量声明
+     * 获取 class 内容
      */
-    const TAILWIND_COLOR_VARS = {
-        "--tw-text-opacity": 1,
-        "--tw-bg-opacity": 1,
+    function getClassContent(html) {
+        const regex = /(?:class|:class)\s*=\s*(['"])([\s\S]*?)\1/g;
+        const texts = [];
+        let match;
+        while ((match = regex.exec(html)) !== null) {
+            texts.push(match[2]);
+        }
+        return texts;
+    }
+    /**
+     * 获取节点
+     */
+    function getNodes(code) {
+        const nodes = [];
+        const templateMatch = /<template>([\s\S]*?)<\/template>/g.exec(code);
+        if (!templateMatch) {
+            return nodes;
+        }
+        const templateContent = templateMatch[1];
+        const regex = /<([^>]+)>/g;
+        let match;
+        while ((match = regex.exec(templateContent)) !== null) {
+            if (!match[1].startsWith("/")) {
+                nodes.push(match[1]);
+            }
+        }
+        return nodes.map((e) => `<${e}>`);
+    }
+    /**
+     * 添加 script 标签内容
+     */
+    function addScriptContent(code, content) {
+        const scriptMatch = /<script\b[^>]*>([\s\S]*?)<\/script>/g.exec(code);
+        if (!scriptMatch) {
+            return code;
+        }
+        const scriptContent = scriptMatch[1];
+        const scriptStartIndex = scriptMatch.index + scriptMatch[0].indexOf(">") + 1;
+        const scriptEndIndex = scriptStartIndex + scriptContent.length;
+        return (code.substring(0, scriptStartIndex) +
+            "\n" +
+            content +
+            "\n" +
+            scriptContent.trim() +
+            code.substring(scriptEndIndex));
+    }
+    /**
+     * 判断是否为 Tailwind 类名
+     */
+    function isTailwindClass(className) {
+        const prefixes = [
+            // 布局
+            "container",
+            "flex",
+            "grid",
+            "block",
+            "inline",
+            "hidden",
+            "visible",
+            // 间距
+            "p-",
+            "px-",
+            "py-",
+            "pt-",
+            "pr-",
+            "pb-",
+            "pl-",
+            "m-",
+            "mx-",
+            "my-",
+            "mt-",
+            "mr-",
+            "mb-",
+            "ml-",
+            "space-",
+            "gap-",
+            // 尺寸
+            "w-",
+            "h-",
+            "min-w-",
+            "max-w-",
+            "min-h-",
+            "max-h-",
+            // 颜色
+            "bg-",
+            "text-",
+            "border-",
+            "ring-",
+            "shadow-",
+            // 边框
+            "border",
+            "rounded",
+            "ring",
+            // 字体
+            "font-",
+            "text-",
+            "leading-",
+            "tracking-",
+            "antialiased",
+            // 定位
+            "absolute",
+            "relative",
+            "fixed",
+            "sticky",
+            "static",
+            "top-",
+            "right-",
+            "bottom-",
+            "left-",
+            "inset-",
+            "z-",
+            // 变换
+            "transform",
+            "translate-",
+            "rotate-",
+            "scale-",
+            "skew-",
+            // 过渡
+            "transition",
+            "duration-",
+            "ease-",
+            "delay-",
+            // 交互
+            "cursor-",
+            "select-",
+            "pointer-events-",
+            // 溢出
+            "overflow-",
+            "truncate",
+            // 滚动
+            "scroll-",
+            // 伪类和响应式
+            "hover:",
+            "focus:",
+            "active:",
+            "disabled:",
+            "group-hover:",
+        ];
+        const statePrefixes = ["dark:", "light:", "sm:", "md:", "lg:", "xl:", "2xl:"];
+        for (const prefix of prefixes) {
+            if (className.startsWith(prefix)) {
+                return true;
+            }
+            for (const statePrefix of statePrefixes) {
+                if (className.startsWith(statePrefix + prefix)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // @ts-ignore
+    /**
+     * Tailwind 默认值
+     */
+    const TW_DEFAULT_VALUES = {
+        "--tw-border-spacing-x": 0,
+        "--tw-border-spacing-y": 0,
+        "--tw-translate-x": 0,
+        "--tw-translate-y": 0,
+        "--tw-rotate": 0,
+        "--tw-skew-x": 0,
+        "--tw-skew-y": 0,
+        "--tw-scale-x": 1,
+        "--tw-scale-y": 1,
     };
     /**
      * 转换类名中的特殊字符为安全字符
-     * @param value 原始类名或值
-     * @param isSelector 是否为选择器（true）或普通值（false）
-     * @returns 转换后的安全字符串
      */
-    function toSafeTailwindClass(value, isSelector = false) {
-        // 处理任意值语法（如 w-[100px]）
-        const arbitrary = value.match(/^(.+?)-\[(.*?)\]$/);
-        if (arbitrary) {
-            if (isSelector)
-                return value;
-            const [, prefix, content] = arbitrary;
-            const safePrefix = toSafeTailwindClass(prefix, isSelector);
-            const safeContent = content.replace(/[^\d.\w]/g, "-");
-            return `${safePrefix}-${safeContent}`;
+    function toSafeClass(className) {
+        if (className.includes(":host")) {
+            return className;
         }
-        let safeValue = value;
+        let safeClassName = className;
         // 移除转义字符
-        if (safeValue.includes("\\")) {
-            safeValue = safeValue.replace(/\\/g, "");
+        if (safeClassName.includes("\\")) {
+            safeClassName = safeClassName.replace(/\\/g, "");
         }
-        // 替换特殊字符
-        for (const [char, rep] of Object.entries(TAILWIND_SAFE_CHAR_MAP)) {
-            const reg = new RegExp("\\" + char, "g");
-            if (reg.test(safeValue)) {
-                safeValue = safeValue.replace(reg, rep);
+        // 处理暗黑模式
+        if (safeClassName.includes(":is")) {
+            if (safeClassName.includes(":is(.dark *)")) {
+                safeClassName = safeClassName.replace(/:is\(.dark \*\)/g, "");
+                if (safeClassName.startsWith(".dark:")) {
+                    const className = safeClassName.replace(/^\.dark:/, ".dark:");
+                    safeClassName = `${className}`;
+                }
             }
         }
-        return safeValue;
-    }
-    /**
-     * 将现代 rgb 格式（如 rgb(234 179 8 / 0.1)）转换为标准 rgba 格式
-     * @param value rgb 字符串
-     * @returns 标准 rgba 字符串
-     */
-    function rgbToRgba(value) {
-        const match = value.match(/rgb\(([\d\s]+)\/\s*([\d.]+)\)/);
-        if (match) {
-            const [, rgb, alpha] = match;
-            const [r, g, b] = rgb.split(/\s+/);
-            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        // 替换特殊字符
+        for (const [char, replacement] of Object.entries(SAFE_CHAR_MAP)) {
+            const regex = new RegExp("\\" + char, "g");
+            if (regex.test(safeClassName)) {
+                safeClassName = safeClassName.replace(regex, replacement);
+            }
         }
-        return value;
+        return safeClassName;
     }
     /**
-     * PostCSS 插件：将 rem 单位转换为 rpx，并处理 Tailwind 特殊字符
-     * @param options 配置项
-     * @returns PostCSS 插件对象
+     * 转换 RGB 为 RGBA 格式
      */
-    function postcssRemToRpx() {
-        return {
-            postcssPlugin: "vite-cool-uniappx-remToRpx",
-            prepare() {
-                const handledSelectors = new Set();
-                const { remUnit = 16, remPrecision = 6, rpxRatio = 2 } = config.tailwind;
-                const factor = remUnit * rpxRatio;
-                return {
-                    Rule(rule) {
-                        const sel = rule.selector;
-                        if (handledSelectors.has(sel))
-                            return;
-                        const safeSel = toSafeTailwindClass(sel, true);
-                        if (safeSel !== sel) {
-                            rule.selector = safeSel;
-                            handledSelectors.add(sel);
-                        }
-                    },
-                    Declaration(decl) {
-                        if (decl.value.includes("/* no-rem */"))
-                            return;
-                        if (TAILWIND_COLOR_VARS[decl.prop]) {
-                            decl.remove();
-                            return;
-                        }
-                        if (decl.value.includes("rgb(") && decl.value.includes("/")) {
-                            decl.value = rgbToRgba(decl.value);
-                        }
-                        if (decl.value.includes("rpx") && decl.parent.selector.includes("text-")) {
-                            decl.prop = "font-size";
-                        }
-                        const parsed = valueParser(decl.value);
-                        let changed = false;
-                        parsed.walk((node) => {
-                            if (node.type === "word") {
-                                // rem 转 rpx
-                                const unit = valueParser.unit(node.value);
-                                if (unit?.unit === "rem") {
-                                    const num = unit.number;
-                                    const precision = (num.split(".")[1] || "").length;
-                                    const rpxVal = (parseFloat(num) * factor)
-                                        .toFixed(precision || remPrecision)
-                                        .replace(/\.?0+$/, "");
-                                    node.value = `${rpxVal}rpx`;
-                                    changed = true;
-                                }
-                                // 特殊字符处理
-                                if (node.value.includes(".") || /[[\]()#!/:,]/.test(node.value)) {
-                                    const safe = toSafeTailwindClass(node.value, true);
-                                    if (safe !== node.value) {
-                                        node.value = safe;
-                                        changed = true;
-                                    }
-                                }
-                            }
-                            // 处理 var(--tw-xxx)
-                            if (node.type === "function" && node.value === "var") {
-                                if (node.nodes.length > 0 && node.nodes[0].value.startsWith("--tw-")) {
-                                    node.type = "word";
-                                    node.value = TAILWIND_COLOR_VARS[node.nodes[0].value];
-                                    changed = true;
-                                }
-                            }
-                        });
-                        if (changed) {
-                            decl.value = parsed.toString();
-                        }
-                    },
-                };
-            },
-        };
+    function rgbToRgba(rgbValue) {
+        const match = rgbValue.match(/rgb\(([\d\s]+)\/\s*([\d.]+)\)/);
+        if (!match)
+            return rgbValue;
+        const [, rgb, alpha] = match;
+        const [r, g, b] = rgb.split(/\s+/);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
-    postcssRemToRpx.postcss = true;
+    function remToRpx(remValue) {
+        const { remUnit = 14, remPrecision = 6, rpxRatio = 2 } = config.tailwind;
+        const conversionFactor = remUnit * rpxRatio;
+        const precision = (remValue.split(".")[1] || "").length;
+        const rpxValue = (parseFloat(remValue) * conversionFactor)
+            .toFixed(precision || remPrecision)
+            .replace(/\.?0+$/, "");
+        return `${rpxValue}rpx`;
+    }
     /**
-     * Vite 插件：自动转换 .uvue 文件中的 Tailwind 类名为安全字符
-     * 并自动注入 rem 转 rpx 的 PostCSS 插件
+     * PostCSS 插件
+     * 处理类名和单位转换
      */
-    function tailwindPlugin() {
+    function postcssPlugin() {
         return {
-            name: "vite-cool-uniappx-tailwind",
+            name: "vite-cool-uniappx-postcss",
             enforce: "pre",
             config() {
                 return {
                     css: {
                         postcss: {
-                            plugins: [postcssRemToRpx()],
+                            plugins: [
+                                {
+                                    postcssPlugin: "vite-cool-uniappx-class-mapping",
+                                    prepare() {
+                                        // 存储 Tailwind 颜色值
+                                        const colorValues = {
+                                            ...TW_DEFAULT_VALUES,
+                                        };
+                                        return {
+                                            // 处理选择器规则
+                                            Rule(rule) {
+                                                // 转换选择器为安全的类名格式
+                                                rule.selector = toSafeClass(rule.selector.replace(/\\/g, ""));
+                                            },
+                                            // 处理声明规则
+                                            Declaration(decl) {
+                                                // 跳过包含 no-rem 注释的声明
+                                                if (decl.value.includes("/* no-rem */"))
+                                                    return;
+                                                // 处理 Tailwind 自定义属性
+                                                if (decl.prop.includes("--tw-")) {
+                                                    colorValues[decl.prop] = decl.value.includes("rem")
+                                                        ? remToRpx(decl.value)
+                                                        : decl.value;
+                                                    decl.remove();
+                                                    return;
+                                                }
+                                                // 转换 RGB 颜色为 RGBA 格式
+                                                if (decl.value.includes("rgb(") &&
+                                                    decl.value.includes("/")) {
+                                                    decl.value = rgbToRgba(decl.value);
+                                                }
+                                                // 处理文本大小相关样式
+                                                if (decl.value.includes("rpx") &&
+                                                    decl.prop == "color" &&
+                                                    decl.parent.selector.includes("text-")) {
+                                                    decl.prop = "font-size";
+                                                }
+                                                // 解析声明值
+                                                const parsed = valueParser(decl.value);
+                                                let hasChanges = false;
+                                                // 遍历并处理声明值中的节点
+                                                parsed.walk((node) => {
+                                                    // 处理单位转换(rem -> rpx)
+                                                    if (node.type === "word") {
+                                                        const unit = valueParser.unit(node.value);
+                                                        if (unit?.unit === "rem") {
+                                                            node.value = remToRpx(unit.number);
+                                                            hasChanges = true;
+                                                        }
+                                                    }
+                                                    // 处理 CSS 变量
+                                                    if (node.type === "function" &&
+                                                        node.value === "var") {
+                                                        const twKey = node.nodes[0]?.value;
+                                                        // 替换 Tailwind 变量为实际值
+                                                        if (twKey?.startsWith("--tw-")) {
+                                                            node.type = "word";
+                                                            node.value = colorValues[twKey];
+                                                            hasChanges = true;
+                                                        }
+                                                    }
+                                                });
+                                                // 更新声明值
+                                                if (hasChanges) {
+                                                    decl.value = parsed.toString();
+                                                }
+                                            },
+                                        };
+                                    },
+                                },
+                            ],
                         },
                     },
                 };
             },
-            transform(code, id) {
-                if (!id.includes(".uvue"))
-                    return null;
-                let resultCode = code;
-                const tplMatch = resultCode.match(/<template>([\s\S]*?)<\/template>/);
-                if (!tplMatch?.[1])
-                    return null;
-                let tpl = tplMatch[1];
-                const tplOrigin = tpl;
-                TAILWIND_CLASS_PREFIXES.forEach((prefix) => {
-                    for (const [char, rep] of Object.entries(TAILWIND_SAFE_CHAR_MAP)) {
-                        const reg = new RegExp(`(${prefix}[^\\s'"]*?\\${char}[^\\s'"]*?)`, "g");
-                        const matches = [...tpl.matchAll(reg)];
-                        matches.forEach((m) => {
-                            const raw = m[1];
-                            const safe = raw.replace(new RegExp("\\" + char, "g"), rep);
-                            if (process.env.NODE_ENV === "development") {
-                                console.log(`类名转换: ${raw} → ${safe}`);
+        };
+    }
+    /**
+     * uvue class 转换插件
+     */
+    function transformPlugin() {
+        return {
+            name: "vite-cool-uniappx-transform",
+            enforce: "pre",
+            async transform(code, id) {
+                const { darkTextClass } = config.tailwind;
+                // 判断是否为 uvue 文件
+                if (id.endsWith(".uvue") || id.includes(".uvue?type=page")) {
+                    let modifiedCode = code;
+                    // 获取所有节点
+                    const nodes = getNodes(code);
+                    // 遍历处理每个节点
+                    nodes.forEach((node) => {
+                        let _node = node;
+                        // 为 text 节点添加暗黑模式文本颜色
+                        if (!_node.includes(darkTextClass) && _node.startsWith("<text")) {
+                            let classIndex = _node.indexOf("class=");
+                            // 处理动态 class
+                            if (classIndex >= 0) {
+                                if (_node[classIndex - 1] == ":") {
+                                    classIndex = _node.lastIndexOf("class=");
+                                }
                             }
-                            tpl = tpl.replace(raw, safe);
+                            // 添加暗黑模式类名
+                            if (classIndex >= 0) {
+                                _node =
+                                    _node.substring(0, classIndex + 7) +
+                                        `${darkTextClass} ` +
+                                        _node.substring(classIndex + 7, _node.length);
+                            }
+                            else {
+                                _node =
+                                    _node.substring(0, 5) +
+                                        ` class="${darkTextClass}" ` +
+                                        _node.substring(5, _node.length);
+                            }
+                        }
+                        // 获取所有类名
+                        const classNames = getClassNames(_node);
+                        // 转换 Tailwind 类名为安全类名
+                        classNames.forEach((name, index) => {
+                            if (isTailwindClass(name)) {
+                                const safeName = toSafeClass(name);
+                                _node = _node.replace(name, safeName);
+                                classNames[index] = safeName;
+                            }
                         });
+                        // 检查是否存在动态类名
+                        const hasDynamicClass = _node.includes(":class=");
+                        // 如果没有动态类名,添加空的动态类名绑定
+                        if (!hasDynamicClass) {
+                            _node = _node.slice(0, -1) + ` :class="{}"` + ">";
+                        }
+                        // 获取暗黑模式类名
+                        const darkClassNames = classNames.filter((name) => name.startsWith("dark-colon-"));
+                        // 生成暗黑模式类名的动态绑定
+                        const darkClassContent = darkClassNames
+                            .map((name) => {
+                            _node = _node.replace(name, "");
+                            return `'${name}': __isDark`;
+                        })
+                            .join(",");
+                        // 获取所有 class 内容
+                        const classContents = getClassContent(_node);
+                        // 处理对象形式的动态类名
+                        const dynamicClassContent_1 = classContents.find((content) => content.startsWith("{") && content.endsWith("}"));
+                        if (dynamicClassContent_1) {
+                            const v = dynamicClassContent_1[0] +
+                                (darkClassContent ? `${darkClassContent},` : "") +
+                                dynamicClassContent_1.substring(1);
+                            _node = _node.replace(dynamicClassContent_1, v);
+                        }
+                        // 处理数组形式的动态类名
+                        const dynamicClassContent_2 = classContents.find((content) => content.startsWith("[") && content.endsWith("]"));
+                        if (dynamicClassContent_2) {
+                            const v = dynamicClassContent_2[0] +
+                                `{${darkClassContent}},` +
+                                dynamicClassContent_2.substring(1);
+                            _node = _node.replace(dynamicClassContent_2, v);
+                        }
+                        // 更新节点内容
+                        modifiedCode = modifiedCode.replace(node, _node);
+                    });
+                    // 如果代码有修改
+                    if (modifiedCode !== code) {
+                        // 添加暗黑模式依赖
+                        if (modifiedCode.includes("__isDark")) {
+                            if (!modifiedCode.includes("<script")) {
+                                modifiedCode += '<script lang="ts" setup></script>';
+                            }
+                            modifiedCode = addScriptContent(modifiedCode, "\nimport { isDark as __isDark } from '@/cool';");
+                        }
+                        // 清理空的类名绑定
+                        modifiedCode = modifiedCode
+                            .replaceAll(':class="{}"', "")
+                            .replaceAll('class=""', "")
+                            .replaceAll('class=" "', "");
+                        // console.log(modifiedCode);
+                        return {
+                            code: modifiedCode,
+                            map: { mappings: "" },
+                        };
                     }
-                });
-                if (tpl !== tplOrigin) {
-                    resultCode = resultCode.replace(tplMatch[0], `<template>${tpl}</template>`);
-                    return {
-                        code: resultCode,
-                        map: { mappings: "" },
-                    };
+                    return null;
                 }
-                return null;
+                else {
+                    return null;
+                }
             },
         };
     }
+    /**
+     * Tailwind 类名转换插件
+     */
+    function tailwindPlugin() {
+        return [postcssPlugin(), transformPlugin()];
+    }
 
     function codePlugin() {
-        return {
-            name: "vite-cool-uniappx-code",
-            transform(code, id) {
-                if (id.endsWith(".json")) {
-                    return code.replace("new UTSJSONObject", "");
-                }
+        return [
+            {
+                name: "vite-cool-uniappx-code-pre",
+                enforce: "pre",
+                async transform(code, id) {
+                    if (id.includes("/cool/virtual.ts")) {
+                        const ctx = await createCtx();
+                        ctx["SAFE_CHAR_MAP"] = [];
+                        for (const i in SAFE_CHAR_MAP) {
+                            ctx["SAFE_CHAR_MAP"].push([i, SAFE_CHAR_MAP[i]]);
+                        }
+                        const theme = await readFile(rootDir("theme.json"), true);
+                        ctx["theme"] = theme;
+                        code = code.replace("export const ctx = {}", `export const ctx = ${JSON.stringify(ctx, null, 4)}`);
+                        return {
+                            code,
+                            map: { mappings: "" },
+                        };
+                    }
+                    if (id.endsWith(".json")) {
+                        const d = JSON.parse(code);
+                        for (let i in d) {
+                            let k = i;
+                            for (let j in SAFE_CHAR_MAP) {
+                                k = k.replaceAll(j, SAFE_CHAR_MAP[j]);
+                            }
+                            d[k] = d[i];
+                            delete d[i];
+                        }
+                        return {
+                            code: JSON.stringify(d),
+                            map: { mappings: "" },
+                        };
+                    }
+                },
             },
-        };
+            {
+                name: "vite-cool-uniappx-code",
+                transform(code, id) {
+                    if (id.endsWith(".json")) {
+                        return {
+                            code: code.replace("new UTSJSONObject", ""),
+                            map: { mappings: "" },
+                        };
+                    }
+                },
+            },
+        ];
     }
 
     /**
@@ -1384,9 +1604,9 @@ if (typeof window !== 'undefined') {
     function uniappX() {
         const plugins = [];
         if (config.type == "uniapp-x") {
-            plugins.push(codePlugin());
+            plugins.push(...codePlugin());
             if (config.tailwind.enable) {
-                plugins.push(tailwindPlugin());
+                plugins.push(...tailwindPlugin());
             }
         }
         return plugins;

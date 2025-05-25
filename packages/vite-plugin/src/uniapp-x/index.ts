@@ -12,10 +12,10 @@ export function uniappX() {
 	const plugins: Plugin[] = [];
 
 	if (config.type == "uniapp-x") {
-		plugins.push(codePlugin());
+		plugins.push(...codePlugin());
 
 		if (config.tailwind.enable) {
-			plugins.push(tailwindPlugin());
+			plugins.push(...tailwindPlugin());
 		}
 	}
 

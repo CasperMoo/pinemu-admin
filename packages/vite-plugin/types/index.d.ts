@@ -116,13 +116,8 @@ export declare namespace Config {
 			remPrecision?: number;
 			// 转换比例
 			rpxRatio?: number;
+			// 暗黑模式文本类名
+			darkTextClass?: string;
 		};
-	}
-	interface Data {
-		type: Type;
-		reqUrl: string;
-		eps: Config.Eps;
-		demo: boolean;
-		[key: string]: any;
 	}
 }
