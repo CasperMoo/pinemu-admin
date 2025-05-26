@@ -7,6 +7,7 @@
     const config = {
         type: "admin",
         reqUrl: "",
+        demo: false,
         nameTag: true,
         eps: {
             enable: true,
@@ -432,7 +433,7 @@
 								_permission: { ${permission.map((e) => `${e}: boolean;`).join("\n")} };
 							`;
                                 t += `
-								request: Service['request']
+								request: Request
 							`;
                             }
                             t += "}\n\n";
@@ -454,20 +455,25 @@
 
 			${controller}
 
+			interface RequestOptions {
+				url: string;
+				method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS";
+				data?: any;
+				params?: any;
+				header?: any;
+				timeout?: number;
+				withCredentials?: boolean;
+				firstIpv4?: boolean;
+				enableChunked?: boolean;
+			}
+
+			type Request = (options: RequestOptions) => Promise<any>;
+
 			interface Service {
 				/**
 				 * 基础请求
 				 */
-				request(options?: {
-					url: string;
-					method?: "POST" | "GET" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
-					data?: any;
-					params?: any;
-					headers?: any,
-					timeout?: number;
-					proxy?: boolean;
-					[key: string]: any;
-				}): Promise<any>;
+				request: Request;
 
 				${chain}
 			}
@@ -483,10 +489,10 @@
         // 文件名
         let name = "eps.d.ts";
         if (config.type == "uniapp-x") {
-            name = "eps.uts";
+            name = "eps.ts";
             text = text
                 .replaceAll("interface ", "export interface ")
-                .replaceAll("type Dict", "export type Dict")
+                .replaceAll("type ", "export type ")
                 .replaceAll("[key: string]: any;", "");
         }
         else {
@@ -670,8 +676,13 @@
         if (match) {
             const value = match[1];
             try {
-                const { target, rewrite } = proxy[`/${value}/`];
-                return target + rewrite(`/${value}`);
+                if (config.type == "uniapp-x") {
+                    return proxy[value].target;
+                }
+                else {
+                    const { target, rewrite } = proxy[`/${value}/`];
+                    return target + rewrite(`/${value}`);
+                }
             }
             catch (err) {
                 error(`[cool-proxy] Error：${value} → ` + getPath());
@@ -1551,7 +1562,7 @@ if (typeof window !== 'undefined') {
                 name: "vite-cool-uniappx-code-pre",
                 enforce: "pre",
                 async transform(code, id) {
-                    if (id.includes("/cool/virtual.ts")) {
+                    if (id.includes("/cool/ctx.ts")) {
                         const ctx = await createCtx();
                         ctx["SAFE_CHAR_MAP"] = [];
                         for (const i in SAFE_CHAR_MAP) {
