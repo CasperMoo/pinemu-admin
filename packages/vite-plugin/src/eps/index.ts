@@ -363,7 +363,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 							`;
 
 							t += `
-								request: Service['request']
+								request: Request
 							`;
 						}
 
@@ -388,20 +388,25 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 
 			${controller}
 
+			interface RequestOptions {
+				url: string;
+				method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS";
+				data?: any;
+				params?: any;
+				header?: any;
+				timeout?: number;
+				withCredentials?: boolean;
+				firstIpv4?: boolean;
+				enableChunked?: boolean;
+			}
+
+			type Request = (options: RequestOptions) => Promise<any>;
+
 			interface Service {
 				/**
 				 * 基础请求
 				 */
-				request(options?: {
-					url: string;
-					method?: "POST" | "GET" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
-					data?: any;
-					params?: any;
-					headers?: any,
-					timeout?: number;
-					proxy?: boolean;
-					[key: string]: any;
-				}): Promise<any>;
+				request: Request;
 
 				${chain}
 			}
@@ -420,10 +425,11 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 	let name = "eps.d.ts";
 
 	if (config.type == "uniapp-x") {
-		name = "eps.uts";
+		name = "eps.ts";
+
 		text = text
 			.replaceAll("interface ", "export interface ")
-			.replaceAll("type Dict", "export type Dict")
+			.replaceAll("type ", "export type ")
 			.replaceAll("[key: string]: any;", "");
 	} else {
 		text = `

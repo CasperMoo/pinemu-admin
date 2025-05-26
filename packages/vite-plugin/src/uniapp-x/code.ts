@@ -9,7 +9,7 @@ export function codePlugin(): Plugin[] {
 			name: "vite-cool-uniappx-code-pre",
 			enforce: "pre",
 			async transform(code, id) {
-				if (id.includes("/cool/virtual.ts")) {
+				if (id.includes("/cool/ctx.ts")) {
 					const ctx = await createCtx();
 
 					ctx["SAFE_CHAR_MAP"] = [];
