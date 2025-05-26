@@ -457,7 +457,7 @@
 
 			interface RequestOptions {
 				url: string;
-				method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS";
+				method?: 'OPTIONS' | 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'CONNECT';
 				data?: any;
 				params?: any;
 				header?: any;
