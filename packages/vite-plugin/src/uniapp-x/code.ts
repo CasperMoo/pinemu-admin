@@ -41,8 +41,10 @@ export function codePlugin(): Plugin[] {
 							k = k.replaceAll(j, SAFE_CHAR_MAP[j]);
 						}
 
-						d[k] = d[i];
-						delete d[i];
+						if (k != i) {
+							d[k] = d[i];
+							delete d[i];
+						}
 					}
 
 					return {
