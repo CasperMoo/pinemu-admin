@@ -8,11 +8,11 @@ import { codePlugin } from "./code";
  * @param options 配置项
  * @returns Vite 插件数组
  */
-export function uniappX() {
+export async function uniappX() {
 	const plugins: Plugin[] = [];
 
 	if (config.type == "uniapp-x") {
-		plugins.push(...codePlugin());
+		plugins.push(...(await codePlugin()));
 
 		if (config.tailwind.enable) {
 			plugins.push(...tailwindPlugin());
