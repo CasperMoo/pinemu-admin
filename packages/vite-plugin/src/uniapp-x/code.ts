@@ -2,27 +2,34 @@ import type { Plugin } from "vite";
 import { SAFE_CHAR_MAP } from "./config";
 import { createCtx } from "../ctx";
 import { readFile, rootDir } from "../utils";
+import { createEps } from "../eps";
 
-export function codePlugin(): Plugin[] {
+export async function codePlugin(): Promise<Plugin[]> {
+	const ctx = await createCtx();
+	const eps = await createEps();
+	const theme = await readFile(rootDir("theme.json"), true);
+
 	return [
 		{
 			name: "vite-cool-uniappx-code-pre",
 			enforce: "pre",
 			async transform(code, id) {
-				if (id.includes("/cool/ctx.ts")) {
-					const ctx = await createCtx();
-
+				if (id.includes("/cool/virtual.ts")) {
 					ctx["SAFE_CHAR_MAP"] = [];
 					for (const i in SAFE_CHAR_MAP) {
 						ctx["SAFE_CHAR_MAP"].push([i, SAFE_CHAR_MAP[i]]);
 					}
 
-					const theme = await readFile(rootDir("theme.json"), true);
 					ctx["theme"] = theme;
 
 					code = code.replace(
-						"export const ctx = {}",
-						`export const ctx = ${JSON.stringify(ctx, null, 4)}`,
+						"const ctx = {}",
+						`const ctx = ${JSON.stringify(ctx, null, 4)}`,
+					);
+
+					code = code.replace(
+						"const eps = {}",
+						`const eps = ${JSON.stringify(eps, null, 4).replaceAll("[]", "[] as any[]")}`,
 					);
 
 					return {

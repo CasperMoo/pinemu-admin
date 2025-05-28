@@ -6,12 +6,18 @@ import { createWriteStream } from "fs";
 import prettier from "prettier";
 import { config } from "../config";
 import type { Eps } from "../../types";
+import { flatten } from "./flatten";
 
+// 全局 service 对象，用于存储服务结构
 const service = {};
+// eps 实体列表
 let list: Eps.Entity[] = [];
 
-// 获取请求地址
-function getEpsUrl() {
+/**
+ * 获取 eps 请求地址
+ * @returns {string} eps url
+ */
+function getEpsUrl(): string {
 	let url = config.eps.api;
 
 	if (!url) {
@@ -23,7 +29,6 @@ function getEpsUrl() {
 		case "uniapp-x":
 			url = "/app/base/comm/eps";
 			break;
-
 		case "admin":
 			url = "/admin/base/open/eps";
 			break;
@@ -32,29 +37,46 @@ function getEpsUrl() {
 	return url;
 }
 
-// 获取路径
-function getEpsPath(filename?: string) {
+/**
+ * 获取 eps 路径
+ * @param filename 文件名
+ * @returns {string} 完整路径
+ */
+function getEpsPath(filename?: string): string {
 	return join(
 		config.type == "admin" ? config.eps.dist : rootDir(config.eps.dist),
 		filename || "",
 	);
 }
 
-// 获取方法名
-function getNames(v: any) {
+/**
+ * 获取对象方法名（排除 namespace、permission 字段）
+ * @param v 对象
+ * @returns {string[]} 方法名数组
+ */
+function getNames(v: any): string[] {
 	return Object.keys(v).filter((e) => !["namespace", "permission"].includes(e));
 }
 
-// 找字段
-function findColumns(sources: string[], item: Eps.Entity) {
+/**
+ * 查找字段
+ * @param sources 字段 source 数组
+ * @param item eps 实体
+ * @returns {Eps.Column[]} 字段数组
+ */
+function findColumns(sources: string[], item: Eps.Entity): Eps.Column[] {
 	const columns = [item.columns, item.pageColumns].flat().filter(Boolean);
 	return (sources || [])
 		.map((e) => columns.find((c) => c.source == e))
 		.filter(Boolean) as Eps.Column[];
 }
 
-// 格式化代码
-async function formatCode(text: string) {
+/**
+ * 使用 prettier 格式化 TypeScript 代码
+ * @param text 代码文本
+ * @returns {Promise<string|null>} 格式化后的代码
+ */
+async function formatCode(text: string): Promise<string | null> {
 	return prettier
 		.format(text, {
 			parser: "typescript",
@@ -71,27 +93,27 @@ async function formatCode(text: string) {
 			error(
 				`[cool-eps] Failed to format /build/cool/eps.d.ts. Please delete the file and try again`,
 			);
-
 			return null;
 		});
 }
 
-// 获取数据
+/**
+ * 获取 eps 数据（本地优先，远程兜底）
+ */
 async function getData() {
-	// 读取本地数据
+	// 读取本地 eps.json
 	list = readFile(getEpsPath("eps.json"), true) || [];
 
-	// 请求地址
+	// 拼接请求地址
 	const url = config.reqUrl + getEpsUrl();
 
-	// 请求数据
+	// 请求远程 eps 数据
 	await axios
 		.get(url, {
 			timeout: 5000,
 		})
 		.then((res) => {
 			const { code, data, message } = res.data;
-
 			if (code === 1000) {
 				if (!isEmpty(data) && data) {
 					list = values(data).flat();
@@ -104,18 +126,11 @@ async function getData() {
 			error(`[cool-eps] API service is not running → ${url}`);
 		});
 
-	// 初始化处理
+	// 初始化处理，补全缺省字段
 	list.forEach((e) => {
-		if (!e.namespace) {
-			e.namespace = "";
-		}
-		if (!e.api) {
-			e.api = [];
-		}
-		if (!e.columns) {
-			e.columns = [];
-		}
-
+		if (!e.namespace) e.namespace = "";
+		if (!e.api) e.api = [];
+		if (!e.columns) e.columns = [];
 		if (!e.search) {
 			e.search = {
 				fieldEq: findColumns(e.pageQueryOp?.fieldEq, e),
@@ -126,19 +141,20 @@ async function getData() {
 	});
 }
 
-// 创建 json 文件
-function createJson() {
+/**
+ * 创建 eps.json 文件
+ * @returns {boolean} 是否有更新
+ */
+function createJson(): boolean {
 	const arr = list.map((e) => {
 		return {
 			prefix: e.prefix,
 			name: e.name || "",
-			api: e.api.map((e) => {
-				return {
-					name: e.name,
-					method: e.method,
-					path: e.path,
-				};
-			}),
+			api: e.api.map((apiItem) => ({
+				name: apiItem.name,
+				method: apiItem.method,
+				path: apiItem.path,
+			})),
 			search: e.search,
 		};
 	});
@@ -146,7 +162,7 @@ function createJson() {
 	const content = JSON.stringify(arr);
 	const local_content = readFile(getEpsPath("eps.json"));
 
-	// 是否需要更新
+	// 判断是否需要更新
 	const isUpdate = content != local_content;
 
 	if (isUpdate) {
@@ -158,9 +174,14 @@ function createJson() {
 	return isUpdate;
 }
 
-// 创建描述文件
+/**
+ * 创建 eps 类型描述文件（d.ts/ts）
+ * @param param0 list: eps实体列表, service: service对象
+ */
 async function createDescribe({ list, service }: { list: Eps.Entity[]; service: any }) {
-	// 获取类型
+	/**
+	 * 获取字段类型
+	 */
 	function getType({ propertyName, type }: any) {
 		for (const map of config.eps.mapping) {
 			if (map.custom) {
@@ -174,20 +195,25 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 		return type;
 	}
 
-	// 格式化方法名
+	/**
+	 * 格式化方法名，去除特殊字符
+	 */
 	function formatName(name: string) {
 		return (name || "").replace(/[:,\s,\/,-]/g, "");
 	}
 
-	// 检查方法名，包含特殊字符则忽略
+	/**
+	 * 检查方法名是否合法（不包含特殊字符）
+	 */
 	function checkName(name: string) {
 		return name && !["{", "}", ":"].some((e) => name.includes(e));
 	}
 
-	// 创建 Entity
+	/**
+	 * 创建 Entity 接口定义
+	 */
 	function createEntity() {
 		const ignore: string[] = [];
-
 		let t0 = "";
 
 		for (const item of list) {
@@ -195,18 +221,14 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 
 			let t = `interface ${formatName(item.name)} {`;
 
-			// 合并多个列
+			// 合并 columns 和 pageColumns，去重
 			const columns: Eps.Column[] = [];
-
 			[item.columns, item.pageColumns]
 				.flat()
 				.filter(Boolean)
 				.forEach((e) => {
 					const d = columns.find((c) => c.source == e.source);
-
-					if (!d) {
-						columns.push(e);
-					}
+					if (!d) columns.push(e);
 				});
 
 			for (const col of columns || []) {
@@ -217,7 +239,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 					${col.propertyName}?: ${getType({
 						propertyName: col.propertyName,
 						type: col.type,
-					})}
+					})};
 				`;
 			}
 
@@ -238,12 +260,18 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 		return t0;
 	}
 
-	// 创建 Controller
+	/**
+	 * 创建 Controller 接口定义
+	 */
 	async function createController() {
 		let controller = "";
 		let chain = "";
 
-		// 处理数据
+		/**
+		 * 递归处理 service 树，生成接口定义
+		 * @param d 当前节点
+		 * @param k 前缀
+		 */
 		function deep(d: any, k?: string) {
 			if (!k) k = "";
 
@@ -258,6 +286,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 					const item = list.find((e) => (e.prefix || "") === `/${d[i].namespace}`);
 
 					if (item) {
+						//
 						let t = `interface ${name} {`;
 
 						// 插入方法
@@ -292,7 +321,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 										const a = `${p.name}${p.required ? "" : "?"}`;
 										const b = `${p.schema.type || "string"}`;
 
-										q.push(`${a}: ${b},`);
+										q.push(`${a}: ${b};`);
 									});
 
 									if (isEmpty(q)) {
@@ -310,29 +339,30 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 
 									switch (a.path) {
 										case "/page":
-											res = `
-											{
-												pagination: { size: number; page: number; total: number; [key: string]: any; };
-												list: ${en} [];
-												[key: string]: any;
+											if (config.type == "uniapp-x") {
+												res = `PageResponse<${en}>`;
+											} else {
+												res = `
+												{
+													pagination: PaginationData;
+													list: ${en} [];
+													[key: string]: any;
+												}
+												`;
 											}
-										`;
 											break;
-
 										case "/list":
 											res = `${en} []`;
 											break;
-
 										case "/info":
 											res = en;
 											break;
-
 										default:
 											res = "any";
 											break;
 									}
 
-									// 描述
+									// 方法描述
 									t += `
 										/**
 										 * ${a.summary || n}
@@ -346,21 +376,23 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 								}
 							});
 
-							// 权限标识
-							t += `
-								/**
-								 * 权限标识
-								 */
-								permission: { ${permission.map((e) => `${e}: string;`).join("\n")} };
-							`;
+							if (config.type != "uniapp-x") {
+								// 权限标识
+								t += `
+									/**
+									 * 权限标识
+									 */
+									permission: { ${permission.map((e) => `${e}: string;`).join("\n")} };
+								`;
 
-							// 权限状态
-							t += `
-								/**
-								 * 权限状态
-								 */
-								_permission: { ${permission.map((e) => `${e}: boolean;`).join("\n")} };
-							`;
+								// 权限状态
+								t += `
+									/**
+									 * 权限状态
+									 */
+									_permission: { ${permission.map((e) => `${e}: boolean;`).join("\n")} };
+								`;
+							}
 
 							t += `
 								request: Request
@@ -375,16 +407,27 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 				} else {
 					chain += `${formatName(i)}: {`;
 					deep(d[i], name);
-					chain += "},";
+					chain += "};";
 				}
 			}
 		}
 
-		// 遍历
+		// 遍历 service 树
 		deep(service);
 
 		return `
 			type json = any;
+
+			type PaginationData = {
+				size: number;
+				page: number;
+				total: number;
+			};
+
+			type PageResponse<T> = {
+				pagination: PaginationData;
+				list: T[];
+			};
 
 			${controller}
 
@@ -402,7 +445,9 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 
 			type Request = (options: RequestOptions) => Promise<any>;
 
-			interface Service {
+			${await createDict()}
+
+			type Service = {
 				/**
 				 * 基础请求
 				 */
@@ -410,12 +455,10 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 
 				${chain}
 			}
-
-			${await createDict()}
 		`;
 	}
 
-	// 文件内容
+	// 组装文件内容
 	let text = `
 		${createEntity()}
 		${await createController()}
@@ -426,11 +469,12 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 
 	if (config.type == "uniapp-x") {
 		name = "eps.ts";
-
 		text = text
 			.replaceAll("interface ", "export interface ")
 			.replaceAll("type ", "export type ")
 			.replaceAll("[key: string]: any;", "");
+
+		text = flatten(text);
 	} else {
 		text = `
 			declare namespace Eps {
@@ -439,7 +483,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 		`;
 	}
 
-	// 文本内容
+	// 格式化文本内容
 	const content = await formatCode(text);
 
 	const local_content = readFile(getEpsPath(name));
@@ -453,7 +497,9 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 	}
 }
 
-// 创建 service
+/**
+ * 构建 service 对象树
+ */
 function createService() {
 	// 路径第一层作为 id 标识
 	const id = getEpsUrl().split("/")[1];
@@ -462,10 +508,14 @@ function createService() {
 		// 请求地址
 		const path = e.prefix[0] == "/" ? e.prefix.substring(1, e.prefix.length) : e.prefix;
 
-		// 分隔路径
+		// 分隔路径，去除 id，转驼峰
 		const arr = path.replace(id, "").split("/").filter(Boolean).map(toCamel);
 
-		// 遍历
+		/**
+		 * 递归构建 service 树
+		 * @param d 当前节点
+		 * @param i 当前索引
+		 */
 		function deep(d: any, i: number) {
 			const k = arr[i];
 
@@ -475,7 +525,6 @@ function createService() {
 					if (!d[k]) {
 						d[k] = {};
 					}
-
 					deep(d[k], i + 1);
 				} else {
 					// 不存在则创建
@@ -504,7 +553,6 @@ function createService() {
 					e.api.forEach((a) => {
 						// 方法名
 						const n = a.path.replace("/", "");
-
 						if (n && !/[-:]/g.test(n)) {
 							d[k][n] = a;
 						}
@@ -517,8 +565,11 @@ function createService() {
 	});
 }
 
-// 创建 dict
-async function createDict() {
+/**
+ * 获取字典类型定义
+ * @returns {Promise<string>} 字典类型 type 定义
+ */
+async function createDict(): Promise<string> {
 	let p = "";
 
 	switch (config.type) {
@@ -526,7 +577,6 @@ async function createDict() {
 		case "uniapp-x":
 			p = "/app";
 			break;
-
 		case "admin":
 			p = "/admin";
 			break;
@@ -541,11 +591,9 @@ async function createDict() {
 
 			if (code === 1000) {
 				let v = "string";
-
 				if (!isEmpty(data)) {
 					v = data.map((e) => `"${e.key}"`).join(" | ");
 				}
-
 				return `type DictKey = ${v}`;
 			}
 		})
@@ -556,22 +604,25 @@ async function createDict() {
 	return text || "";
 }
 
-// 创建 eps
+/**
+ * 主入口：创建 eps 相关文件和 service
+ * @returns {Promise<{service: any, list: Eps.Entity[], isUpdate?: boolean}>}
+ */
 export async function createEps() {
 	if (config.eps.enable) {
-		// 获取数据
+		// 获取 eps 数据
 		await getData();
 
-		// 创建 service
+		// 构建 service 对象
 		createService();
 
-		// 创建目录
+		// 创建 eps 目录
 		createDir(getEpsPath(), true);
 
-		// 创建 json 文件
+		// 创建 eps.json 文件
 		const isUpdate = createJson();
 
-		// 创建描述文件
+		// 创建类型描述文件
 		createDescribe({ service, list });
 
 		return {
