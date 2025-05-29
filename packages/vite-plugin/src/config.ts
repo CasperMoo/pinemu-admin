@@ -1,5 +1,7 @@
+import type { Type } from "../types";
+
 export const config = {
-	type: "admin",
+	type: "admin" as Type,
 	reqUrl: "",
 	demo: false,
 	nameTag: true,
@@ -34,6 +36,10 @@ export const config = {
 			{
 				type: "BigInt",
 				test: ["bigint"],
+			},
+			{
+				type: "any",
+				test: ["json"],
 			},
 		],
 	},

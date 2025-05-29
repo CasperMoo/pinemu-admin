@@ -1,5 +1,6 @@
+import type { Type } from "../types";
 export declare const config: {
-    type: string;
+    type: Type;
     reqUrl: string;
     demo: boolean;
     nameTag: boolean;

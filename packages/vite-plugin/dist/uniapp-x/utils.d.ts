@@ -22,3 +22,7 @@ export declare function addScriptContent(code: string, content: string): string;
  * 判断是否为 Tailwind 类名
  */
 export declare function isTailwindClass(className: string): boolean;
+/**
+ * 将 interface 转换为 type
+ */
+export declare function interfaceToType(code: string): string;

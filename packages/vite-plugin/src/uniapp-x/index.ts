@@ -12,7 +12,7 @@ export async function uniappX() {
 	const plugins: Plugin[] = [];
 
 	if (config.type == "uniapp-x") {
-		plugins.push(...(await codePlugin()));
+		plugins.push(...codePlugin());
 
 		if (config.tailwind.enable) {
 			plugins.push(...tailwindPlugin());

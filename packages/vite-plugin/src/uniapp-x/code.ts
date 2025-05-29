@@ -3,18 +3,18 @@ import { SAFE_CHAR_MAP } from "./config";
 import { createCtx } from "../ctx";
 import { readFile, rootDir } from "../utils";
 import { createEps } from "../eps";
+import { uniq } from "lodash";
 
-export async function codePlugin(): Promise<Plugin[]> {
-	const ctx = await createCtx();
-	const eps = await createEps();
-	const theme = await readFile(rootDir("theme.json"), true);
-
+export function codePlugin(): Plugin[] {
 	return [
 		{
 			name: "vite-cool-uniappx-code-pre",
 			enforce: "pre",
 			async transform(code, id) {
-				if (id.includes("/cool/virtual.ts")) {
+				if (id.includes("/cool/ctx/index.ts")) {
+					const ctx = await createCtx();
+					const theme = await readFile(rootDir("theme.json"), true);
+
 					ctx["SAFE_CHAR_MAP"] = [];
 					for (const i in SAFE_CHAR_MAP) {
 						ctx["SAFE_CHAR_MAP"].push([i, SAFE_CHAR_MAP[i]]);
@@ -27,10 +27,24 @@ export async function codePlugin(): Promise<Plugin[]> {
 						`const ctx = ${JSON.stringify(ctx, null, 4)}`,
 					);
 
-					code = code.replace(
-						"const eps = {}",
-						`const eps = ${JSON.stringify(eps, null, 4).replaceAll("[]", "[] as any[]")}`,
-					);
+					return {
+						code,
+						map: { mappings: "" },
+					};
+				}
+
+				if (id.includes("/cool/service/index.ts")) {
+					const eps = await createEps();
+
+					if (eps.serviceCode) {
+						const { content, types } = eps.serviceCode;
+						const typeCode = `import type { ${uniq(types).join(", ")} } from '../types';`;
+
+						code =
+							typeCode +
+							"\n\n" +
+							code.replace("const service = {}", `const service = ${content}`);
+					}
 
 					return {
 						code,
