@@ -92,9 +92,9 @@ function checkName(name: string) {
 /**
  * 不支持 uniapp-x 平台显示
  */
-function noUniappX(text: string) {
+function noUniappX(text: string, defaultText: string = "") {
 	if (config.type == "uniapp-x") {
-		return "";
+		return defaultText;
 	} else {
 		return text;
 	}
@@ -275,6 +275,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 	async function createController() {
 		let controller = "";
 		let chain = "";
+		let pageResponse = "";
 
 		/**
 		 * 递归处理 service 树，生成接口定义
@@ -346,23 +347,27 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 									// 实体名
 									const en = item.name || "any";
 
-									if (config.type == "uniapp-x") {
-										res = "any";
-									} else {
-										switch (a.path) {
-											case "/page":
-												res = `PageResponse<${en}>`;
-												break;
-											case "/list":
-												res = `${en} []`;
-												break;
-											case "/info":
-												res = en;
-												break;
-											default:
-												res = "any";
-												break;
-										}
+									switch (a.path) {
+										case "/page":
+											res = `${name}PageResponse`;
+
+											pageResponse += `
+												interface ${name}PageResponse {
+													pagination: PagePagination;
+													list: ${en}[];
+												}
+											`;
+
+											break;
+										case "/list":
+											res = `${en} []`;
+											break;
+										case "/info":
+											res = en;
+											break;
+										default:
+											res = "any";
+											break;
 									}
 
 									// 方法描述
@@ -432,6 +437,8 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 				list: T[];
 				[key: string]: any;
 			};
+
+			${pageResponse}
 
 			${controller}
 
@@ -651,10 +658,11 @@ function createServiceCode(): { content: string; types: string[] } {
 
 								switch (a.path) {
 									case "/page":
-										res = `PageResponse<${en}>`;
+										res = `${name}PageResponse`;
+										types.push(res);
 										break;
 									case "/list":
-										res = `${en} []`;
+										res = `${en}[]`;
 										break;
 									case "/info":
 										res = en;
@@ -670,7 +678,7 @@ function createServiceCode(): { content: string; types: string[] } {
 									 * ${a.summary || n}
 									 */
 									${n}(data${q.length == 1 ? "?" : ""}: ${q.join("")})${noUniappX(`: Promise<${res}>`)} {
-										return request({
+										return request<${res}>({
 											url: "/${d[i].namespace}${a.path}",
 											method: "${(a.method || "get").toLocaleUpperCase()}",
 											data,
