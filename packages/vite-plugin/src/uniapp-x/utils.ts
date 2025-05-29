@@ -236,3 +236,20 @@ export function isTailwindClass(className: string): boolean {
 
 	return false;
 }
+
+/**
+ * 将 interface 转换为 type
+ */
+export function interfaceToType(code: string) {
+	// 匹配 interface 定义
+	const interfaceRegex = /interface\s+(\w+)(\s*extends\s+\w+)?\s*\{([^}]*)\}/g;
+
+	// 将 interface 转换为 type
+	return code.replace(interfaceRegex, (match, name, extends_, content) => {
+		// 处理可能存在的 extends
+		const extendsStr = extends_ ? extends_ : "";
+
+		// 返回转换后的 type 定义
+		return `type ${name}${extendsStr} = {${content}}`;
+	});
+}

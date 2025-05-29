@@ -9,6 +9,8 @@ interface ParseResult {
 	key: string;
 	/** 解析出的内容 */
 	content: string;
+	/** 层级 */
+	level: number;
 }
 
 /**
@@ -31,7 +33,7 @@ export function flatten(template: string): string {
 	let serviceFields = "";
 
 	// 解析内容并生成接口定义
-	parse(serviceContent).forEach(({ key, content }) => {
+	parse(serviceContent).forEach(({ key, content, level }) => {
 		interfaces += `\nexport interface ${firstUpperCase(key)}Interface {${content}}\n`;
 		serviceFields += `${key}: ${firstUpperCase(key)}Interface;`;
 	});
@@ -68,7 +70,7 @@ function findClosingBrace(str: string, startIndex: number): number {
  * @param content - 要解析的内容字符串
  * @returns 解析结果数组，包含解析出的键值对
  */
-function parse(content: string): ParseResult[] {
+function parse(content: string, level: number = 0): ParseResult[] {
 	// 匹配形如 xxx: { ... } 的结构
 	const interfacePattern = /(\w+)\s*:\s*\{/g;
 	const result: ParseResult[] = [];
@@ -83,7 +85,7 @@ function parse(content: string): ParseResult[] {
 
 			// 处理嵌套结构
 			if (parsedContent.includes("{") && parsedContent.includes("}")) {
-				const nestedInterfaces = parse(parsedContent);
+				const nestedInterfaces = parse(parsedContent, level + 1);
 
 				// 替换嵌套的内容为接口引用
 				if (nestedInterfaces.length > 0) {
@@ -98,6 +100,7 @@ function parse(content: string): ParseResult[] {
 			// 将解析结果添加到数组开头
 			result.unshift({
 				key: match[1],
+				level,
 				content: parsedContent,
 			});
 		}

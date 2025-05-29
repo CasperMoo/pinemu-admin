@@ -4,4 +4,4 @@ import type { Plugin } from "vite";
  * @param options 配置项
  * @returns Vite 插件数组
  */
-export declare function uniappX(): Plugin<any>[];
+export declare function uniappX(): Promise<Plugin<any>[]>;

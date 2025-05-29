@@ -41,6 +41,10 @@
                     type: "BigInt",
                     test: ["bigint"],
                 },
+                {
+                    type: "any",
+                    test: ["json"],
+                },
             ],
         },
         svg: {
@@ -136,9 +140,311 @@
         console.log("\x1B[31m%s\x1B[0m", message);
     }
 
+    /**
+     * 将模板字符串扁平化处理，转换为 Service 类型定义
+     * @param template - 包含 Service 类型定义的模板字符串
+     * @returns 处理后的 Service 类型定义字符串
+     * @throws {Error} 当模板中找不到 Service 类型定义时抛出错误
+     */
+    function flatten(template) {
+        // 查找 Service 类型定义的起始位置
+        const startIndex = template.indexOf("export type Service = {");
+        // 保留 Service 类型定义前的内容
+        let header = template.substring(0, startIndex);
+        // 获取 Service 类型定义及其内容，去除换行和制表符
+        const serviceContent = template.substring(startIndex).replace(/\n|\t/g, "");
+        let interfaces = "";
+        let serviceFields = "";
+        // 解析内容并生成接口定义
+        parse(serviceContent).forEach(({ key, content, level }) => {
+            interfaces += `\nexport interface ${firstUpperCase(key)}Interface {${content}}\n`;
+            serviceFields += `${key}: ${firstUpperCase(key)}Interface;`;
+        });
+        return `${header}${interfaces}\nexport type Service = {${serviceFields}}`;
+    }
+    /**
+     * 查找匹配的右花括号位置
+     * @param str - 要搜索的字符串
+     * @param startIndex - 开始搜索的位置
+     * @returns 匹配的右花括号位置
+     * @throws {Error} 当找不到匹配的右花括号时抛出错误
+     */
+    function findClosingBrace(str, startIndex) {
+        let braceCount = 1;
+        let currentIndex = startIndex;
+        while (currentIndex < str.length && braceCount > 0) {
+            if (str[currentIndex] === "{")
+                braceCount++;
+            if (str[currentIndex] === "}")
+                braceCount--;
+            currentIndex++;
+        }
+        if (braceCount !== 0) {
+            throw new Error("Unmatched braces in the template");
+        }
+        return currentIndex - 1;
+    }
+    /**
+     * 解析内容中的嵌套结构
+     * @param content - 要解析的内容字符串
+     * @returns 解析结果数组，包含解析出的键值对
+     */
+    function parse(content, level = 0) {
+        // 匹配形如 xxx: { ... } 的结构
+        const interfacePattern = /(\w+)\s*:\s*\{/g;
+        const result = [];
+        let match;
+        while ((match = interfacePattern.exec(content)) !== null) {
+            const startIndex = match.index + match[0].length;
+            const endIndex = findClosingBrace(content, startIndex);
+            if (endIndex > startIndex) {
+                let parsedContent = content.substring(startIndex, endIndex).trim();
+                // 处理嵌套结构
+                if (parsedContent.includes("{") && parsedContent.includes("}")) {
+                    const nestedInterfaces = parse(parsedContent, level + 1);
+                    // 替换嵌套的内容为接口引用
+                    if (nestedInterfaces.length > 0) {
+                        nestedInterfaces.forEach((nestedInterface) => {
+                            const pattern = `${nestedInterface.key}: {${nestedInterface.content}};`;
+                            const replacement = `${nestedInterface.key}: ${firstUpperCase(nestedInterface.key)}Interface`;
+                            parsedContent = parsedContent.replace(pattern, replacement);
+                        });
+                    }
+                }
+                // 将解析结果添加到数组开头
+                result.unshift({
+                    key: match[1],
+                    level,
+                    content: parsedContent,
+                });
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 获取动态类名
+     */
+    const getDynamicClassNames = (value) => {
+        const names = new Set();
+        // 匹配数组中的字符串元素（如 'text-center'）
+        const arrayRegex = /['"](.*?)['"]/g;
+        let arrayMatch;
+        while ((arrayMatch = arrayRegex.exec(value)) !== null) {
+            arrayMatch[1].trim() && names.add(arrayMatch[1]);
+        }
+        // 匹配对象键（如 { 'text-a': 1 }）
+        const objKeyRegex = /[{,]\s*['"](.*?)['"]\s*:/g;
+        let objKeyMatch;
+        while ((objKeyMatch = objKeyRegex.exec(value)) !== null) {
+            objKeyMatch[1].trim() && names.add(objKeyMatch[1]);
+        }
+        // 匹配三元表达式中的字符串（如 'dark' 和 'light'）
+        const ternaryRegex = /(\?|:)\s*['"](.*?)['"]/g;
+        let ternaryMatch;
+        while ((ternaryMatch = ternaryRegex.exec(value)) !== null) {
+            ternaryMatch[2].trim() && names.add(ternaryMatch[2]);
+        }
+        return Array.from(names);
+    };
+    /**
+     * 获取类名
+     */
+    function getClassNames(html) {
+        const classRegex = /(?:class|:class)\s*=\s*(["'])([\s\S]*?)\1/gi;
+        const classNames = new Set();
+        let match;
+        while ((match = classRegex.exec(html)) !== null) {
+            const isStaticClass = match[0].startsWith("class");
+            const value = match[2].trim();
+            if (isStaticClass) {
+                // 处理静态 class
+                value.split(/\s+/).forEach((name) => name && classNames.add(name));
+            }
+            else {
+                // 处理动态 :class
+                getDynamicClassNames(value).forEach((name) => classNames.add(name));
+            }
+        }
+        return Array.from(classNames);
+    }
+    /**
+     * 获取 class 内容
+     */
+    function getClassContent(html) {
+        const regex = /(?:class|:class)\s*=\s*(['"])([\s\S]*?)\1/g;
+        const texts = [];
+        let match;
+        while ((match = regex.exec(html)) !== null) {
+            texts.push(match[2]);
+        }
+        return texts;
+    }
+    /**
+     * 获取节点
+     */
+    function getNodes(code) {
+        const nodes = [];
+        const templateMatch = /<template>([\s\S]*?)<\/template>/g.exec(code);
+        if (!templateMatch) {
+            return nodes;
+        }
+        const templateContent = templateMatch[1];
+        const regex = /<([^>]+)>/g;
+        let match;
+        while ((match = regex.exec(templateContent)) !== null) {
+            if (!match[1].startsWith("/")) {
+                nodes.push(match[1]);
+            }
+        }
+        return nodes.map((e) => `<${e}>`);
+    }
+    /**
+     * 添加 script 标签内容
+     */
+    function addScriptContent(code, content) {
+        const scriptMatch = /<script\b[^>]*>([\s\S]*?)<\/script>/g.exec(code);
+        if (!scriptMatch) {
+            return code;
+        }
+        const scriptContent = scriptMatch[1];
+        const scriptStartIndex = scriptMatch.index + scriptMatch[0].indexOf(">") + 1;
+        const scriptEndIndex = scriptStartIndex + scriptContent.length;
+        return (code.substring(0, scriptStartIndex) +
+            "\n" +
+            content +
+            "\n" +
+            scriptContent.trim() +
+            code.substring(scriptEndIndex));
+    }
+    /**
+     * 判断是否为 Tailwind 类名
+     */
+    function isTailwindClass(className) {
+        const prefixes = [
+            // 布局
+            "container",
+            "flex",
+            "grid",
+            "block",
+            "inline",
+            "hidden",
+            "visible",
+            // 间距
+            "p-",
+            "px-",
+            "py-",
+            "pt-",
+            "pr-",
+            "pb-",
+            "pl-",
+            "m-",
+            "mx-",
+            "my-",
+            "mt-",
+            "mr-",
+            "mb-",
+            "ml-",
+            "space-",
+            "gap-",
+            // 尺寸
+            "w-",
+            "h-",
+            "min-w-",
+            "max-w-",
+            "min-h-",
+            "max-h-",
+            // 颜色
+            "bg-",
+            "text-",
+            "border-",
+            "ring-",
+            "shadow-",
+            // 边框
+            "border",
+            "rounded",
+            "ring",
+            // 字体
+            "font-",
+            "text-",
+            "leading-",
+            "tracking-",
+            "antialiased",
+            // 定位
+            "absolute",
+            "relative",
+            "fixed",
+            "sticky",
+            "static",
+            "top-",
+            "right-",
+            "bottom-",
+            "left-",
+            "inset-",
+            "z-",
+            // 变换
+            "transform",
+            "translate-",
+            "rotate-",
+            "scale-",
+            "skew-",
+            // 过渡
+            "transition",
+            "duration-",
+            "ease-",
+            "delay-",
+            // 交互
+            "cursor-",
+            "select-",
+            "pointer-events-",
+            // 溢出
+            "overflow-",
+            "truncate",
+            // 滚动
+            "scroll-",
+            // 伪类和响应式
+            "hover:",
+            "focus:",
+            "active:",
+            "disabled:",
+            "group-hover:",
+        ];
+        const statePrefixes = ["dark:", "light:", "sm:", "md:", "lg:", "xl:", "2xl:"];
+        for (const prefix of prefixes) {
+            if (className.startsWith(prefix)) {
+                return true;
+            }
+            for (const statePrefix of statePrefixes) {
+                if (className.startsWith(statePrefix + prefix)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * 将 interface 转换为 type
+     */
+    function interfaceToType(code) {
+        // 匹配 interface 定义
+        const interfaceRegex = /interface\s+(\w+)(\s*extends\s+\w+)?\s*\{([^}]*)\}/g;
+        // 将 interface 转换为 type
+        return code.replace(interfaceRegex, (match, name, extends_, content) => {
+            // 处理可能存在的 extends
+            const extendsStr = extends_ ? extends_ : "";
+            // 返回转换后的 type 定义
+            return `type ${name}${extendsStr} = {${content}}`;
+        });
+    }
+
+    // 全局 service 对象，用于存储服务结构
     const service = {};
+    // eps 实体列表
     let list = [];
-    // 获取请求地址
+    /**
+     * 获取 eps 请求地址
+     * @returns {string} eps url
+     */
     function getEpsUrl() {
         let url = config.eps.api;
         if (!url) {
@@ -155,22 +461,79 @@
         }
         return url;
     }
-    // 获取路径
+    /**
+     * 获取 eps 路径
+     * @param filename 文件名
+     * @returns {string} 完整路径
+     */
     function getEpsPath(filename) {
         return path.join(config.type == "admin" ? config.eps.dist : rootDir(config.eps.dist), filename || "");
     }
-    // 获取方法名
+    /**
+     * 获取对象方法名（排除 namespace、permission 字段）
+     * @param v 对象
+     * @returns {string[]} 方法名数组
+     */
     function getNames(v) {
         return Object.keys(v).filter((e) => !["namespace", "permission"].includes(e));
     }
-    // 找字段
+    /**
+     * 获取字段类型
+     */
+    function getType({ propertyName, type }) {
+        for (const map of config.eps.mapping) {
+            if (map.custom) {
+                const resType = map.custom({ propertyName, type });
+                if (resType)
+                    return resType;
+            }
+            if (map.test) {
+                if (map.test.includes(type))
+                    return map.type;
+            }
+        }
+        return type;
+    }
+    /**
+     * 格式化方法名，去除特殊字符
+     */
+    function formatName(name) {
+        return (name || "").replace(/[:,\s,\/,-]/g, "");
+    }
+    /**
+     * 检查方法名是否合法（不包含特殊字符）
+     */
+    function checkName(name) {
+        return name && !["{", "}", ":"].some((e) => name.includes(e));
+    }
+    /**
+     * 不支持 uniapp-x 平台显示
+     */
+    function noUniappX(text) {
+        if (config.type == "uniapp-x") {
+            return "";
+        }
+        else {
+            return text;
+        }
+    }
+    /**
+     * 查找字段
+     * @param sources 字段 source 数组
+     * @param item eps 实体
+     * @returns {Eps.Column[]} 字段数组
+     */
     function findColumns(sources, item) {
         const columns = [item.columns, item.pageColumns].flat().filter(Boolean);
         return (sources || [])
             .map((e) => columns.find((c) => c.source == e))
             .filter(Boolean);
     }
-    // 格式化代码
+    /**
+     * 使用 prettier 格式化 TypeScript 代码
+     * @param text 代码文本
+     * @returns {Promise<string|null>} 格式化后的代码
+     */
     async function formatCode(text) {
         return prettier
             .format(text, {
@@ -183,19 +546,20 @@
             printWidth: 100,
             trailingComma: "none",
         })
-            .catch((err) => {
-            console.log(err);
+            .catch(() => {
             error(`[cool-eps] Failed to format /build/cool/eps.d.ts. Please delete the file and try again`);
             return null;
         });
     }
-    // 获取数据
+    /**
+     * 获取 eps 数据（本地优先，远程兜底）
+     */
     async function getData() {
-        // 读取本地数据
+        // 读取本地 eps.json
         list = readFile(getEpsPath("eps.json"), true) || [];
-        // 请求地址
+        // 拼接请求地址
         const url = config.reqUrl + getEpsUrl();
-        // 请求数据
+        // 请求远程 eps 数据
         await axios
             .get(url, {
             timeout: 5000,
@@ -214,17 +578,14 @@
             .catch(() => {
             error(`[cool-eps] API service is not running → ${url}`);
         });
-        // 初始化处理
+        // 初始化处理，补全缺省字段
         list.forEach((e) => {
-            if (!e.namespace) {
+            if (!e.namespace)
                 e.namespace = "";
-            }
-            if (!e.api) {
+            if (!e.api)
                 e.api = [];
-            }
-            if (!e.columns) {
+            if (!e.columns)
                 e.columns = [];
-            }
             if (!e.search) {
                 e.search = {
                     fieldEq: findColumns(e.pageQueryOp?.fieldEq, e),
@@ -233,26 +594,28 @@
                 };
             }
         });
+        list = list.filter((e) => e.prefix.startsWith("/app"));
     }
-    // 创建 json 文件
+    /**
+     * 创建 eps.json 文件
+     * @returns {boolean} 是否有更新
+     */
     function createJson() {
         const arr = list.map((e) => {
             return {
                 prefix: e.prefix,
                 name: e.name || "",
-                api: e.api.map((e) => {
-                    return {
-                        name: e.name,
-                        method: e.method,
-                        path: e.path,
-                    };
-                }),
+                api: e.api.map((apiItem) => ({
+                    name: apiItem.name,
+                    method: apiItem.method,
+                    path: apiItem.path,
+                })),
                 search: e.search,
             };
         });
         const content = JSON.stringify(arr);
         const local_content = readFile(getEpsPath("eps.json"));
-        // 是否需要更新
+        // 判断是否需要更新
         const isUpdate = content != local_content;
         if (isUpdate) {
             fs.createWriteStream(getEpsPath("eps.json"), {
@@ -261,32 +624,14 @@
         }
         return isUpdate;
     }
-    // 创建描述文件
+    /**
+     * 创建 eps 类型描述文件（d.ts/ts）
+     * @param param0 list: eps实体列表, service: service对象
+     */
     async function createDescribe({ list, service }) {
-        // 获取类型
-        function getType({ propertyName, type }) {
-            for (const map of config.eps.mapping) {
-                if (map.custom) {
-                    const resType = map.custom({ propertyName, type });
-                    if (resType)
-                        return resType;
-                }
-                if (map.test) {
-                    if (map.test.includes(type))
-                        return map.type;
-                }
-            }
-            return type;
-        }
-        // 格式化方法名
-        function formatName(name) {
-            return (name || "").replace(/[:,\s,\/,-]/g, "");
-        }
-        // 检查方法名，包含特殊字符则忽略
-        function checkName(name) {
-            return name && !["{", "}", ":"].some((e) => name.includes(e));
-        }
-        // 创建 Entity
+        /**
+         * 创建 Entity 接口定义
+         */
         function createEntity() {
             const ignore = [];
             let t0 = "";
@@ -294,17 +639,8 @@
                 if (!checkName(item.name))
                     continue;
                 let t = `interface ${formatName(item.name)} {`;
-                // 合并多个列
-                const columns = [];
-                [item.columns, item.pageColumns]
-                    .flat()
-                    .filter(Boolean)
-                    .forEach((e) => {
-                    const d = columns.find((c) => c.source == e.source);
-                    if (!d) {
-                        columns.push(e);
-                    }
-                });
+                // 合并 columns 和 pageColumns，去重
+                const columns = lodash.uniqBy(lodash.compact([...(item.columns || []), ...(item.pageColumns || [])]), "source");
                 for (const col of columns || []) {
                     t += `
 					/**
@@ -313,7 +649,7 @@
 					${col.propertyName}?: ${getType({
                     propertyName: col.propertyName,
                     type: col.type,
-                })}
+                })};
 				`;
                 }
                 t += `
@@ -330,11 +666,17 @@
             }
             return t0;
         }
-        // 创建 Controller
+        /**
+         * 创建 Controller 接口定义
+         */
         async function createController() {
             let controller = "";
             let chain = "";
-            // 处理数据
+            /**
+             * 递归处理 service 树，生成接口定义
+             * @param d 当前节点
+             * @param k 前缀
+             */
             function deep(d, k) {
                 if (!k)
                     k = "";
@@ -347,6 +689,7 @@
                         // 查找配置
                         const item = list.find((e) => (e.prefix || "") === `/${d[i].namespace}`);
                         if (item) {
+                            //
                             let t = `interface ${name} {`;
                             // 插入方法
                             if (item.api) {
@@ -373,7 +716,7 @@
                                             }
                                             const a = `${p.name}${p.required ? "" : "?"}`;
                                             const b = `${p.schema.type || "string"}`;
-                                            q.push(`${a}: ${b},`);
+                                            q.push(`${a}: ${b};`);
                                         });
                                         if (lodash.isEmpty(q)) {
                                             q = ["any"];
@@ -386,27 +729,26 @@
                                         let res = "";
                                         // 实体名
                                         const en = item.name || "any";
-                                        switch (a.path) {
-                                            case "/page":
-                                                res = `
-											{
-												pagination: { size: number; page: number; total: number; [key: string]: any; };
-												list: ${en} [];
-												[key: string]: any;
-											}
-										`;
-                                                break;
-                                            case "/list":
-                                                res = `${en} []`;
-                                                break;
-                                            case "/info":
-                                                res = en;
-                                                break;
-                                            default:
-                                                res = "any";
-                                                break;
+                                        if (config.type == "uniapp-x") {
+                                            res = "any";
                                         }
-                                        // 描述
+                                        else {
+                                            switch (a.path) {
+                                                case "/page":
+                                                    res = `PageResponse<${en}>`;
+                                                    break;
+                                                case "/list":
+                                                    res = `${en} []`;
+                                                    break;
+                                                case "/info":
+                                                    res = en;
+                                                    break;
+                                                default:
+                                                    res = "any";
+                                                    break;
+                                            }
+                                        }
+                                        // 方法描述
                                         t += `
 										/**
 										 * ${a.summary || n}
@@ -419,22 +761,23 @@
                                     }
                                 });
                                 // 权限标识
-                                t += `
+                                t += noUniappX(`
 								/**
 								 * 权限标识
 								 */
 								permission: { ${permission.map((e) => `${e}: string;`).join("\n")} };
-							`;
+							`);
                                 // 权限状态
-                                t += `
+                                t += noUniappX(`
 								/**
 								 * 权限状态
 								 */
 								_permission: { ${permission.map((e) => `${e}: boolean;`).join("\n")} };
-							`;
-                                t += `
-								request: Request
-							`;
+							`);
+                                // 请求
+                                t += noUniappX(`
+								request: Request;
+							`);
                             }
                             t += "}\n\n";
                             controller += t;
@@ -444,44 +787,52 @@
                     else {
                         chain += `${formatName(i)}: {`;
                         deep(d[i], name);
-                        chain += "},";
+                        chain += "};";
                     }
                 }
             }
-            // 遍历
+            // 遍历 service 树
             deep(service);
             return `
 			type json = any;
 
+			interface PagePagination {
+				size: number;
+				page: number;
+				total: number;
+				[key: string]: any;
+			};
+
+			interface PageResponse<T> {
+				pagination: PagePagination;
+				list: T[];
+				[key: string]: any;
+			};
+
 			${controller}
 
-			interface RequestOptions {
+			${noUniappX(`interface RequestOptions {
 				url: string;
 				method?: 'OPTIONS' | 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'CONNECT';
 				data?: any;
 				params?: any;
-				header?: any;
+				headers?: any;
 				timeout?: number;
-				withCredentials?: boolean;
-				firstIpv4?: boolean;
-				enableChunked?: boolean;
-			}
+				[key: string]: any;
+			}`)}
 
-			type Request = (options: RequestOptions) => Promise<any>;
+			${noUniappX("type Request = (options: RequestOptions) => Promise<any>;")}
 
-			interface Service {
-				/**
-				 * 基础请求
-				 */
-				request: Request;
+			${await createDict()}
+
+			type Service = {
+				${noUniappX("request: Request;")}
 
 				${chain}
 			}
-
-			${await createDict()}
 		`;
         }
-        // 文件内容
+        // 组装文件内容
         let text = `
 		${createEntity()}
 		${await createController()}
@@ -494,6 +845,8 @@
                 .replaceAll("interface ", "export interface ")
                 .replaceAll("type ", "export type ")
                 .replaceAll("[key: string]: any;", "");
+            text = flatten(text);
+            text = interfaceToType(text);
         }
         else {
             text = `
@@ -502,7 +855,7 @@
 			}
 		`;
         }
-        // 文本内容
+        // 格式化文本内容
         const content = await formatCode(text);
         const local_content = readFile(getEpsPath(name));
         // 是否需要更新
@@ -513,16 +866,22 @@
             }).write(content);
         }
     }
-    // 创建 service
+    /**
+     * 构建 service 对象树
+     */
     function createService() {
         // 路径第一层作为 id 标识
         const id = getEpsUrl().split("/")[1];
         list.forEach((e) => {
             // 请求地址
             const path = e.prefix[0] == "/" ? e.prefix.substring(1, e.prefix.length) : e.prefix;
-            // 分隔路径
+            // 分隔路径，去除 id，转驼峰
             const arr = path.replace(id, "").split("/").filter(Boolean).map(toCamel);
-            // 遍历
+            /**
+             * 递归构建 service 树
+             * @param d 当前节点
+             * @param i 当前索引
+             */
             function deep(d, i) {
                 const k = arr[i];
                 if (k) {
@@ -566,7 +925,128 @@
             deep(service, 0);
         });
     }
-    // 创建 dict
+    /**
+     * 创建 service 代码
+     * @returns {string} service 代码
+     */
+    function createServiceCode() {
+        const types = [];
+        let chain = "";
+        /**
+         * 递归处理 service 树，生成接口代码
+         * @param d 当前节点
+         * @param k 前缀
+         */
+        function deep(d, k) {
+            if (!k)
+                k = "";
+            for (const i in d) {
+                if (["swagger"].includes(i)) {
+                    continue;
+                }
+                const name = k + toCamel(firstUpperCase(formatName(i)));
+                // 检查方法名
+                if (!checkName(name))
+                    continue;
+                if (d[i].namespace) {
+                    // 查找配置
+                    const item = list.find((e) => (e.prefix || "") === `/${d[i].namespace}`);
+                    if (item) {
+                        //
+                        let t = `{`;
+                        // 插入方法
+                        if (item.api) {
+                            item.api.forEach((a) => {
+                                // 方法名
+                                const n = toCamel(formatName(a.name || lodash.last(a.path.split("/"))));
+                                // 检查方法名
+                                if (!checkName(n))
+                                    return;
+                                if (n) {
+                                    // 参数类型
+                                    let q = [];
+                                    // 参数列表
+                                    const { parameters = [] } = a.dts || {};
+                                    parameters.forEach((p) => {
+                                        if (p.description) {
+                                            q.push(`\n/** ${p.description}  */\n`);
+                                        }
+                                        // 检查参数名
+                                        if (!checkName(p.name)) {
+                                            return false;
+                                        }
+                                        const a = `${p.name}${p.required ? "" : "?"}`;
+                                        const b = `${p.schema.type || "string"}`;
+                                        q.push(`${a}: ${b}, `);
+                                    });
+                                    if (lodash.isEmpty(q)) {
+                                        q = ["any"];
+                                    }
+                                    else {
+                                        q.unshift("{");
+                                        q.push("}");
+                                    }
+                                    if (item.name) {
+                                        types.push(item.name);
+                                    }
+                                    // 返回类型
+                                    let res = "";
+                                    // 实体名
+                                    const en = item.name || "any";
+                                    switch (a.path) {
+                                        case "/page":
+                                            res = `PageResponse<${en}>`;
+                                            break;
+                                        case "/list":
+                                            res = `${en} []`;
+                                            break;
+                                        case "/info":
+                                            res = en;
+                                            break;
+                                        default:
+                                            res = "any";
+                                            break;
+                                    }
+                                    // 方法描述
+                                    t += `
+									/**
+									 * ${a.summary || n}
+									 */
+									${n}(data${q.length == 1 ? "?" : ""}: ${q.join("")})${noUniappX(`: Promise<${res}>`)} {
+										return request({
+											url: "/${d[i].namespace}${a.path}",
+											method: "${(a.method || "get").toLocaleUpperCase()}",
+											data,
+										});
+									},
+								`;
+                                }
+                            });
+                        }
+                        t += `} as ${name}\n`;
+                        types.push(name);
+                        chain += `${formatName(i)}: ${t},\n`;
+                    }
+                }
+                else {
+                    chain += `${formatName(i)}: {`;
+                    deep(d[i], name);
+                    chain += `} as ${firstUpperCase(i)}Interface,`;
+                    types.push(`${firstUpperCase(i)}Interface`);
+                }
+            }
+        }
+        // 遍历 service 树
+        deep(service);
+        return {
+            content: `{ ${chain} }`,
+            types,
+        };
+    }
+    /**
+     * 获取字典类型定义
+     * @returns {Promise<string>} 字典类型 type 定义
+     */
     async function createDict() {
         let p = "";
         switch (config.type) {
@@ -596,21 +1076,25 @@
         });
         return text || "";
     }
-    // 创建 eps
+    /**
+     * 主入口：创建 eps 相关文件和 service
+     */
     async function createEps() {
         if (config.eps.enable) {
-            // 获取数据
+            // 获取 eps 数据
             await getData();
-            // 创建 service
+            // 构建 service 对象
             createService();
-            // 创建目录
+            const serviceCode = createServiceCode();
+            // 创建 eps 目录
             createDir(getEpsPath(), true);
-            // 创建 json 文件
+            // 创建 eps.json 文件
             const isUpdate = createJson();
-            // 创建描述文件
+            // 创建类型描述文件
             createDescribe({ service, list });
             return {
                 service,
+                serviceCode,
                 list,
                 isUpdate,
             };
@@ -1078,207 +1562,6 @@ if (typeof window !== 'undefined') {
         ":": "-colon-",
     };
 
-    /**
-     * 获取动态类名
-     */
-    const getDynamicClassNames = (value) => {
-        const names = new Set();
-        // 匹配数组中的字符串元素（如 'text-center'）
-        const arrayRegex = /['"](.*?)['"]/g;
-        let arrayMatch;
-        while ((arrayMatch = arrayRegex.exec(value)) !== null) {
-            arrayMatch[1].trim() && names.add(arrayMatch[1]);
-        }
-        // 匹配对象键（如 { 'text-a': 1 }）
-        const objKeyRegex = /[{,]\s*['"](.*?)['"]\s*:/g;
-        let objKeyMatch;
-        while ((objKeyMatch = objKeyRegex.exec(value)) !== null) {
-            objKeyMatch[1].trim() && names.add(objKeyMatch[1]);
-        }
-        // 匹配三元表达式中的字符串（如 'dark' 和 'light'）
-        const ternaryRegex = /(\?|:)\s*['"](.*?)['"]/g;
-        let ternaryMatch;
-        while ((ternaryMatch = ternaryRegex.exec(value)) !== null) {
-            ternaryMatch[2].trim() && names.add(ternaryMatch[2]);
-        }
-        return Array.from(names);
-    };
-    /**
-     * 获取类名
-     */
-    function getClassNames(html) {
-        const classRegex = /(?:class|:class)\s*=\s*(["'])([\s\S]*?)\1/gi;
-        const classNames = new Set();
-        let match;
-        while ((match = classRegex.exec(html)) !== null) {
-            const isStaticClass = match[0].startsWith("class");
-            const value = match[2].trim();
-            if (isStaticClass) {
-                // 处理静态 class
-                value.split(/\s+/).forEach((name) => name && classNames.add(name));
-            }
-            else {
-                // 处理动态 :class
-                getDynamicClassNames(value).forEach((name) => classNames.add(name));
-            }
-        }
-        return Array.from(classNames);
-    }
-    /**
-     * 获取 class 内容
-     */
-    function getClassContent(html) {
-        const regex = /(?:class|:class)\s*=\s*(['"])([\s\S]*?)\1/g;
-        const texts = [];
-        let match;
-        while ((match = regex.exec(html)) !== null) {
-            texts.push(match[2]);
-        }
-        return texts;
-    }
-    /**
-     * 获取节点
-     */
-    function getNodes(code) {
-        const nodes = [];
-        const templateMatch = /<template>([\s\S]*?)<\/template>/g.exec(code);
-        if (!templateMatch) {
-            return nodes;
-        }
-        const templateContent = templateMatch[1];
-        const regex = /<([^>]+)>/g;
-        let match;
-        while ((match = regex.exec(templateContent)) !== null) {
-            if (!match[1].startsWith("/")) {
-                nodes.push(match[1]);
-            }
-        }
-        return nodes.map((e) => `<${e}>`);
-    }
-    /**
-     * 添加 script 标签内容
-     */
-    function addScriptContent(code, content) {
-        const scriptMatch = /<script\b[^>]*>([\s\S]*?)<\/script>/g.exec(code);
-        if (!scriptMatch) {
-            return code;
-        }
-        const scriptContent = scriptMatch[1];
-        const scriptStartIndex = scriptMatch.index + scriptMatch[0].indexOf(">") + 1;
-        const scriptEndIndex = scriptStartIndex + scriptContent.length;
-        return (code.substring(0, scriptStartIndex) +
-            "\n" +
-            content +
-            "\n" +
-            scriptContent.trim() +
-            code.substring(scriptEndIndex));
-    }
-    /**
-     * 判断是否为 Tailwind 类名
-     */
-    function isTailwindClass(className) {
-        const prefixes = [
-            // 布局
-            "container",
-            "flex",
-            "grid",
-            "block",
-            "inline",
-            "hidden",
-            "visible",
-            // 间距
-            "p-",
-            "px-",
-            "py-",
-            "pt-",
-            "pr-",
-            "pb-",
-            "pl-",
-            "m-",
-            "mx-",
-            "my-",
-            "mt-",
-            "mr-",
-            "mb-",
-            "ml-",
-            "space-",
-            "gap-",
-            // 尺寸
-            "w-",
-            "h-",
-            "min-w-",
-            "max-w-",
-            "min-h-",
-            "max-h-",
-            // 颜色
-            "bg-",
-            "text-",
-            "border-",
-            "ring-",
-            "shadow-",
-            // 边框
-            "border",
-            "rounded",
-            "ring",
-            // 字体
-            "font-",
-            "text-",
-            "leading-",
-            "tracking-",
-            "antialiased",
-            // 定位
-            "absolute",
-            "relative",
-            "fixed",
-            "sticky",
-            "static",
-            "top-",
-            "right-",
-            "bottom-",
-            "left-",
-            "inset-",
-            "z-",
-            // 变换
-            "transform",
-            "translate-",
-            "rotate-",
-            "scale-",
-            "skew-",
-            // 过渡
-            "transition",
-            "duration-",
-            "ease-",
-            "delay-",
-            // 交互
-            "cursor-",
-            "select-",
-            "pointer-events-",
-            // 溢出
-            "overflow-",
-            "truncate",
-            // 滚动
-            "scroll-",
-            // 伪类和响应式
-            "hover:",
-            "focus:",
-            "active:",
-            "disabled:",
-            "group-hover:",
-        ];
-        const statePrefixes = ["dark:", "light:", "sm:", "md:", "lg:", "xl:", "2xl:"];
-        for (const prefix of prefixes) {
-            if (className.startsWith(prefix)) {
-                return true;
-            }
-            for (const statePrefix of statePrefixes) {
-                if (className.startsWith(statePrefix + prefix)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     // @ts-ignore
     /**
      * Tailwind 默认值
@@ -1562,15 +1845,30 @@ if (typeof window !== 'undefined') {
                 name: "vite-cool-uniappx-code-pre",
                 enforce: "pre",
                 async transform(code, id) {
-                    if (id.includes("/cool/ctx.ts")) {
+                    if (id.includes("/cool/ctx/index.ts")) {
                         const ctx = await createCtx();
+                        const theme = await readFile(rootDir("theme.json"), true);
                         ctx["SAFE_CHAR_MAP"] = [];
                         for (const i in SAFE_CHAR_MAP) {
                             ctx["SAFE_CHAR_MAP"].push([i, SAFE_CHAR_MAP[i]]);
                         }
-                        const theme = await readFile(rootDir("theme.json"), true);
                         ctx["theme"] = theme;
-                        code = code.replace("export const ctx = {}", `export const ctx = ${JSON.stringify(ctx, null, 4)}`);
+                        code = code.replace("const ctx = {}", `const ctx = ${JSON.stringify(ctx, null, 4)}`);
+                        return {
+                            code,
+                            map: { mappings: "" },
+                        };
+                    }
+                    if (id.includes("/cool/service/index.ts")) {
+                        const eps = await createEps();
+                        if (eps.serviceCode) {
+                            const { content, types } = eps.serviceCode;
+                            const typeCode = `import type { ${lodash.uniq(types).join(", ")} } from '../types';`;
+                            code =
+                                typeCode +
+                                    "\n\n" +
+                                    code.replace("const service = {}", `const service = ${content}`);
+                        }
                         return {
                             code,
                             map: { mappings: "" },
@@ -1614,7 +1912,7 @@ if (typeof window !== 'undefined') {
      * @param options 配置项
      * @returns Vite 插件数组
      */
-    function uniappX() {
+    async function uniappX() {
         const plugins = [];
         if (config.type == "uniapp-x") {
             plugins.push(...codePlugin());

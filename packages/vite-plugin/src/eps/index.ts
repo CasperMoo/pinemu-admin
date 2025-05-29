@@ -1,12 +1,13 @@
 import { createDir, error, firstUpperCase, readFile, rootDir, toCamel } from "../utils";
 import { join } from "path";
 import axios from "axios";
-import { isEmpty, last, values } from "lodash";
+import { compact, isEmpty, last, uniqBy, values } from "lodash";
 import { createWriteStream } from "fs";
 import prettier from "prettier";
 import { config } from "../config";
 import type { Eps } from "../../types";
-import { flatten } from "./flatten";
+import { flatten } from "../uniapp-x/flatten";
+import { interfaceToType } from "../uniapp-x/utils";
 
 // 全局 service 对象，用于存储服务结构
 const service = {};
@@ -59,6 +60,47 @@ function getNames(v: any): string[] {
 }
 
 /**
+ * 获取字段类型
+ */
+function getType({ propertyName, type }: any) {
+	for (const map of config.eps.mapping) {
+		if (map.custom) {
+			const resType = map.custom({ propertyName, type });
+			if (resType) return resType;
+		}
+		if (map.test) {
+			if (map.test.includes(type)) return map.type;
+		}
+	}
+	return type;
+}
+
+/**
+ * 格式化方法名，去除特殊字符
+ */
+function formatName(name: string) {
+	return (name || "").replace(/[:,\s,\/,-]/g, "");
+}
+
+/**
+ * 检查方法名是否合法（不包含特殊字符）
+ */
+function checkName(name: string) {
+	return name && !["{", "}", ":"].some((e) => name.includes(e));
+}
+
+/**
+ * 不支持 uniapp-x 平台显示
+ */
+function noUniappX(text: string) {
+	if (config.type == "uniapp-x") {
+		return "";
+	} else {
+		return text;
+	}
+}
+
+/**
  * 查找字段
  * @param sources 字段 source 数组
  * @param item eps 实体
@@ -88,8 +130,7 @@ async function formatCode(text: string): Promise<string | null> {
 			printWidth: 100,
 			trailingComma: "none",
 		})
-		.catch((err) => {
-			console.log(err);
+		.catch(() => {
 			error(
 				`[cool-eps] Failed to format /build/cool/eps.d.ts. Please delete the file and try again`,
 			);
@@ -139,6 +180,8 @@ async function getData() {
 			};
 		}
 	});
+
+	list = list.filter((e) => e.prefix.startsWith("/app"));
 }
 
 /**
@@ -180,36 +223,6 @@ function createJson(): boolean {
  */
 async function createDescribe({ list, service }: { list: Eps.Entity[]; service: any }) {
 	/**
-	 * 获取字段类型
-	 */
-	function getType({ propertyName, type }: any) {
-		for (const map of config.eps.mapping) {
-			if (map.custom) {
-				const resType = map.custom({ propertyName, type });
-				if (resType) return resType;
-			}
-			if (map.test) {
-				if (map.test.includes(type)) return map.type;
-			}
-		}
-		return type;
-	}
-
-	/**
-	 * 格式化方法名，去除特殊字符
-	 */
-	function formatName(name: string) {
-		return (name || "").replace(/[:,\s,\/,-]/g, "");
-	}
-
-	/**
-	 * 检查方法名是否合法（不包含特殊字符）
-	 */
-	function checkName(name: string) {
-		return name && !["{", "}", ":"].some((e) => name.includes(e));
-	}
-
-	/**
 	 * 创建 Entity 接口定义
 	 */
 	function createEntity() {
@@ -222,14 +235,10 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 			let t = `interface ${formatName(item.name)} {`;
 
 			// 合并 columns 和 pageColumns，去重
-			const columns: Eps.Column[] = [];
-			[item.columns, item.pageColumns]
-				.flat()
-				.filter(Boolean)
-				.forEach((e) => {
-					const d = columns.find((c) => c.source == e.source);
-					if (!d) columns.push(e);
-				});
+			const columns: Eps.Column[] = uniqBy(
+				compact([...(item.columns || []), ...(item.pageColumns || [])]),
+				"source",
+			);
 
 			for (const col of columns || []) {
 				t += `
@@ -337,29 +346,23 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 									// 实体名
 									const en = item.name || "any";
 
-									switch (a.path) {
-										case "/page":
-											if (config.type == "uniapp-x") {
+									if (config.type == "uniapp-x") {
+										res = "any";
+									} else {
+										switch (a.path) {
+											case "/page":
 												res = `PageResponse<${en}>`;
-											} else {
-												res = `
-												{
-													pagination: PaginationData;
-													list: ${en} [];
-													[key: string]: any;
-												}
-												`;
-											}
-											break;
-										case "/list":
-											res = `${en} []`;
-											break;
-										case "/info":
-											res = en;
-											break;
-										default:
-											res = "any";
-											break;
+												break;
+											case "/list":
+												res = `${en} []`;
+												break;
+											case "/info":
+												res = en;
+												break;
+											default:
+												res = "any";
+												break;
+										}
 									}
 
 									// 方法描述
@@ -376,27 +379,26 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 								}
 							});
 
-							if (config.type != "uniapp-x") {
-								// 权限标识
-								t += `
-									/**
-									 * 权限标识
-									 */
-									permission: { ${permission.map((e) => `${e}: string;`).join("\n")} };
-								`;
+							// 权限标识
+							t += noUniappX(`
+								/**
+								 * 权限标识
+								 */
+								permission: { ${permission.map((e) => `${e}: string;`).join("\n")} };
+							`);
 
-								// 权限状态
-								t += `
-									/**
-									 * 权限状态
-									 */
-									_permission: { ${permission.map((e) => `${e}: boolean;`).join("\n")} };
-								`;
-							}
+							// 权限状态
+							t += noUniappX(`
+								/**
+								 * 权限状态
+								 */
+								_permission: { ${permission.map((e) => `${e}: boolean;`).join("\n")} };
+							`);
 
-							t += `
-								request: Request
-							`;
+							// 请求
+							t += noUniappX(`
+								request: Request;
+							`);
 						}
 
 						t += "}\n\n";
@@ -418,40 +420,37 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 		return `
 			type json = any;
 
-			type PaginationData = {
+			interface PagePagination {
 				size: number;
 				page: number;
 				total: number;
+				[key: string]: any;
 			};
 
-			type PageResponse<T> = {
-				pagination: PaginationData;
+			interface PageResponse<T> {
+				pagination: PagePagination;
 				list: T[];
+				[key: string]: any;
 			};
 
 			${controller}
 
-			interface RequestOptions {
+			${noUniappX(`interface RequestOptions {
 				url: string;
 				method?: 'OPTIONS' | 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'CONNECT';
 				data?: any;
 				params?: any;
-				header?: any;
+				headers?: any;
 				timeout?: number;
-				withCredentials?: boolean;
-				firstIpv4?: boolean;
-				enableChunked?: boolean;
-			}
+				[key: string]: any;
+			}`)}
 
-			type Request = (options: RequestOptions) => Promise<any>;
+			${noUniappX("type Request = (options: RequestOptions) => Promise<any>;")}
 
 			${await createDict()}
 
 			type Service = {
-				/**
-				 * 基础请求
-				 */
-				request: Request;
+				${noUniappX("request: Request;")}
 
 				${chain}
 			}
@@ -475,6 +474,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 			.replaceAll("[key: string]: any;", "");
 
 		text = flatten(text);
+		text = interfaceToType(text);
 	} else {
 		text = `
 			declare namespace Eps {
@@ -566,6 +566,147 @@ function createService() {
 }
 
 /**
+ * 创建 service 代码
+ * @returns {string} service 代码
+ */
+function createServiceCode(): { content: string; types: string[] } {
+	const types: string[] = [];
+
+	let chain = "";
+
+	/**
+	 * 递归处理 service 树，生成接口代码
+	 * @param d 当前节点
+	 * @param k 前缀
+	 */
+	function deep(d: any, k?: string) {
+		if (!k) k = "";
+
+		for (const i in d) {
+			if (["swagger"].includes(i)) {
+				continue;
+			}
+
+			const name = k + toCamel(firstUpperCase(formatName(i)));
+
+			// 检查方法名
+			if (!checkName(name)) continue;
+
+			if (d[i].namespace) {
+				// 查找配置
+				const item = list.find((e) => (e.prefix || "") === `/${d[i].namespace}`);
+
+				if (item) {
+					//
+					let t = `{`;
+
+					// 插入方法
+					if (item.api) {
+						item.api.forEach((a) => {
+							// 方法名
+							const n = toCamel(formatName(a.name || last(a.path.split("/"))!));
+
+							// 检查方法名
+							if (!checkName(n)) return;
+
+							if (n) {
+								// 参数类型
+								let q: string[] = [];
+
+								// 参数列表
+								const { parameters = [] } = a.dts || {};
+
+								parameters.forEach((p) => {
+									if (p.description) {
+										q.push(`\n/** ${p.description}  */\n`);
+									}
+
+									// 检查参数名
+									if (!checkName(p.name)) {
+										return false;
+									}
+
+									const a = `${p.name}${p.required ? "" : "?"}`;
+									const b = `${p.schema.type || "string"}`;
+
+									q.push(`${a}: ${b}, `);
+								});
+
+								if (isEmpty(q)) {
+									q = ["any"];
+								} else {
+									q.unshift("{");
+									q.push("}");
+								}
+
+								if (item.name) {
+									types.push(item.name);
+								}
+
+								// 返回类型
+								let res = "";
+
+								// 实体名
+								const en = item.name || "any";
+
+								switch (a.path) {
+									case "/page":
+										res = `PageResponse<${en}>`;
+										break;
+									case "/list":
+										res = `${en} []`;
+										break;
+									case "/info":
+										res = en;
+										break;
+									default:
+										res = "any";
+										break;
+								}
+
+								// 方法描述
+								t += `
+									/**
+									 * ${a.summary || n}
+									 */
+									${n}(data${q.length == 1 ? "?" : ""}: ${q.join("")})${noUniappX(`: Promise<${res}>`)} {
+										return request({
+											url: "/${d[i].namespace}${a.path}",
+											method: "${(a.method || "get").toLocaleUpperCase()}",
+											data,
+										});
+									},
+								`;
+							}
+						});
+					}
+
+					t += `} as ${name}\n`;
+
+					types.push(name);
+
+					chain += `${formatName(i)}: ${t},\n`;
+				}
+			} else {
+				chain += `${formatName(i)}: {`;
+				deep(d[i], name);
+				chain += `} as ${firstUpperCase(i)}Interface,`;
+
+				types.push(`${firstUpperCase(i)}Interface`);
+			}
+		}
+	}
+
+	// 遍历 service 树
+	deep(service);
+
+	return {
+		content: `{ ${chain} }`,
+		types,
+	};
+}
+
+/**
  * 获取字典类型定义
  * @returns {Promise<string>} 字典类型 type 定义
  */
@@ -606,7 +747,6 @@ async function createDict(): Promise<string> {
 
 /**
  * 主入口：创建 eps 相关文件和 service
- * @returns {Promise<{service: any, list: Eps.Entity[], isUpdate?: boolean}>}
  */
 export async function createEps() {
 	if (config.eps.enable) {
@@ -615,6 +755,8 @@ export async function createEps() {
 
 		// 构建 service 对象
 		createService();
+
+		const serviceCode = createServiceCode();
 
 		// 创建 eps 目录
 		createDir(getEpsPath(), true);
@@ -627,6 +769,7 @@ export async function createEps() {
 
 		return {
 			service,
+			serviceCode,
 			list,
 			isUpdate,
 		};
