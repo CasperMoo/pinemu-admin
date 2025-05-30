@@ -1859,10 +1859,6 @@ if (typeof window !== 'undefined') {
                         }
                         ctx["theme"] = theme;
                         code = code.replace("const ctx = {}", `const ctx = ${JSON.stringify(ctx, null, 4)}`);
-                        return {
-                            code,
-                            map: { mappings: "" },
-                        };
                     }
                     if (id.includes("/cool/service/index.ts")) {
                         const eps = await createEps();
@@ -1874,11 +1870,34 @@ if (typeof window !== 'undefined') {
                                     "\n\n" +
                                     code.replace("const service = {}", `const service = ${content}`);
                         }
-                        return {
-                            code,
-                            map: { mappings: "" },
-                        };
                     }
+                    // if (id.includes("/cool/hooks/dict.ts")) {
+                    // 	const url = config.reqUrl + "/app/dict/info/types";
+                    // 	let DictKey = "string";
+                    // 	let DictData = "UTSJSONObject";
+                    // 	let DictDataCode = "{}";
+                    // 	await axios.get(url).then((res) => {
+                    // 		const { code, data } = res.data as { code: number; data: any[] };
+                    // 		if (code === 1000) {
+                    // 			if (!isEmpty(data)) {
+                    // 				DictKey = data.map((e) => `"${e.key}"`).join(" | ");
+                    // 				DictData = data.map((e) => `${e.key}: UTSJSONObject[];`).join("\n");
+                    // 			}
+                    // 		}
+                    // 	});
+                    // 	code = code.replace(
+                    // 		"export type DictKey = string;",
+                    // 		`export type DictKey = ${DictKey};`,
+                    // 	);
+                    // 	code = code.replace(
+                    // 		"export type DictData = {};",
+                    // 		`export type DictData = {${DictData}};`,
+                    // 	);
+                    // 	code = code.replace(
+                    // 		"const data = {} as DictData;",
+                    // 		`const data = {} as {${DictDataCode}};`,
+                    // 	);
+                    // }
                     if (id.endsWith(".json")) {
                         const d = JSON.parse(code);
                         for (let i in d) {
@@ -1891,11 +1910,12 @@ if (typeof window !== 'undefined') {
                                 delete d[i];
                             }
                         }
-                        return {
-                            code: JSON.stringify(d),
-                            map: { mappings: "" },
-                        };
+                        code = JSON.stringify(d);
                     }
+                    return {
+                        code,
+                        map: { mappings: "" },
+                    };
                 },
             },
             {
