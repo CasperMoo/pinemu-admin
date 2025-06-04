@@ -26,12 +26,8 @@ export function getProxyTarget(proxy: any) {
 		const value = match[1];
 
 		try {
-			if (config.type == "uniapp-x") {
-				return proxy[value].target;
-			} else {
-				const { target, rewrite } = proxy[`/${value}/`];
-				return target + rewrite(`/${value}`);
-			}
+			const { target, rewrite } = proxy[`/${value}/`];
+			return target + rewrite(`/${value}`);
 		} catch (err) {
 			error(`[cool-proxy] Error：${value} → ` + getPath());
 			return "";
