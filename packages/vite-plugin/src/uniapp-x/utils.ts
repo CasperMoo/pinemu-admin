@@ -25,6 +25,32 @@ export const getDynamicClassNames = (value: string): string[] => {
 		ternaryMatch[2].trim() && names.add(ternaryMatch[2]);
 	}
 
+	// 匹配反引号模板字符串
+	const templateRegex = /`([^`]*)`/g;
+	let templateMatch;
+	while ((templateMatch = templateRegex.exec(value)) !== null) {
+		const templateContent = templateMatch[1];
+
+		// 提取模板字符串中的普通文本部分（排除 ${} 表达式）
+		const textParts = templateContent.split(/\$\{[^}]*\}/);
+		textParts.forEach((part) => {
+			part.trim()
+				.split(/\s+/)
+				.forEach((className) => {
+					className.trim() && names.add(className.trim());
+				});
+		});
+
+		// 提取模板字符串中 ${} 表达式内的字符串
+		const expressionRegex = /\$\{([^}]*)\}/g;
+		let expressionMatch;
+		while ((expressionMatch = expressionRegex.exec(templateContent)) !== null) {
+			const expression = expressionMatch[1];
+			// 递归处理表达式中的动态类名
+			getDynamicClassNames(expression).forEach((name) => names.add(name));
+		}
+	}
+
 	return Array.from(names);
 };
 
@@ -32,7 +58,7 @@ export const getDynamicClassNames = (value: string): string[] => {
  * 获取类名
  */
 export function getClassNames(html: string): string[] {
-	const classRegex = /(?:class|:class)\s*=\s*(["'])([\s\S]*?)\1/gi;
+	const classRegex = /(?:class|:class|:pt)\s*=\s*(['"`])([\s\S]*?)\1/gi;
 	const classNames = new Set<string>();
 	let match;
 
@@ -56,7 +82,7 @@ export function getClassNames(html: string): string[] {
  * 获取 class 内容
  */
 export function getClassContent(html: string) {
-	const regex = /(?:class|:class)\s*=\s*(['"])([\s\S]*?)\1/g;
+	const regex = /(?:class|:class|:pt)\s*=\s*(['"`])([\s\S]*?)\1/g;
 	const texts: string[] = [];
 
 	let match;
@@ -221,6 +247,10 @@ export function isTailwindClass(className: string): boolean {
 	];
 
 	const statePrefixes = ["dark:", "light:", "sm:", "md:", "lg:", "xl:", "2xl:"];
+
+	if (className.includes("!")) {
+		return true;
+	}
 
 	for (const prefix of prefixes) {
 		if (className.startsWith(prefix)) {

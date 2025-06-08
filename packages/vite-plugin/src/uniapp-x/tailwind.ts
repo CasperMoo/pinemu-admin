@@ -331,7 +331,6 @@ function transformPlugin(): Plugin {
 						.replaceAll('class=""', "")
 						.replaceAll('class=" "', "");
 
-					// console.log(modifiedCode);
 					return {
 						code: modifiedCode,
 						map: { mappings: "" },

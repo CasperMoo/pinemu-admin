@@ -7,7 +7,6 @@
     const config = {
         type: "admin",
         reqUrl: "",
-        demo: false,
         nameTag: true,
         eps: {
             enable: true,
@@ -245,13 +244,36 @@
         while ((ternaryMatch = ternaryRegex.exec(value)) !== null) {
             ternaryMatch[2].trim() && names.add(ternaryMatch[2]);
         }
+        // 匹配反引号模板字符串
+        const templateRegex = /`([^`]*)`/g;
+        let templateMatch;
+        while ((templateMatch = templateRegex.exec(value)) !== null) {
+            const templateContent = templateMatch[1];
+            // 提取模板字符串中的普通文本部分（排除 ${} 表达式）
+            const textParts = templateContent.split(/\$\{[^}]*\}/);
+            textParts.forEach((part) => {
+                part.trim()
+                    .split(/\s+/)
+                    .forEach((className) => {
+                    className.trim() && names.add(className.trim());
+                });
+            });
+            // 提取模板字符串中 ${} 表达式内的字符串
+            const expressionRegex = /\$\{([^}]*)\}/g;
+            let expressionMatch;
+            while ((expressionMatch = expressionRegex.exec(templateContent)) !== null) {
+                const expression = expressionMatch[1];
+                // 递归处理表达式中的动态类名
+                getDynamicClassNames(expression).forEach((name) => names.add(name));
+            }
+        }
         return Array.from(names);
     };
     /**
      * 获取类名
      */
     function getClassNames(html) {
-        const classRegex = /(?:class|:class)\s*=\s*(["'])([\s\S]*?)\1/gi;
+        const classRegex = /(?:class|:class|:pt)\s*=\s*(['"`])([\s\S]*?)\1/gi;
         const classNames = new Set();
         let match;
         while ((match = classRegex.exec(html)) !== null) {
@@ -272,7 +294,7 @@
      * 获取 class 内容
      */
     function getClassContent(html) {
-        const regex = /(?:class|:class)\s*=\s*(['"])([\s\S]*?)\1/g;
+        const regex = /(?:class|:class|:pt)\s*=\s*(['"`])([\s\S]*?)\1/g;
         const texts = [];
         let match;
         while ((match = regex.exec(html)) !== null) {
@@ -410,6 +432,9 @@
             "group-hover:",
         ];
         const statePrefixes = ["dark:", "light:", "sm:", "md:", "lg:", "xl:", "2xl:"];
+        if (className.includes("!")) {
+            return true;
+        }
         for (const prefix of prefixes) {
             if (className.startsWith(prefix)) {
                 return true;
@@ -1165,13 +1190,8 @@
         if (match) {
             const value = match[1];
             try {
-                if (config.type == "uniapp-x") {
-                    return proxy[value].target;
-                }
-                else {
-                    const { target, rewrite } = proxy[`/${value}/`];
-                    return target + rewrite(`/${value}`);
-                }
+                const { target, rewrite } = proxy[`/${value}/`];
+                return target + rewrite(`/${value}`);
             }
             catch (err) {
                 error(`[cool-proxy] Error：${value} → ` + getPath());
@@ -1823,7 +1843,6 @@ if (typeof window !== 'undefined') {
                             .replaceAll(':class="{}"', "")
                             .replaceAll('class=""', "")
                             .replaceAll('class=" "', "");
-                        // console.log(modifiedCode);
                         return {
                             code: modifiedCode,
                             map: { mappings: "" },
