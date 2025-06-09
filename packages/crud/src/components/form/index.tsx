@@ -1,4 +1,4 @@
-import { defineComponent, h, nextTick, } from "vue";
+import { defineComponent, h, nextTick } from "vue";
 import { assign, cloneDeep, isBoolean, isFunction, keys } from "lodash-es";
 import { useAction, useForm, usePlugins, useTabs } from "./helper";
 import { useBrowser, useConfig, useElApi, useRefs } from "../../hooks";
@@ -16,7 +16,7 @@ export default defineComponent({
 		enablePlugin: {
 			type: Boolean,
 			default: true
-		},
+		}
 	},
 
 	setup(props, { expose, slots }) {
@@ -39,7 +39,14 @@ export default defineComponent({
 
 		// 方法
 		const ElFormApi = useElApi(
-			["validate", "validateField", "resetFields", "scrollToField", "clearValidate", "fields"],
+			[
+				"validate",
+				"validateField",
+				"resetFields",
+				"scrollToField",
+				"clearValidate",
+				"fields"
+			],
 			Form
 		);
 
@@ -291,7 +298,7 @@ export default defineComponent({
 						if (e.required) {
 							e.rules = {
 								required: true,
-								message: dict.label.nonEmpty.replace('{label}', e.label || '')
+								message: dict.label.nonEmpty.replace("{label}", e.label || "")
 							};
 						}
 					}
@@ -635,9 +642,7 @@ export default defineComponent({
 			Tabs,
 			...Action,
 			...ElFormApi
-		}
-
-		// console.log(ctx)
+		};
 
 		expose(ctx);
 

@@ -98,19 +98,20 @@ export function getClassContent(html: string) {
  */
 export function getNodes(code: string) {
 	const nodes: string[] = [];
-	const templateMatch = /<template>([\s\S]*?)<\/template>/g.exec(code);
+	const templateRegex = /<template[^>]*>([\s\S]*?)<\/template>/g;
+	let templateMatch;
 
-	if (!templateMatch) {
-		return nodes;
-	}
+	// 找到所有的 template 标签内容
+	while ((templateMatch = templateRegex.exec(code)) !== null) {
+		const templateContent = templateMatch[1];
+		const regex = /<([^>]+)>/g;
+		let match;
 
-	const templateContent = templateMatch[1];
-	const regex = /<([^>]+)>/g;
-	let match;
-
-	while ((match = regex.exec(templateContent)) !== null) {
-		if (!match[1].startsWith("/")) {
-			nodes.push(match[1]);
+		// 提取每个 template 中的所有标签
+		while ((match = regex.exec(templateContent)) !== null) {
+			if (!match[1].startsWith("/")) {
+				nodes.push(match[1]);
+			}
 		}
 	}
 
