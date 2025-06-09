@@ -632,6 +632,12 @@ declare namespace ClForm {
 		changeTab(value: any, valid?: boolean): Promise<any>;
 		setTitle(value: string): void;
 		submit(cb?: (data: obj) => void): void;
+		Tabs: {
+			active: RefData<string>;
+			list: ClFormTabs.labels;
+			change(value: any, valid?: boolean): Promise<any>;
+			[key: string]: any;
+		};
 		[key: string]: any;
 	}
 

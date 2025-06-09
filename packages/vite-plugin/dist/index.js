@@ -307,16 +307,18 @@
      */
     function getNodes(code) {
         const nodes = [];
-        const templateMatch = /<template>([\s\S]*?)<\/template>/g.exec(code);
-        if (!templateMatch) {
-            return nodes;
-        }
-        const templateContent = templateMatch[1];
-        const regex = /<([^>]+)>/g;
-        let match;
-        while ((match = regex.exec(templateContent)) !== null) {
-            if (!match[1].startsWith("/")) {
-                nodes.push(match[1]);
+        const templateRegex = /<template[^>]*>([\s\S]*?)<\/template>/g;
+        let templateMatch;
+        // 找到所有的 template 标签内容
+        while ((templateMatch = templateRegex.exec(code)) !== null) {
+            const templateContent = templateMatch[1];
+            const regex = /<([^>]+)>/g;
+            let match;
+            // 提取每个 template 中的所有标签
+            while ((match = regex.exec(templateContent)) !== null) {
+                if (!match[1].startsWith("/")) {
+                    nodes.push(match[1]);
+                }
             }
         }
         return nodes.map((e) => `<${e}>`);
@@ -1676,6 +1678,10 @@ if (typeof window !== 'undefined') {
                                         return {
                                             // 处理选择器规则
                                             Rule(rule) {
+                                                if (rule.selector.includes("uni-") ||
+                                                    [".button-hover"].some((e) => rule.selector.includes(e))) {
+                                                    return;
+                                                }
                                                 // 转换选择器为安全的类名格式
                                                 rule.selector = toSafeClass(rule.selector.replace(/\\/g, ""));
                                             },

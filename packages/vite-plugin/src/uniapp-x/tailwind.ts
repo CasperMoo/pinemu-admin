@@ -112,6 +112,15 @@ function postcssPlugin(): Plugin {
 									return {
 										// 处理选择器规则
 										Rule(rule: any) {
+											if (
+												rule.selector.includes("uni-") ||
+												[".button-hover"].some((e) =>
+													rule.selector.includes(e),
+												)
+											) {
+												return;
+											}
+
 											// 转换选择器为安全的类名格式
 											rule.selector = toSafeClass(
 												rule.selector.replace(/\\/g, ""),
