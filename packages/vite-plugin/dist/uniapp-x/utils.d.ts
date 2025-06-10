@@ -5,11 +5,11 @@ export declare const getDynamicClassNames: (value: string) => string[];
 /**
  * 获取类名
  */
-export declare function getClassNames(html: string): string[];
+export declare function getClassNames(code: string): string[];
 /**
  * 获取 class 内容
  */
-export declare function getClassContent(html: string): string[];
+export declare function getClassContent(code: string): string[];
 /**
  * 获取节点
  */

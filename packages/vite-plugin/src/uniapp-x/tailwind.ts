@@ -150,9 +150,20 @@ function postcssPlugin(): Plugin {
 											if (
 												decl.value.includes("rpx") &&
 												decl.prop == "color" &&
-												decl.parent.selector.includes("text-")
+												decl.parent.selector?.includes("text-")
 											) {
 												decl.prop = "font-size";
+											}
+
+											// 删除不支持的属性
+											if (["filter"].includes(decl.prop)) {
+												decl.remove();
+												return;
+											}
+
+											// 处理 flex-1
+											if (decl.prop == "flex") {
+												decl.value = "1";
 											}
 
 											// 解析声明值
@@ -189,12 +200,6 @@ function postcssPlugin(): Plugin {
 											// 更新声明值
 											if (hasChanges) {
 												decl.value = parsed.toString();
-											}
-
-											// 删除不支持的属性
-											if (["filter"].includes(decl.prop)) {
-												decl.remove();
-												return;
 											}
 
 											// 移除 undefined

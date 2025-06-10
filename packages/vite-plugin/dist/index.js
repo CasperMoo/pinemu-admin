@@ -272,11 +272,11 @@
     /**
      * 获取类名
      */
-    function getClassNames(html) {
+    function getClassNames(code) {
         const classRegex = /(?:class|:class|:pt)\s*=\s*(['"`])([\s\S]*?)\1/gi;
         const classNames = new Set();
         let match;
-        while ((match = classRegex.exec(html)) !== null) {
+        while ((match = classRegex.exec(code)) !== null) {
             const isStaticClass = match[0].startsWith("class");
             const value = match[2].trim();
             if (isStaticClass) {
@@ -293,11 +293,11 @@
     /**
      * 获取 class 内容
      */
-    function getClassContent(html) {
+    function getClassContent(code) {
         const regex = /(?:class|:class|:pt)\s*=\s*(['"`])([\s\S]*?)\1/g;
         const texts = [];
         let match;
-        while ((match = regex.exec(html)) !== null) {
+        while ((match = regex.exec(code)) !== null) {
             texts.push(match[2]);
         }
         return texts;
@@ -307,20 +307,79 @@
      */
     function getNodes(code) {
         const nodes = [];
-        const templateRegex = /<template[^>]*>([\s\S]*?)<\/template>/g;
-        let templateMatch;
-        // 找到所有的 template 标签内容
-        while ((templateMatch = templateRegex.exec(code)) !== null) {
-            const templateContent = templateMatch[1];
+        // 找到所有顶级template标签的完整内容
+        function findTemplateContents(content) {
+            const results = [];
+            let index = 0;
+            while (index < content.length) {
+                const templateStart = content.indexOf("<template", index);
+                if (templateStart === -1)
+                    break;
+                // 找到模板标签的结束位置
+                const tagEnd = content.indexOf(">", templateStart);
+                if (tagEnd === -1)
+                    break;
+                // 使用栈来匹配配对的template标签
+                let stack = 1;
+                let currentPos = tagEnd + 1;
+                while (currentPos < content.length && stack > 0) {
+                    const nextTemplateStart = content.indexOf("<template", currentPos);
+                    const nextTemplateEnd = content.indexOf("</template>", currentPos);
+                    if (nextTemplateEnd === -1)
+                        break;
+                    // 如果开始标签更近，说明有嵌套
+                    if (nextTemplateStart !== -1 && nextTemplateStart < nextTemplateEnd) {
+                        // 找到开始标签的完整结束
+                        const nestedTagEnd = content.indexOf(">", nextTemplateStart);
+                        if (nestedTagEnd !== -1) {
+                            stack++;
+                            currentPos = nestedTagEnd + 1;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    else {
+                        // 找到结束标签
+                        stack--;
+                        currentPos = nextTemplateEnd + 11; // '</template>'.length
+                    }
+                }
+                if (stack === 0) {
+                    // 提取template内容（不包括template标签本身）
+                    const templateContent = content.substring(tagEnd + 1, currentPos - 11);
+                    results.push(templateContent);
+                    index = currentPos;
+                }
+                else {
+                    // 如果没有找到匹配的结束标签，跳过这个开始标签
+                    index = tagEnd + 1;
+                }
+            }
+            return results;
+        }
+        // 递归提取所有template内容中的节点
+        function extractNodesFromContent(content) {
+            // 先提取当前内容中的所有标签
             const regex = /<([^>]+)>/g;
             let match;
-            // 提取每个 template 中的所有标签
-            while ((match = regex.exec(templateContent)) !== null) {
-                if (!match[1].startsWith("/")) {
+            while ((match = regex.exec(content)) !== null) {
+                if (!match[1].startsWith("/") && !match[1].startsWith("template")) {
                     nodes.push(match[1]);
                 }
             }
+            // 递归处理嵌套的template
+            const nestedTemplates = findTemplateContents(content);
+            nestedTemplates.forEach((templateContent) => {
+                extractNodesFromContent(templateContent);
+            });
         }
+        // 获取所有顶级template内容
+        const templateContents = findTemplateContents(code);
+        // 处理每个template内容
+        templateContents.forEach((templateContent) => {
+            extractNodesFromContent(templateContent);
+        });
         return nodes.map((e) => `<${e}>`);
     }
     /**
@@ -1703,8 +1762,17 @@ if (typeof window !== 'undefined') {
                                                 // 处理文本大小相关样式
                                                 if (decl.value.includes("rpx") &&
                                                     decl.prop == "color" &&
-                                                    decl.parent.selector.includes("text-")) {
+                                                    decl.parent.selector?.includes("text-")) {
                                                     decl.prop = "font-size";
+                                                }
+                                                // 删除不支持的属性
+                                                if (["filter"].includes(decl.prop)) {
+                                                    decl.remove();
+                                                    return;
+                                                }
+                                                // 处理 flex-1
+                                                if (decl.prop == "flex") {
+                                                    decl.value = "1";
                                                 }
                                                 // 解析声明值
                                                 const parsed = valueParser(decl.value);
@@ -1734,11 +1802,6 @@ if (typeof window !== 'undefined') {
                                                 // 更新声明值
                                                 if (hasChanges) {
                                                     decl.value = parsed.toString();
-                                                }
-                                                // 删除不支持的属性
-                                                if (["filter"].includes(decl.prop)) {
-                                                    decl.remove();
-                                                    return;
                                                 }
                                                 // 移除 undefined
                                                 decl.value = decl.value.replaceAll(" undefined", "");
