@@ -1687,9 +1687,6 @@ if (typeof window !== 'undefined') {
                                             },
                                             // 处理声明规则
                                             Declaration(decl) {
-                                                // 跳过包含 no-rem 注释的声明
-                                                if (decl.value.includes("/* no-rem */"))
-                                                    return;
                                                 // 处理 Tailwind 自定义属性
                                                 if (decl.prop.includes("--tw-")) {
                                                     colorValues[decl.prop] = decl.value.includes("rem")
@@ -1738,6 +1735,13 @@ if (typeof window !== 'undefined') {
                                                 if (hasChanges) {
                                                     decl.value = parsed.toString();
                                                 }
+                                                // 删除不支持的属性
+                                                if (["filter"].includes(decl.prop)) {
+                                                    decl.remove();
+                                                    return;
+                                                }
+                                                // 移除 undefined
+                                                decl.value = decl.value.replaceAll(" undefined", "");
                                             },
                                         };
                                     },
@@ -1766,6 +1770,10 @@ if (typeof window !== 'undefined') {
                     // 遍历处理每个节点
                     nodes.forEach((node) => {
                         let _node = node;
+                        // 兼容 <input /> 标签
+                        if (_node.startsWith("<input")) {
+                            _node = _node.replace("/>", "</input>");
+                        }
                         // 为 text 节点添加暗黑模式文本颜色
                         if (!_node.includes(darkTextClass) && _node.startsWith("<text")) {
                             let classIndex = _node.indexOf("class=");
@@ -1896,33 +1904,6 @@ if (typeof window !== 'undefined') {
                                     code.replace("const service = {}", `const service = ${content}`);
                         }
                     }
-                    // if (id.includes("/cool/hooks/dict.ts")) {
-                    // 	const url = config.reqUrl + "/app/dict/info/types";
-                    // 	let DictKey = "string";
-                    // 	let DictData = "UTSJSONObject";
-                    // 	let DictDataCode = "{}";
-                    // 	await axios.get(url).then((res) => {
-                    // 		const { code, data } = res.data as { code: number; data: any[] };
-                    // 		if (code === 1000) {
-                    // 			if (!isEmpty(data)) {
-                    // 				DictKey = data.map((e) => `"${e.key}"`).join(" | ");
-                    // 				DictData = data.map((e) => `${e.key}: UTSJSONObject[];`).join("\n");
-                    // 			}
-                    // 		}
-                    // 	});
-                    // 	code = code.replace(
-                    // 		"export type DictKey = string;",
-                    // 		`export type DictKey = ${DictKey};`,
-                    // 	);
-                    // 	code = code.replace(
-                    // 		"export type DictData = {};",
-                    // 		`export type DictData = {${DictData}};`,
-                    // 	);
-                    // 	code = code.replace(
-                    // 		"const data = {} as DictData;",
-                    // 		`const data = {} as {${DictDataCode}};`,
-                    // 	);
-                    // }
                     if (id.endsWith(".json")) {
                         const d = JSON.parse(code);
                         for (let i in d) {
