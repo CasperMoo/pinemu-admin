@@ -2,11 +2,12 @@ import { inject, reactive, ref } from "vue";
 import { useConfig } from "../../../hooks";
 import { getValue, mergeConfig } from "../../../utils";
 import { ElTable } from "element-plus";
+import type { TableInstance } from "element-plus";
 
 export function useTable(props: any) {
 	const { style } = useConfig();
 
-	const Table = ref<InstanceType<typeof ElTable>>();
+	const Table = ref<TableInstance>();
 
 	// 配置
 	const config = reactive<ClTable.Config>(mergeConfig(props, inject("useTable__options") || {}));
