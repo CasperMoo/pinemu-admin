@@ -493,7 +493,7 @@
             "group-hover:",
         ];
         const statePrefixes = ["dark:", "light:", "sm:", "md:", "lg:", "xl:", "2xl:"];
-        if (className.includes("!")) {
+        if (className.startsWith("!") && !className.includes("!=")) {
             return true;
         }
         for (const prefix of prefixes) {
@@ -1670,6 +1670,10 @@ if (typeof window !== 'undefined') {
         if (className.includes(":host")) {
             return className;
         }
+        // 如果是表达式,则不进行转换
+        if (["!=", "!==", "?", ":", "="].includes(className)) {
+            return className;
+        }
         let safeClassName = className;
         // 移除转义字符
         if (safeClassName.includes("\\")) {
@@ -1772,7 +1776,9 @@ if (typeof window !== 'undefined') {
                                                 }
                                                 // 处理 flex-1
                                                 if (decl.prop == "flex") {
-                                                    decl.value = "1";
+                                                    if (decl.value.startsWith("1")) {
+                                                        decl.value = "1";
+                                                    }
                                                 }
                                                 // 解析声明值
                                                 const parsed = valueParser(decl.value);
