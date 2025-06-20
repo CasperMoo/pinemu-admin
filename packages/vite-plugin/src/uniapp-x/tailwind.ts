@@ -34,6 +34,11 @@ function toSafeClass(className: string): string {
 		return className;
 	}
 
+	// 如果是表达式,则不进行转换
+	if (["!=", "!==", "?", ":", "="].includes(className)) {
+		return className;
+	}
+
 	let safeClassName = className;
 
 	// 移除转义字符
@@ -163,7 +168,9 @@ function postcssPlugin(): Plugin {
 
 											// 处理 flex-1
 											if (decl.prop == "flex") {
-												decl.value = "1";
+												if (decl.value.startsWith("1")) {
+													decl.value = "1";
+												}
 											}
 
 											// 解析声明值

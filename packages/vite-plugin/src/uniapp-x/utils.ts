@@ -314,7 +314,7 @@ export function isTailwindClass(className: string): boolean {
 
 	const statePrefixes = ["dark:", "light:", "sm:", "md:", "lg:", "xl:", "2xl:"];
 
-	if (className.includes("!")) {
+	if (className.startsWith("!") && !className.includes("!=")) {
 		return true;
 	}
 
