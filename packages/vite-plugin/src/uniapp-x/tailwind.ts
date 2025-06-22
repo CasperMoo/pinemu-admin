@@ -173,6 +173,11 @@ function postcssPlugin(): Plugin {
 												}
 											}
 
+											// 处理 visibility 属性
+											if (decl.prop == "visibility") {
+												decl.remove();
+											}
+
 											// 解析声明值
 											const parsed = valueParser(decl.value);
 											let hasChanges = false;
