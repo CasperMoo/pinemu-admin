@@ -1750,6 +1750,7 @@ if (typeof window !== 'undefined') {
                                             },
                                             // 处理声明规则
                                             Declaration(decl) {
+                                                const className = decl.parent.selector || "";
                                                 // 处理 Tailwind 自定义属性
                                                 if (decl.prop.includes("--tw-")) {
                                                     colorValues[decl.prop] = decl.value.includes("rem")
@@ -1766,7 +1767,7 @@ if (typeof window !== 'undefined') {
                                                 // 处理文本大小相关样式
                                                 if (decl.value.includes("rpx") &&
                                                     decl.prop == "color" &&
-                                                    decl.parent.selector?.includes("text-")) {
+                                                    className.includes("text-")) {
                                                     decl.prop = "font-size";
                                                 }
                                                 // 删除不支持的属性
@@ -1778,6 +1779,17 @@ if (typeof window !== 'undefined') {
                                                 if (decl.prop == "flex") {
                                                     if (decl.value.startsWith("1")) {
                                                         decl.value = "1";
+                                                    }
+                                                }
+                                                // 处理 visibility 属性
+                                                if (decl.prop == "visibility") {
+                                                    decl.remove();
+                                                }
+                                                // 处理 sticky 属性
+                                                if (className == ".sticky") {
+                                                    if (decl.prop == "position" ||
+                                                        decl.value == "sticky") {
+                                                        decl.remove();
                                                     }
                                                 }
                                                 // 解析声明值

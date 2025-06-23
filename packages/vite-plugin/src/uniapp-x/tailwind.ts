@@ -134,6 +134,8 @@ function postcssPlugin(): Plugin {
 
 										// 处理声明规则
 										Declaration(decl: any) {
+											const className = decl.parent.selector || "";
+
 											// 处理 Tailwind 自定义属性
 											if (decl.prop.includes("--tw-")) {
 												colorValues[decl.prop] = decl.value.includes("rem")
@@ -155,7 +157,7 @@ function postcssPlugin(): Plugin {
 											if (
 												decl.value.includes("rpx") &&
 												decl.prop == "color" &&
-												decl.parent.selector?.includes("text-")
+												className.includes("text-")
 											) {
 												decl.prop = "font-size";
 											}
@@ -176,6 +178,16 @@ function postcssPlugin(): Plugin {
 											// 处理 visibility 属性
 											if (decl.prop == "visibility") {
 												decl.remove();
+											}
+
+											// 处理 sticky 属性
+											if (className == ".sticky") {
+												if (
+													decl.prop == "position" ||
+													decl.value == "sticky"
+												) {
+													decl.remove();
+												}
 											}
 
 											// 解析声明值
