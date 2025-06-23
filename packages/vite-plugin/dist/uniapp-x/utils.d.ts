@@ -26,3 +26,4 @@ export declare function isTailwindClass(className: string): boolean;
  * 将 interface 转换为 type
  */
 export declare function interfaceToType(code: string): string;
+export declare function test(): void;
