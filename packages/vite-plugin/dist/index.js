@@ -226,26 +226,46 @@
      */
     const getDynamicClassNames = (value) => {
         const names = new Set();
-        // 匹配数组中的字符串元素（如 'text-center'）
-        const arrayRegex = /['"](.*?)['"]/g;
-        let arrayMatch;
-        while ((arrayMatch = arrayRegex.exec(value)) !== null) {
-            arrayMatch[1].trim() && names.add(arrayMatch[1]);
+        // 匹配函数调用中的对象参数（如 parseClass({'!bg-surface-50': hoverable})）
+        const functionCallRegex = /\w+\s*\(\s*\{([^}]*)\}\s*\)/gs;
+        let funcMatch;
+        while ((funcMatch = functionCallRegex.exec(value)) !== null) {
+            const objContent = funcMatch[1];
+            // 提取对象中的键
+            const keyRegex = /['"](.*?)['"]\s*:/gs;
+            let keyMatch;
+            while ((keyMatch = keyRegex.exec(objContent)) !== null) {
+                keyMatch[1].trim() && names.add(keyMatch[1]);
+            }
         }
-        // 匹配对象键（如 { 'text-a': 1 }）
-        const objKeyRegex = /[{,]\s*['"](.*?)['"]\s*:/g;
+        // 匹配对象键（如 { 'text-a': 1 }）- 优化版本，避免跨行错误匹配
+        const objKeyRegex = /[{,]\s*['"](.*?)['"]\s*:/gs;
         let objKeyMatch;
         while ((objKeyMatch = objKeyRegex.exec(value)) !== null) {
-            objKeyMatch[1].trim() && names.add(objKeyMatch[1]);
+            const className = objKeyMatch[1].trim();
+            // 确保是有效的CSS类名，避免匹配到错误内容
+            if (className && !className.includes("\n") && !className.includes("\t")) {
+                names.add(className);
+            }
+        }
+        // 匹配数组中的字符串元素（如 'text-center'）- 优化版本
+        const arrayStringRegex = /(?:^|[,\[\s])\s*['"](.*?)['"]/gs;
+        let arrayMatch;
+        while ((arrayMatch = arrayStringRegex.exec(value)) !== null) {
+            const className = arrayMatch[1].trim();
+            // 确保是有效的CSS类名
+            if (className && !className.includes("\n") && !className.includes("\t")) {
+                names.add(className);
+            }
         }
         // 匹配三元表达式中的字符串（如 'dark' 和 'light'）
-        const ternaryRegex = /(\?|:)\s*['"](.*?)['"]/g;
+        const ternaryRegex = /(\?|:)\s*['"](.*?)['"]/gs;
         let ternaryMatch;
         while ((ternaryMatch = ternaryRegex.exec(value)) !== null) {
             ternaryMatch[2].trim() && names.add(ternaryMatch[2]);
         }
-        // 匹配反引号模板字符串
-        const templateRegex = /`([^`]*)`/g;
+        // 匹配反引号模板字符串 - 改进版本
+        const templateRegex = /`([^`]*)`/gs;
         let templateMatch;
         while ((templateMatch = templateRegex.exec(value)) !== null) {
             const templateContent = templateMatch[1];
@@ -259,7 +279,7 @@
                 });
             });
             // 提取模板字符串中 ${} 表达式内的字符串
-            const expressionRegex = /\$\{([^}]*)\}/g;
+            const expressionRegex = /\$\{([^}]*)\}/gs;
             let expressionMatch;
             while ((expressionMatch = expressionRegex.exec(templateContent)) !== null) {
                 const expression = expressionMatch[1];
@@ -267,38 +287,183 @@
                 getDynamicClassNames(expression).forEach((name) => names.add(name));
             }
         }
+        // 处理混合字符串（模板字符串 + 普通文本），如 "`text-red-900` text-red-1000"
+        const mixedStringRegex = /`[^`]*`\s+([a-zA-Z0-9\-_\s]+)/g;
+        let mixedMatch;
+        while ((mixedMatch = mixedStringRegex.exec(value)) !== null) {
+            const additionalClasses = mixedMatch[1].trim().split(/\s+/);
+            additionalClasses.forEach((className) => {
+                className.trim() && names.add(className.trim());
+            });
+        }
+        // 处理普通字符串，多个类名用空格分割
+        const stringRegex = /['"]([\w\s\-!:\/]+?)['"]/gs;
+        let stringMatch;
+        while ((stringMatch = stringRegex.exec(value)) !== null) {
+            const classNames = stringMatch[1].trim().split(/\s+/);
+            classNames.forEach((className) => {
+                className.trim() && names.add(className.trim());
+            });
+        }
         return Array.from(names);
     };
     /**
      * 获取类名
      */
     function getClassNames(code) {
-        const classRegex = /(?:class|:class|:pt)\s*=\s*(['"`])([\s\S]*?)\1/gi;
+        // 修改正则表达式以支持多行匹配，避免内层引号冲突
+        const classRegex = /(?:class|:class|:pt|:hover-class)\s*=\s*(['"`])((?:[^'"`\\]|\\.|`[^`]*`|'[^']*'|"[^"]*")*?)\1/gis;
         const classNames = new Set();
         let match;
         while ((match = classRegex.exec(code)) !== null) {
-            const isStaticClass = match[0].startsWith("class");
+            const attribute = match[0].split("=")[0].trim();
+            const isStaticClass = attribute === "class" || attribute === "hover-class";
+            const isPtAttribute = attribute.includes("pt");
             const value = match[2].trim();
             if (isStaticClass) {
-                // 处理静态 class
+                // 处理静态 class 和 hover-class
                 value.split(/\s+/).forEach((name) => name && classNames.add(name));
             }
+            else if (isPtAttribute) {
+                // 处理 :pt 属性中的 className
+                parseClasNameFromPt(value, classNames);
+            }
             else {
-                // 处理动态 :class
+                // 处理动态 :class 和 :hover-class
                 getDynamicClassNames(value).forEach((name) => classNames.add(name));
             }
         }
         return Array.from(classNames);
     }
     /**
+     * 从 :pt 属性中解析 className
+     */
+    function parseClasNameFromPt(value, classNames) {
+        // 递归查找所有 className 属性
+        const classNameRegex = /className\s*:\s*/g;
+        let match;
+        while ((match = classNameRegex.exec(value)) !== null) {
+            const startPos = match.index + match[0].length;
+            const classNameValue = extractComplexValue(value, startPos);
+            if (classNameValue) {
+                // 如果是字符串字面量
+                if (classNameValue.startsWith('"') ||
+                    classNameValue.startsWith("'") ||
+                    classNameValue.startsWith("`")) {
+                    if (classNameValue.startsWith("`")) {
+                        // 处理模板字符串
+                        getDynamicClassNames(classNameValue).forEach((name) => classNames.add(name));
+                    }
+                    else {
+                        // 处理普通字符串
+                        const strMatch = classNameValue.match(/['"](.*?)['"]/);
+                        if (strMatch) {
+                            strMatch[1].split(/\s+/).forEach((name) => name && classNames.add(name));
+                        }
+                    }
+                }
+                else {
+                    // 处理动态值（如函数调用、对象等）
+                    getDynamicClassNames(classNameValue).forEach((name) => classNames.add(name));
+                }
+            }
+        }
+    }
+    /**
+     * 提取复杂值（支持嵌套引号和括号）
+     */
+    function extractComplexValue(text, startPos) {
+        let pos = startPos;
+        let depth = 0;
+        let inString = false;
+        let stringChar = "";
+        let result = "";
+        // 跳过开头的空白字符
+        while (pos < text.length && /\s/.test(text[pos])) {
+            pos++;
+        }
+        while (pos < text.length) {
+            const char = text[pos];
+            if (!inString) {
+                if (char === '"' || char === "'" || char === "`") {
+                    inString = true;
+                    stringChar = char;
+                    result += char;
+                }
+                else if (char === "{" || char === "(" || char === "[") {
+                    depth++;
+                    result += char;
+                }
+                else if (char === "}" || char === ")" || char === "]") {
+                    if (depth === 0 && char === "}") {
+                        // 遇到顶层的 } 时结束
+                        break;
+                    }
+                    depth--;
+                    result += char;
+                }
+                else if (char === "," && depth === 0) {
+                    // 遇到顶层的逗号时结束
+                    break;
+                }
+                else if (char === "\n" && depth === 0 && result.trim() !== "") {
+                    // 如果遇到换行且不在嵌套结构中，且已有内容，则结束
+                    break;
+                }
+                else {
+                    result += char;
+                }
+            }
+            else {
+                result += char;
+                if (char === stringChar && text[pos - 1] !== "\\") {
+                    inString = false;
+                    stringChar = "";
+                    // 如果字符串结束且depth为0，检查是否应该结束
+                    if (depth === 0) {
+                        // 看看下一个非空白字符是什么
+                        let nextPos = pos + 1;
+                        while (nextPos < text.length && /\s/.test(text[nextPos])) {
+                            nextPos++;
+                        }
+                        if (nextPos < text.length && (text[nextPos] === "," || text[nextPos] === "}")) {
+                            // 如果下一个字符是逗号或右括号，则结束
+                            break;
+                        }
+                    }
+                }
+            }
+            pos++;
+        }
+        return result.trim() || null;
+    }
+    /**
      * 获取 class 内容
      */
     function getClassContent(code) {
-        const regex = /(?:class|:class|:pt)\s*=\s*(['"`])([\s\S]*?)\1/g;
+        // 修改正则表达式以支持多行匹配，避免内层引号冲突
+        const regex = /(?:class|:class|:pt|:hover-class)\s*=\s*(['"`])((?:[^'"`\\]|\\.|`[^`]*`|'[^']*'|"[^"]*")*?)\1/gis;
         const texts = [];
         let match;
         while ((match = regex.exec(code)) !== null) {
-            texts.push(match[2]);
+            const attribute = match[0].split("=")[0].trim();
+            const isPtAttribute = attribute.includes("pt");
+            const value = match[2];
+            if (isPtAttribute) {
+                // 手动解析 className 值
+                const classNameRegex = /className\s*:\s*/g;
+                let classNameMatchResult;
+                while ((classNameMatchResult = classNameRegex.exec(value)) !== null) {
+                    const startPos = classNameMatchResult.index + classNameMatchResult[0].length;
+                    const classNameValue = extractComplexValue(value, startPos);
+                    if (classNameValue) {
+                        texts.push(classNameValue);
+                    }
+                }
+            }
+            else {
+                texts.push(value);
+            }
         }
         return texts;
     }
@@ -522,6 +687,8 @@
             return `type ${name}${extendsStr} = {${content}}`;
         });
     }
+    // test();
+    // npx ./src/uniapp-x/utils.ts
 
     // 全局 service 对象，用于存储服务结构
     const service = {};
