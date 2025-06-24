@@ -1987,11 +1987,14 @@ if (typeof window !== 'undefined') {
                                                     "scaleX(none)",
                                                     "scaleY(none)",
                                                 ];
-                                                nones.forEach((noneStr) => {
-                                                    if (decl.value && decl.value.includes(noneStr)) {
+                                                if (decl.value) {
+                                                    nones.forEach((noneStr) => {
                                                         decl.value = decl.value.replace(noneStr, "");
-                                                    }
-                                                });
+                                                        if (!decl.value) {
+                                                            decl.value = "none";
+                                                        }
+                                                    });
+                                                }
                                             },
                                         };
                                     },
