@@ -249,7 +249,7 @@ function postcssPlugin(): Plugin {
 												nones.forEach((noneStr) => {
 													decl.value = decl.value.replace(noneStr, "");
 
-													if (!decl.value) {
+													if (!decl.value || !decl.value.trim()) {
 														decl.value = "none";
 													}
 												});
