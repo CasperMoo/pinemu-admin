@@ -110,9 +110,7 @@ function postcssPlugin(): Plugin {
 								postcssPlugin: "vite-cool-uniappx-class-mapping",
 								prepare() {
 									// 存储 Tailwind 颜色值
-									const colorValues = {
-										...TW_DEFAULT_VALUES,
-									};
+									const colorValues: Record<string, string> = {};
 
 									return {
 										// 处理选择器规则
@@ -136,11 +134,17 @@ function postcssPlugin(): Plugin {
 										Declaration(decl: any) {
 											const className = decl.parent.selector || "";
 
+											if (!decl.parent._twValues) {
+												decl.parent._twValues = {};
+											}
+
 											// 处理 Tailwind 自定义属性
 											if (decl.prop.includes("--tw-")) {
-												colorValues[decl.prop] = decl.value.includes("rem")
-													? remToRpx(decl.value)
-													: decl.value;
+												decl.parent._twValues[decl.prop] =
+													decl.value.includes("rem")
+														? remToRpx(decl.value)
+														: decl.value;
+
 												decl.remove();
 												return;
 											}
@@ -214,9 +218,14 @@ function postcssPlugin(): Plugin {
 
 													// 替换 Tailwind 变量为实际值
 													if (twKey?.startsWith("--tw-")) {
-														node.type = "word";
-														node.value = colorValues[twKey];
-														hasChanges = true;
+														if (decl.parent._twValues) {
+															node.type = "word";
+															node.value =
+																decl.parent._twValues[twKey] ||
+																"none";
+
+															hasChanges = true;
+														}
 													}
 												}
 											});
@@ -226,8 +235,21 @@ function postcssPlugin(): Plugin {
 												decl.value = parsed.toString();
 											}
 
-											// 移除 undefined
-											decl.value = decl.value.replaceAll(" undefined", "");
+											// 移除 Tailwind 生成的无效 none 变换
+											const nones = [
+												"translate(none, none)",
+												"rotate(none)",
+												"skewX(none)",
+												"skewY(none)",
+												"scaleX(none)",
+												"scaleY(none)",
+											];
+
+											nones.forEach((noneStr) => {
+												if (decl.value && decl.value.includes(noneStr)) {
+													decl.value = decl.value.replace(noneStr, "");
+												}
+											});
 										},
 									};
 								},
