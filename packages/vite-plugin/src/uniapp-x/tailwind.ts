@@ -325,7 +325,7 @@ function transformPlugin(): Plugin {
 					classNames.forEach((name, index) => {
 						if (isTailwindClass(name)) {
 							const safeName = toSafeClass(name);
-							_node = _node.replace(name, safeName);
+							_node = _node.replaceAll(name, safeName);
 							classNames[index] = safeName;
 						}
 					});
@@ -346,7 +346,7 @@ function transformPlugin(): Plugin {
 					// 生成暗黑模式类名的动态绑定
 					const darkClassContent = darkClassNames
 						.map((name) => {
-							_node = _node.replace(name, "");
+							_node = _node.replaceAll(name, "");
 							return `'${name}': __isDark`;
 						})
 						.join(",");
@@ -365,7 +365,7 @@ function transformPlugin(): Plugin {
 							(darkClassContent ? `${darkClassContent},` : "") +
 							dynamicClassContent_1.substring(1);
 
-						_node = _node.replace(dynamicClassContent_1, v);
+						_node = _node.replaceAll(dynamicClassContent_1, v);
 					}
 
 					// 处理数组形式的动态类名
@@ -379,7 +379,7 @@ function transformPlugin(): Plugin {
 							`{${darkClassContent}},` +
 							dynamicClassContent_2.substring(1);
 
-						_node = _node.replace(dynamicClassContent_2, v);
+						_node = _node.replaceAll(dynamicClassContent_2, v);
 					}
 
 					// 更新节点内容
