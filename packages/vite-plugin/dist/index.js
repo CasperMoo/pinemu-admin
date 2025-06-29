@@ -688,7 +688,7 @@
         });
     }
     // test();
-    // npx ./src/uniapp-x/utils.ts
+    // npx tsx src/uniapp-x/utils.ts
 
     // 全局 service 对象，用于存储服务结构
     const service = {};
@@ -2056,7 +2056,7 @@ if (typeof window !== 'undefined') {
                         classNames.forEach((name, index) => {
                             if (isTailwindClass(name)) {
                                 const safeName = toSafeClass(name);
-                                _node = _node.replace(name, safeName);
+                                _node = _node.replaceAll(name, safeName);
                                 classNames[index] = safeName;
                             }
                         });
@@ -2071,7 +2071,7 @@ if (typeof window !== 'undefined') {
                         // 生成暗黑模式类名的动态绑定
                         const darkClassContent = darkClassNames
                             .map((name) => {
-                            _node = _node.replace(name, "");
+                            _node = _node.replaceAll(name, "");
                             return `'${name}': __isDark`;
                         })
                             .join(",");
@@ -2083,7 +2083,7 @@ if (typeof window !== 'undefined') {
                             const v = dynamicClassContent_1[0] +
                                 (darkClassContent ? `${darkClassContent},` : "") +
                                 dynamicClassContent_1.substring(1);
-                            _node = _node.replace(dynamicClassContent_1, v);
+                            _node = _node.replaceAll(dynamicClassContent_1, v);
                         }
                         // 处理数组形式的动态类名
                         const dynamicClassContent_2 = classContents.find((content) => content.startsWith("[") && content.endsWith("]"));
@@ -2091,7 +2091,7 @@ if (typeof window !== 'undefined') {
                             const v = dynamicClassContent_2[0] +
                                 `{${darkClassContent}},` +
                                 dynamicClassContent_2.substring(1);
-                            _node = _node.replace(dynamicClassContent_2, v);
+                            _node = _node.replaceAll(dynamicClassContent_2, v);
                         }
                         // 更新节点内容
                         modifiedCode = modifiedCode.replace(node, _node);
