@@ -657,7 +657,7 @@
             "disabled:",
             "group-hover:",
         ];
-        const statePrefixes = ["dark:", "light:", "sm:", "md:", "lg:", "xl:", "2xl:"];
+        const statePrefixes = ["dark:", "dark:!", "light:", "sm:", "md:", "lg:", "xl:", "2xl:"];
         if (className.startsWith("!") && !className.includes("!=")) {
             return true;
         }
@@ -687,8 +687,6 @@
             return `type ${name}${extendsStr} = {${content}}`;
         });
     }
-    // test();
-    // npx tsx src/uniapp-x/utils.ts
 
     // 全局 service 对象，用于存储服务结构
     const service = {};
@@ -1934,6 +1932,10 @@ if (typeof window !== 'undefined') {
                                                         decl.value = "1";
                                                     }
                                                 }
+                                                // 处理 vertical-align 属性
+                                                if (decl.prop == "vertical-align") {
+                                                    decl.remove();
+                                                }
                                                 // 处理 visibility 属性
                                                 if (decl.prop == "visibility") {
                                                     decl.remove();
@@ -1953,9 +1955,11 @@ if (typeof window !== 'undefined') {
                                                     // 处理单位转换(rem -> rpx)
                                                     if (node.type === "word") {
                                                         const unit = valueParser.unit(node.value);
-                                                        if (unit?.unit === "rem") {
-                                                            node.value = remToRpx(unit.number);
-                                                            hasChanges = true;
+                                                        if (typeof unit != "boolean") {
+                                                            if (unit?.unit === "rem") {
+                                                                node.value = remToRpx(unit.number);
+                                                                hasChanges = true;
+                                                            }
                                                         }
                                                     }
                                                     // 处理 CSS 变量

@@ -29,7 +29,7 @@ const TW_DEFAULT_VALUES: Record<string, string | number> = {
 /**
  * 转换类名中的特殊字符为安全字符
  */
-function toSafeClass(className: string): string {
+export function toSafeClass(className: string): string {
 	if (className.includes(":host")) {
 		return className;
 	}
@@ -179,6 +179,11 @@ function postcssPlugin(): Plugin {
 												}
 											}
 
+											// 处理 vertical-align 属性
+											if (decl.prop == "vertical-align") {
+												decl.remove();
+											}
+
 											// 处理 visibility 属性
 											if (decl.prop == "visibility") {
 												decl.remove();
@@ -203,9 +208,12 @@ function postcssPlugin(): Plugin {
 												// 处理单位转换(rem -> rpx)
 												if (node.type === "word") {
 													const unit = valueParser.unit(node.value);
-													if (unit?.unit === "rem") {
-														node.value = remToRpx(unit.number);
-														hasChanges = true;
+
+													if (typeof unit != "boolean") {
+														if (unit?.unit === "rem") {
+															node.value = remToRpx(unit.number);
+															hasChanges = true;
+														}
 													}
 												}
 

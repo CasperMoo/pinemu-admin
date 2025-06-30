@@ -23,6 +23,7 @@
 		"@typescript-eslint/eslint-plugin": "^7.7.1",
 		"@typescript-eslint/parser": "^7.7.1",
 		"eslint": "^9.1.1",
+		"postcss-value-parser": "^4.2.0",
 		"rollup": "^4.16.2",
 		"tslib": "^2.6.2",
 		"typescript": "^5.4.5",
