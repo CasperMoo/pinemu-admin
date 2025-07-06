@@ -852,6 +852,9 @@
      * @returns {boolean} 是否有更新
      */
     function createJson() {
+        if (config.type == "uniapp-x") {
+            return false;
+        }
         const arr = list.map((e) => {
             return {
                 prefix: e.prefix,
