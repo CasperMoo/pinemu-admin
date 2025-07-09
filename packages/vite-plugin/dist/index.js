@@ -1815,6 +1815,23 @@ if (typeof window !== 'undefined') {
         "/": "-slash-",
         ":": "-colon-",
     };
+    /**
+     * 特殊字符映射表（国际化）
+     */
+    const SAFE_CHAR_MAP_LOCALE = {
+        "[": "-bracket-start-",
+        "]": "-bracket-end-",
+        "(": "-paren-start-",
+        ")": "-paren-end-",
+        "{": "-brace-start-",
+        "}": "-brace-end-",
+        $: "-dollar-",
+        "#": "-hash-",
+        "!": "-important-",
+        "/": "-slash-",
+        ":": "-colon-",
+        " ": "-space-",
+    };
 
     // @ts-ignore
     /**
@@ -2146,9 +2163,9 @@ if (typeof window !== 'undefined') {
                     if (id.includes("/cool/ctx/index.ts")) {
                         const ctx = await createCtx();
                         const theme = await readFile(rootDir("theme.json"), true);
-                        ctx["SAFE_CHAR_MAP"] = [];
-                        for (const i in SAFE_CHAR_MAP) {
-                            ctx["SAFE_CHAR_MAP"].push([i, SAFE_CHAR_MAP[i]]);
+                        ctx["SAFE_CHAR_MAP_LOCALE"] = [];
+                        for (const i in SAFE_CHAR_MAP_LOCALE) {
+                            ctx["SAFE_CHAR_MAP_LOCALE"].push([i, SAFE_CHAR_MAP_LOCALE[i]]);
                         }
                         ctx["theme"] = theme;
                         code = code.replace("const ctx = {}", `const ctx = ${JSON.stringify(ctx, null, 4)}`);
@@ -2168,8 +2185,8 @@ if (typeof window !== 'undefined') {
                         const d = JSON.parse(code);
                         for (let i in d) {
                             let k = i;
-                            for (let j in SAFE_CHAR_MAP) {
-                                k = k.replaceAll(j, SAFE_CHAR_MAP[j]);
+                            for (let j in SAFE_CHAR_MAP_LOCALE) {
+                                k = k.replaceAll(j, SAFE_CHAR_MAP_LOCALE[j]);
                             }
                             if (k != i) {
                                 d[k] = d[i];

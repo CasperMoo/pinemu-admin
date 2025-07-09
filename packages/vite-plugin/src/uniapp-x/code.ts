@@ -1,11 +1,9 @@
 import type { Plugin } from "vite";
-import { SAFE_CHAR_MAP } from "./config";
+import { SAFE_CHAR_MAP_LOCALE } from "./config";
 import { createCtx } from "../ctx";
 import { readFile, rootDir } from "../utils";
 import { createEps } from "../eps";
-import { isEmpty, uniq } from "lodash";
-import { config } from "../config";
-import axios from "axios";
+import { uniq } from "lodash";
 
 export function codePlugin(): Plugin[] {
 	return [
@@ -17,9 +15,9 @@ export function codePlugin(): Plugin[] {
 					const ctx = await createCtx();
 					const theme = await readFile(rootDir("theme.json"), true);
 
-					ctx["SAFE_CHAR_MAP"] = [];
-					for (const i in SAFE_CHAR_MAP) {
-						ctx["SAFE_CHAR_MAP"].push([i, SAFE_CHAR_MAP[i]]);
+					ctx["SAFE_CHAR_MAP_LOCALE"] = [];
+					for (const i in SAFE_CHAR_MAP_LOCALE) {
+						ctx["SAFE_CHAR_MAP_LOCALE"].push([i, SAFE_CHAR_MAP_LOCALE[i]]);
 					}
 
 					ctx["theme"] = theme;
@@ -50,8 +48,8 @@ export function codePlugin(): Plugin[] {
 					for (let i in d) {
 						let k = i;
 
-						for (let j in SAFE_CHAR_MAP) {
-							k = k.replaceAll(j, SAFE_CHAR_MAP[j]);
+						for (let j in SAFE_CHAR_MAP_LOCALE) {
+							k = k.replaceAll(j, SAFE_CHAR_MAP_LOCALE[j]);
 						}
 
 						if (k != i) {
