@@ -961,6 +961,26 @@ declare namespace Eps {
 		description?: string;
 
 		/**
+		 * 生日
+		 */
+		birthday?: string;
+
+		/**
+		 * 省
+		 */
+		province?: string;
+
+		/**
+		 * 市
+		 */
+		city?: string;
+
+		/**
+		 * 区
+		 */
+		district?: string;
+
+		/**
 		 * 创建时间
 		 */
 		createTime?: string;
@@ -2186,5 +2206,5 @@ declare namespace Eps {
 		user: { address: UserAddress; info: UserInfo };
 	};
 
-	type DictKey = "brand" | "occupation";
+	type DictKey = "brand" | "occupation" | "upgradeType" | "complainType" | "feedbackType";
 }
