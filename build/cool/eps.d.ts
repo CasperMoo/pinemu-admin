@@ -65,7 +65,7 @@ declare namespace Eps {
 		/**
 		 * 参数
 		 */
-		params?: json;
+		params?: any;
 
 		/**
 		 * 创建时间
@@ -241,12 +241,12 @@ declare namespace Eps {
 		/**
 		 * 菜单权限
 		 */
-		menuIdList?: json;
+		menuIdList?: any;
 
 		/**
 		 * 部门权限
 		 */
-		departmentIdList?: json;
+		departmentIdList?: any;
 
 		/**
 		 * 创建时间
@@ -390,7 +390,7 @@ declare namespace Eps {
 		/**
 		 * 示例图
 		 */
-		exampleImages?: json;
+		exampleImages?: any;
 
 		/**
 		 * 库存
@@ -556,22 +556,22 @@ declare namespace Eps {
 		/**
 		 * 内容
 		 */
-		content?: json;
+		content?: any;
 
 		/**
 		 * ts内容
 		 */
-		tsContent?: json;
+		tsContent?: any;
 
 		/**
 		 * 插件的plugin.json
 		 */
-		pluginJson?: json;
+		pluginJson?: any;
 
 		/**
 		 * 配置
 		 */
-		config?: json;
+		config?: any;
 
 		/**
 		 * 创建时间
@@ -598,7 +598,7 @@ declare namespace Eps {
 		/**
 		 * 表
 		 */
-		entityInfo?: json;
+		entityInfo?: any;
 
 		/**
 		 * 操作人
@@ -608,7 +608,7 @@ declare namespace Eps {
 		/**
 		 * 被删除的数据
 		 */
-		data?: json;
+		data?: any;
 
 		/**
 		 * 请求的接口
@@ -618,7 +618,7 @@ declare namespace Eps {
 		/**
 		 * 请求参数
 		 */
-		params?: json;
+		params?: any;
 
 		/**
 		 * 删除数据条数
@@ -998,6 +998,94 @@ declare namespace Eps {
 
 	type json = any;
 
+	interface PagePagination {
+		size: number;
+		page: number;
+		total: number;
+		[key: string]: any;
+	}
+
+	interface PageResponse<T> {
+		pagination: PagePagination;
+		list: T[];
+		[key: string]: any;
+	}
+
+	interface BaseSysLogPageResponse {
+		pagination: PagePagination;
+		list: BaseSysLogEntity[];
+	}
+
+	interface BaseSysMenuPageResponse {
+		pagination: PagePagination;
+		list: BaseSysMenuEntity[];
+	}
+
+	interface BaseSysParamPageResponse {
+		pagination: PagePagination;
+		list: BaseSysParamEntity[];
+	}
+
+	interface BaseSysRolePageResponse {
+		pagination: PagePagination;
+		list: BaseSysRoleEntity[];
+	}
+
+	interface BaseSysUserPageResponse {
+		pagination: PagePagination;
+		list: BaseSysUserEntity[];
+	}
+
+	interface DemoGoodsPageResponse {
+		pagination: PagePagination;
+		list: DemoGoodsEntity[];
+	}
+
+	interface DictInfoPageResponse {
+		pagination: PagePagination;
+		list: DictInfoEntity[];
+	}
+
+	interface DictTypePageResponse {
+		pagination: PagePagination;
+		list: DictTypeEntity[];
+	}
+
+	interface PluginInfoPageResponse {
+		pagination: PagePagination;
+		list: PluginInfoEntity[];
+	}
+
+	interface RecycleDataPageResponse {
+		pagination: PagePagination;
+		list: RecycleDataEntity[];
+	}
+
+	interface SpaceInfoPageResponse {
+		pagination: PagePagination;
+		list: SpaceInfoEntity[];
+	}
+
+	interface SpaceTypePageResponse {
+		pagination: PagePagination;
+		list: SpaceTypeEntity[];
+	}
+
+	interface TaskInfoPageResponse {
+		pagination: PagePagination;
+		list: TaskInfoEntity[];
+	}
+
+	interface UserAddressPageResponse {
+		pagination: PagePagination;
+		list: UserAddressEntity[];
+	}
+
+	interface UserInfoPageResponse {
+		pagination: PagePagination;
+		list: UserInfoEntity[];
+	}
+
 	interface BaseCoding {
 		/**
 		 * 获取模块目录结构
@@ -1019,7 +1107,7 @@ declare namespace Eps {
 		 */
 		_permission: { getModuleTree: boolean; createCode: boolean };
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface BaseComm {
@@ -1084,7 +1172,7 @@ declare namespace Eps {
 			logout: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface BaseOpen {
@@ -1135,7 +1223,7 @@ declare namespace Eps {
 			eps: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface BaseSysDepartment {
@@ -1180,7 +1268,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface BaseSysLog {
@@ -1202,11 +1290,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: BaseSysLogEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<BaseSysLogPageResponse>;
 
 		/**
 		 * 权限标识
@@ -1218,7 +1302,7 @@ declare namespace Eps {
 		 */
 		_permission: { setKeep: boolean; getKeep: boolean; clear: boolean; page: boolean };
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface BaseSysMenu {
@@ -1265,11 +1349,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: BaseSysMenuEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<BaseSysMenuPageResponse>;
 
 		/**
 		 * 新增
@@ -1308,7 +1388,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface BaseSysParam {
@@ -1335,11 +1415,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: BaseSysParamEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<BaseSysParamPageResponse>;
 
 		/**
 		 * 新增
@@ -1370,7 +1446,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface BaseSysRole {
@@ -1397,11 +1473,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: BaseSysRoleEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<BaseSysRolePageResponse>;
 
 		/**
 		 * 新增
@@ -1432,7 +1504,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface BaseSysUser {
@@ -1464,11 +1536,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: BaseSysUserEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<BaseSysUserPageResponse>;
 
 		/**
 		 * 新增
@@ -1501,7 +1569,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface DemoGoods {
@@ -1528,11 +1596,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: DemoGoodsEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<DemoGoodsPageResponse>;
 
 		/**
 		 * 新增
@@ -1563,7 +1627,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface DemoTenant {
@@ -1592,7 +1656,7 @@ declare namespace Eps {
 		 */
 		_permission: { noTenant: boolean; noUse: boolean; use: boolean };
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface DictInfo {
@@ -1629,11 +1693,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: DictInfoEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<DictInfoPageResponse>;
 
 		/**
 		 * 新增
@@ -1668,7 +1728,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface DictType {
@@ -1695,11 +1755,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: DictTypeEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<DictTypePageResponse>;
 
 		/**
 		 * 新增
@@ -1730,7 +1786,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface PluginInfo {
@@ -1762,11 +1818,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: PluginInfoEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<PluginInfoPageResponse>;
 
 		/**
 		 * 新增
@@ -1799,7 +1851,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface RecycleData {
@@ -1816,11 +1868,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: RecycleDataEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<RecycleDataPageResponse>;
 
 		/**
 		 * 权限标识
@@ -1832,7 +1880,7 @@ declare namespace Eps {
 		 */
 		_permission: { restore: boolean; info: boolean; page: boolean };
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface SpaceInfo {
@@ -1859,11 +1907,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: SpaceInfoEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<SpaceInfoPageResponse>;
 
 		/**
 		 * 新增
@@ -1894,7 +1938,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface SpaceType {
@@ -1921,11 +1965,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: SpaceTypeEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<SpaceTypePageResponse>;
 
 		/**
 		 * 新增
@@ -1956,7 +1996,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface TaskInfo {
@@ -1993,11 +2033,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: TaskInfoEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<TaskInfoPageResponse>;
 
 		/**
 		 * 日志
@@ -2039,7 +2075,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface UserAddress {
@@ -2066,11 +2102,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: UserAddressEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<UserAddressPageResponse>;
 
 		/**
 		 * 新增
@@ -2101,7 +2133,7 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
 	interface UserInfo {
@@ -2128,11 +2160,7 @@ declare namespace Eps {
 		/**
 		 * 分页查询
 		 */
-		page(data?: any): Promise<{
-			pagination: { size: number; page: number; total: number; [key: string]: any };
-			list: UserInfoEntity[];
-			[key: string]: any;
-		}>;
+		page(data?: any): Promise<UserInfoPageResponse>;
 
 		/**
 		 * 新增
@@ -2163,26 +2191,25 @@ declare namespace Eps {
 			add: boolean;
 		};
 
-		request: Service["request"];
+		request: Request;
 	}
 
+	interface RequestOptions {
+		url: string;
+		method?: "OPTIONS" | "GET" | "HEAD" | "POST" | "PUT" | "DELETE" | "TRACE" | "CONNECT";
+		data?: any;
+		params?: any;
+		headers?: any;
+		timeout?: number;
+		[key: string]: any;
+	}
+
+	type Request = (options: RequestOptions) => Promise<any>;
+
+	type DictKey = "brand" | "occupation";
+
 	type Service = {
-		/**
-		 * 基础请求
-		 */
-		request(options?: {
-			url: string;
-			method?: "POST" | "GET" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
-			data?: any;
-			params?: any;
-			headers?: {
-				authorization?: string;
-				[key: string]: any;
-			};
-			timeout?: number;
-			proxy?: boolean;
-			[key: string]: any;
-		}): Promise<any>;
+		request: Request;
 
 		base: {
 			coding: BaseCoding;
@@ -2205,6 +2232,4 @@ declare namespace Eps {
 		task: { info: TaskInfo };
 		user: { address: UserAddress; info: UserInfo };
 	};
-
-	type DictKey = "brand" | "occupation" | "upgradeType" | "complainType" | "feedbackType";
 }

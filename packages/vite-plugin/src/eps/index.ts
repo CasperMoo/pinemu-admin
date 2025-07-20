@@ -181,7 +181,9 @@ async function getData() {
 		}
 	});
 
-	list = list.filter((e) => e.prefix.startsWith("/app"));
+	if (config.type == "uniapp-x" || config.type == "app") {
+		list = list.filter((e) => e.prefix.startsWith("/app"));
+	}
 }
 
 /**
@@ -500,7 +502,7 @@ async function createDescribe({ list, service }: { list: Eps.Entity[]; service: 
 	const local_content = readFile(getEpsPath(name));
 
 	// 是否需要更新
-	if (content && content != local_content) {
+	if (content && content != local_content && list.length > 0) {
 		// 创建 eps 描述文件
 		createWriteStream(getEpsPath(name), {
 			flags: "w",

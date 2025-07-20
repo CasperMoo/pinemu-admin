@@ -1,7 +1,7 @@
 import { h, useSlots } from "vue";
 import { useCore, useBrowser, useConfig } from "../../../hooks";
 import { assign, cloneDeep, isArray, isEmpty, isObject, isString, orderBy } from "lodash-es";
-import { deepFind, getValue, } from "../../../utils";
+import { deepFind, getValue } from "../../../utils";
 import { renderNode } from "../../../utils/vnode";
 import { renderHeader } from "./header";
 
@@ -41,25 +41,24 @@ export function useRender() {
 
 				// 操作按钮
 				if (item.type === "op") {
-					const props = assign({
-						label: crud.dict.label.op,
-						width: style.table.column.opWidth,
-						fixed: browser.isMini ? null : "right",
-					}, item)
-
-					return h(
-						ElTableColumn,
-						props,
+					const props = assign(
 						{
-							default: (scope: any) => {
-								return (
-									<div class="cl-table__op">
-										{renderOpButtons(item.buttons, { scope })}
-									</div>
-								);
-							}
-						}
+							label: crud.dict.label.op,
+							width: style.table.column.opWidth,
+							fixed: browser.isMini ? null : "right"
+						},
+						item
 					);
+
+					return h(ElTableColumn, props, {
+						default: (scope: any) => {
+							return (
+								<div class="cl-table__op">
+									{renderOpButtons(item.buttons, { scope })}
+								</div>
+							);
+						}
+					});
 				}
 				// 多选，序号
 				else if (["selection", "index"].includes(item.type)) {
@@ -108,7 +107,7 @@ export function useRender() {
 										);
 
 										if (isObject(value)) {
-											return value
+											return value;
 										}
 									}
 
@@ -201,32 +200,30 @@ export function useRender() {
 					</el-button>
 				);
 			} else {
-				if (typeof vnode === 'object') {
+				if (typeof vnode === "object") {
 					if (vnode.hidden) {
 						return null;
 					}
 				}
 
-				return (
-					renderNode(vnode, {
-						scope,
-						slots,
-						custom(vnode) {
-							return (
-								<el-button
-									text
-									type={vnode.type}
-									{...vnode?.props}
-									onClick={(e: MouseEvent) => {
-										vnode.onClick({ scope });
-										e.stopPropagation();
-									}}>
-									{vnode.label}
-								</el-button>
-							);
-						}
-					})
-				);
+				return renderNode(vnode, {
+					scope,
+					slots,
+					custom(vnode) {
+						return (
+							<el-button
+								text
+								type={vnode.type}
+								{...vnode?.props}
+								onClick={(e: MouseEvent) => {
+									vnode.onClick({ scope });
+									e.stopPropagation();
+								}}>
+								{vnode.label}
+							</el-button>
+						);
+					}
+				});
 			}
 		});
 	}
