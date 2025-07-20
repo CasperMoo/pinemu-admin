@@ -845,7 +845,9 @@
                 };
             }
         });
-        list = list.filter((e) => e.prefix.startsWith("/app"));
+        if (config.type == "uniapp-x" || config.type == "app") {
+            list = list.filter((e) => e.prefix.startsWith("/app"));
+        }
     }
     /**
      * 创建 eps.json 文件
@@ -1117,7 +1119,7 @@
         const content = await formatCode(text);
         const local_content = readFile(getEpsPath(name));
         // 是否需要更新
-        if (content && content != local_content) {
+        if (content && content != local_content && list.length > 0) {
             // 创建 eps 描述文件
             fs.createWriteStream(getEpsPath(name), {
                 flags: "w",
@@ -1848,8 +1850,6 @@ if (typeof window !== 'undefined') {
         "=": "-equal-",
         "%": "-percent-",
         "@": "-at-",
-        "《": "-chinese-lt-",
-        "》": "-chinese-gt-",
     };
 
     // @ts-ignore
