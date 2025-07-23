@@ -174,7 +174,6 @@ export default defineComponent({
 		// 聚焦
 		function focus() {
 			refs.select?.focus();
-			refs.select?.$.proxy.$el?.querySelector('.el-select__wrapper')?.click();
 		}
 
 		// 获取选项数据

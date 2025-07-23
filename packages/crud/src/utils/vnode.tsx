@@ -95,9 +95,10 @@ export function parseNode(vnode: any, options: Options): VNode {
 	}
 
 	// 挂载到 refs 中
-	if (isFunction(vnode.ref)) {
+	const refBind = vnode.ref || options.ref;
+	if (isFunction(refBind)) {
 		setTimeout(() => {
-			vnode.ref(comp?.component?.exposed);
+			refBind(comp?.component?.exposed);
 		}, 0);
 	}
 
@@ -135,7 +136,7 @@ export function renderNode(vnode: any, options: Options) {
 
 			if (placeholder) {
 				if (!item.component.props.placeholder) {
-					item.component.props.placeholder = placeholder
+					item.component.props.placeholder = placeholder;
 				}
 			}
 		}
