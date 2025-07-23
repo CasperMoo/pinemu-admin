@@ -684,7 +684,7 @@ defineExpose({
 			overflow: hidden;
 			transition: width 0.2s;
 			width: 0;
-			z-index: 9;
+			z-index: 20;
 		}
 
 		.cl-view-group__right {
