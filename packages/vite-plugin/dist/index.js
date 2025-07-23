@@ -2065,6 +2065,9 @@ if (typeof window !== 'undefined') {
                     const nodes = getNodes(code);
                     // 遍历处理每个节点
                     nodes.forEach((node) => {
+                        if (node.startsWith("<!--")) {
+                            return;
+                        }
                         let _node = node;
                         // 兼容 <input /> 标签
                         if (_node.startsWith("<input")) {

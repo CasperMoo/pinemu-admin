@@ -12,21 +12,6 @@ import {
 } from "./utils";
 
 /**
- * Tailwind 默认值
- */
-const TW_DEFAULT_VALUES: Record<string, string | number> = {
-	"--tw-border-spacing-x": 0,
-	"--tw-border-spacing-y": 0,
-	"--tw-translate-x": 0,
-	"--tw-translate-y": 0,
-	"--tw-rotate": 0,
-	"--tw-skew-x": 0,
-	"--tw-skew-y": 0,
-	"--tw-scale-x": 1,
-	"--tw-scale-y": 1,
-};
-
-/**
  * 转换类名中的特殊字符为安全字符
  */
 export function toSafeClass(className: string): string {
@@ -294,6 +279,10 @@ function transformPlugin(): Plugin {
 
 				// 遍历处理每个节点
 				nodes.forEach((node) => {
+					if (node.startsWith("<!--")) {
+						return;
+					}
+
 					let _node = node;
 
 					// 兼容 <input /> 标签
