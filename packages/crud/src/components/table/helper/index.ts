@@ -1,7 +1,6 @@
 import { inject, reactive, ref } from "vue";
 import { useConfig } from "../../../hooks";
 import { getValue, mergeConfig } from "../../../utils";
-import { ElTable } from "element-plus";
 import type { TableInstance } from "element-plus";
 
 export function useTable(props: any) {

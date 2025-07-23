@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 import { renderNode } from '@cool-vue/crud';
 import { cloneDeep } from 'lodash-es';
-import { nextTick, reactive } from 'vue';
+import { reactive } from 'vue';
 import { useRefs } from '/@/cool';
 
 /**
@@ -29,7 +29,12 @@ export function rowEdit() {
 		const edit = reactive({});
 
 		// 列点击
-		exposed.config.on.onCellClick = (row: any, column: any) => {
+		exposed.config.on.onCellClick = (
+			row: any,
+			column: any,
+			cell: HTMLTableCellElement,
+			event: Event
+		) => {
 			const item = list.find(e => e.prop == column.property);
 
 			if (item) {
@@ -39,9 +44,10 @@ export function rowEdit() {
 					[`show_${column.property}`]: true
 				};
 
-				nextTick(() => {
+				// 延迟
+				setTimeout(() => {
 					refs[`${row.id}_${column.property}`]?.focus();
-				});
+				}, 300);
 			}
 		};
 
