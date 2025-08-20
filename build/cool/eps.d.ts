@@ -1,4 +1,143 @@
 declare namespace Eps {
+	interface AiModelEntity {
+		/**
+		 * ID
+		 */
+		id?: number;
+
+		/**
+		 * 服务商ID
+		 */
+		providerId?: BigInt;
+
+		/**
+		 * 模型名称
+		 */
+		name?: string;
+
+		/**
+		 * 模型标识
+		 */
+		modelKey?: string;
+
+		/**
+		 * 模型能力标签
+		 */
+		capabilities?: any;
+
+		/**
+		 * 默认参数配置
+		 */
+		params?: any;
+
+		/**
+		 * 最大token数
+		 */
+		maxTokens?: number;
+
+		/**
+		 * 输入成本
+		 */
+		costInput?: number;
+
+		/**
+		 * 输出成本
+		 */
+		costOutput?: number;
+
+		/**
+		 * 状态 0:禁用 1:启用
+		 */
+		status?: number;
+
+		/**
+		 * 排序
+		 */
+		sort?: number;
+
+		/**
+		 * 备注
+		 */
+		remark?: string;
+
+		/**
+		 * 创建时间
+		 */
+		createTime?: string;
+
+		/**
+		 * 更新时间
+		 */
+		updateTime?: string;
+
+		/**
+		 * 任意键值
+		 */
+		[key: string]: any;
+	}
+
+	interface AiProviderEntity {
+		/**
+		 * ID
+		 */
+		id?: number;
+
+		/**
+		 * 服务商名称
+		 */
+		name?: string;
+
+		/**
+		 * 服务商类型
+		 */
+		type?: string;
+
+		/**
+		 * API基础URL
+		 */
+		baseUrl?: string;
+
+		/**
+		 * API密钥
+		 */
+		apiKey?: string;
+
+		/**
+		 * 扩展配置
+		 */
+		config?: any;
+
+		/**
+		 * 状态 0:禁用 1:启用
+		 */
+		status?: number;
+
+		/**
+		 * 排序
+		 */
+		sort?: number;
+
+		/**
+		 * 备注
+		 */
+		remark?: string;
+
+		/**
+		 * 创建时间
+		 */
+		createTime?: string;
+
+		/**
+		 * 更新时间
+		 */
+		updateTime?: string;
+
+		/**
+		 * 任意键值
+		 */
+		[key: string]: any;
+	}
+
 	interface BaseSysDepartmentEntity {
 		/**
 		 * ID
@@ -847,6 +986,130 @@ declare namespace Eps {
 		[key: string]: any;
 	}
 
+	interface TravelItemEntity {
+		/**
+		 * ID
+		 */
+		id?: number;
+
+		/**
+		 * 行程ID
+		 */
+		tripId?: number;
+
+		/**
+		 * 类型
+		 */
+		type?: string;
+
+		/**
+		 * 名称
+		 */
+		name?: string;
+
+		/**
+		 * 第几天
+		 */
+		dayNumber?: number;
+
+		/**
+		 * 当天排序(允许重复)
+		 */
+		orderInDay?: number;
+
+		/**
+		 * 开始时间 YYYY-MM-DD HH:mm:ss
+		 */
+		startTime?: string;
+
+		/**
+		 * 结束时间 YYYY-MM-DD HH:mm:ss
+		 */
+		endTime?: string;
+
+		/**
+		 * 详情JSON
+		 */
+		details?: string;
+
+		/**
+		 * 状态
+		 */
+		status?: string;
+
+		/**
+		 * 备注
+		 */
+		notes?: string;
+
+		/**
+		 * 创建时间
+		 */
+		createTime?: string;
+
+		/**
+		 * 更新时间
+		 */
+		updateTime?: string;
+
+		/**
+		 * 任意键值
+		 */
+		[key: string]: any;
+	}
+
+	interface TravelTripEntity {
+		/**
+		 * ID
+		 */
+		id?: number;
+
+		/**
+		 * 名称
+		 */
+		name?: string;
+
+		/**
+		 * 描述
+		 */
+		description?: string;
+
+		/**
+		 * 开始日期 YYYY-MM-DD
+		 */
+		startDate?: string;
+
+		/**
+		 * 结束日期 YYYY-MM-DD
+		 */
+		endDate?: string;
+
+		/**
+		 * 总天数
+		 */
+		totalDays?: number;
+
+		/**
+		 * 状态
+		 */
+		status?: string;
+
+		/**
+		 * 创建时间
+		 */
+		createTime?: string;
+
+		/**
+		 * 更新时间
+		 */
+		updateTime?: string;
+
+		/**
+		 * 任意键值
+		 */
+		[key: string]: any;
+	}
+
 	interface UserAddressEntity {
 		/**
 		 * ID
@@ -961,26 +1224,6 @@ declare namespace Eps {
 		description?: string;
 
 		/**
-		 * 生日
-		 */
-		birthday?: string;
-
-		/**
-		 * 省
-		 */
-		province?: string;
-
-		/**
-		 * 市
-		 */
-		city?: string;
-
-		/**
-		 * 区
-		 */
-		district?: string;
-
-		/**
 		 * 创建时间
 		 */
 		createTime?: string;
@@ -1009,6 +1252,16 @@ declare namespace Eps {
 		pagination: PagePagination;
 		list: T[];
 		[key: string]: any;
+	}
+
+	interface AiModelPageResponse {
+		pagination: PagePagination;
+		list: AiModelEntity[];
+	}
+
+	interface AiProviderPageResponse {
+		pagination: PagePagination;
+		list: AiProviderEntity[];
 	}
 
 	interface BaseSysLogPageResponse {
@@ -1076,6 +1329,16 @@ declare namespace Eps {
 		list: TaskInfoEntity[];
 	}
 
+	interface TravelItemPageResponse {
+		pagination: PagePagination;
+		list: TravelItemEntity[];
+	}
+
+	interface TravelTripPageResponse {
+		pagination: PagePagination;
+		list: TravelTripEntity[];
+	}
+
 	interface UserAddressPageResponse {
 		pagination: PagePagination;
 		list: UserAddressEntity[];
@@ -1084,6 +1347,184 @@ declare namespace Eps {
 	interface UserInfoPageResponse {
 		pagination: PagePagination;
 		list: UserInfoEntity[];
+	}
+
+	interface AiCall {
+		/**
+		 * page
+		 */
+		page(data?: any): Promise<any>;
+
+		/**
+		 * testall
+		 */
+		testall(data?: any): Promise<any>;
+
+		/**
+		 * invoke
+		 */
+		invoke(data?: any): Promise<any>;
+
+		/**
+		 * stats
+		 */
+		stats(data?: any): Promise<any>;
+
+		/**
+		 * 权限标识
+		 */
+		permission: { page: string; testall: string; invoke: string; stats: string };
+
+		/**
+		 * 权限状态
+		 */
+		_permission: { page: boolean; testall: boolean; invoke: boolean; stats: boolean };
+
+		request: Request;
+	}
+
+	interface AiModel {
+		/**
+		 * bycapabilities
+		 */
+		bycapabilities(data?: any): Promise<any>;
+
+		/**
+		 * 删除
+		 */
+		delete(data?: any): Promise<any>;
+
+		/**
+		 * 修改
+		 */
+		update(data?: any): Promise<any>;
+
+		/**
+		 * test
+		 */
+		test(data?: any): Promise<any>;
+
+		/**
+		 * 单个信息
+		 */
+		info(data?: any): Promise<AiModelEntity>;
+
+		/**
+		 * 列表查询
+		 */
+		list(data?: any): Promise<AiModelEntity[]>;
+
+		/**
+		 * 分页查询
+		 */
+		page(data?: any): Promise<AiModelPageResponse>;
+
+		/**
+		 * 新增
+		 */
+		add(data?: any): Promise<any>;
+
+		/**
+		 * 权限标识
+		 */
+		permission: {
+			bycapabilities: string;
+			delete: string;
+			update: string;
+			test: string;
+			info: string;
+			list: string;
+			page: string;
+			add: string;
+		};
+
+		/**
+		 * 权限状态
+		 */
+		_permission: {
+			bycapabilities: boolean;
+			delete: boolean;
+			update: boolean;
+			test: boolean;
+			info: boolean;
+			list: boolean;
+			page: boolean;
+			add: boolean;
+		};
+
+		request: Request;
+	}
+
+	interface AiProvider {
+		/**
+		 * syncmodels
+		 */
+		syncmodels(data?: any): Promise<any>;
+
+		/**
+		 * 删除
+		 */
+		delete(data?: any): Promise<any>;
+
+		/**
+		 * 修改
+		 */
+		update(data?: any): Promise<any>;
+
+		/**
+		 * test
+		 */
+		test(data?: any): Promise<any>;
+
+		/**
+		 * 单个信息
+		 */
+		info(data?: any): Promise<AiProviderEntity>;
+
+		/**
+		 * 列表查询
+		 */
+		list(data?: any): Promise<AiProviderEntity[]>;
+
+		/**
+		 * 分页查询
+		 */
+		page(data?: any): Promise<AiProviderPageResponse>;
+
+		/**
+		 * 新增
+		 */
+		add(data?: any): Promise<any>;
+
+		/**
+		 * 权限标识
+		 */
+		permission: {
+			syncmodels: string;
+			delete: string;
+			update: string;
+			test: string;
+			info: string;
+			list: string;
+			page: string;
+			add: string;
+		};
+
+		/**
+		 * 权限状态
+		 */
+		_permission: {
+			syncmodels: boolean;
+			delete: boolean;
+			update: boolean;
+			test: boolean;
+			info: boolean;
+			list: boolean;
+			page: boolean;
+			add: boolean;
+		};
+
+		request: Request;
 	}
 
 	interface BaseCoding {
@@ -2078,6 +2519,122 @@ declare namespace Eps {
 		request: Request;
 	}
 
+	interface TravelItem {
+		/**
+		 * 删除
+		 */
+		delete(data?: any): Promise<any>;
+
+		/**
+		 * 修改
+		 */
+		update(data?: any): Promise<any>;
+
+		/**
+		 * 单个信息
+		 */
+		info(data?: any): Promise<TravelItemEntity>;
+
+		/**
+		 * 列表查询
+		 */
+		list(data?: any): Promise<TravelItemEntity[]>;
+
+		/**
+		 * 分页查询
+		 */
+		page(data?: any): Promise<TravelItemPageResponse>;
+
+		/**
+		 * 新增
+		 */
+		add(data?: any): Promise<any>;
+
+		/**
+		 * 权限标识
+		 */
+		permission: {
+			delete: string;
+			update: string;
+			info: string;
+			list: string;
+			page: string;
+			add: string;
+		};
+
+		/**
+		 * 权限状态
+		 */
+		_permission: {
+			delete: boolean;
+			update: boolean;
+			info: boolean;
+			list: boolean;
+			page: boolean;
+			add: boolean;
+		};
+
+		request: Request;
+	}
+
+	interface TravelTrip {
+		/**
+		 * 删除
+		 */
+		delete(data?: any): Promise<any>;
+
+		/**
+		 * 修改
+		 */
+		update(data?: any): Promise<any>;
+
+		/**
+		 * 单个信息
+		 */
+		info(data?: any): Promise<TravelTripEntity>;
+
+		/**
+		 * 列表查询
+		 */
+		list(data?: any): Promise<TravelTripEntity[]>;
+
+		/**
+		 * 分页查询
+		 */
+		page(data?: any): Promise<TravelTripPageResponse>;
+
+		/**
+		 * 新增
+		 */
+		add(data?: any): Promise<any>;
+
+		/**
+		 * 权限标识
+		 */
+		permission: {
+			delete: string;
+			update: string;
+			info: string;
+			list: string;
+			page: string;
+			add: string;
+		};
+
+		/**
+		 * 权限状态
+		 */
+		_permission: {
+			delete: boolean;
+			update: boolean;
+			info: boolean;
+			list: boolean;
+			page: boolean;
+			add: boolean;
+		};
+
+		request: Request;
+	}
+
 	interface UserAddress {
 		/**
 		 * 删除
@@ -2211,6 +2768,7 @@ declare namespace Eps {
 	type Service = {
 		request: Request;
 
+		ai: { call: AiCall; model: AiModel; provider: AiProvider };
 		base: {
 			coding: BaseCoding;
 			comm: BaseComm;
@@ -2230,6 +2788,7 @@ declare namespace Eps {
 		recycle: { data: RecycleData };
 		space: { info: SpaceInfo; type: SpaceType };
 		task: { info: TaskInfo };
+		travel: { item: TravelItem; trip: TravelTrip };
 		user: { address: UserAddress; info: UserInfo };
 	};
 }

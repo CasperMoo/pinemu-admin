@@ -1,0 +1,172 @@
+-- ===========================================
+-- 行程规划模块（前端实现说明）
+-- 版本：v1（无成员/参与人功能）
+-- 适配前端：cool-admin 前端（Vue3/NaiveUI），或任意 Vue/React 管理端
+-- 接口来源：src/modules/travel/*（midway + cool-admin-midway）
+-- ===========================================
+
+-- 0. 入口与菜单
+-- ===========================================
+-- 菜单（后端初始化于 src/modules/travel/menu.json）：
+-- - 一级：行程规划（/travel）
+--   - 行程管理（/travel/trip，viewPath: modules/travel/views/trip.vue）
+--     * 权限：travel:trip:add/delete/update/info/page/list
+--   - 事项管理（/travel/item，viewPath: modules/travel/views/item.vue）
+--     * 权限：travel:item:add/delete/update/info/page/list
+-- 前端可按 perms 控制按钮显隐：如 v-perms="['travel:trip:add']"
+
+-- 1. 后端接口约定（路径与方法）
+-- ===========================================
+-- 说明：使用 @CoolController 提供标准 CRUD；所有路径带 /admin 前缀
+-- Trip（行程）基路径：/admin/travel/trip
+-- - POST   /admin/travel/trip/add         （新增）
+-- - POST   /admin/travel/trip/update      （修改）
+-- - POST   /admin/travel/trip/delete      （删除，参数 ids:number[]）
+-- - GET    /admin/travel/trip/info        （详情，参数 id:number）
+-- - GET    /admin/travel/trip/list        （列表，不分页）
+-- - GET    /admin/travel/trip/page        （分页）
+-- Item（事项）基路径：/admin/travel/item
+-- - POST   /admin/travel/item/add         （新增）
+-- - POST   /admin/travel/item/update      （修改）
+-- - POST   /admin/travel/item/delete      （删除，参数 ids:number[]）
+-- - GET    /admin/travel/item/info        （详情，参数 id:number）
+-- - GET    /admin/travel/item/list        （列表，不分页）
+-- - GET    /admin/travel/item/page        （分页）
+-- - GET    /admin/travel/item/dayView     （扩展：按天分组视图，参数 tripId:number）
+
+-- 2. 查询参数与排序规则
+-- ===========================================
+-- Trip.page 支持筛选：
+-- - keyWord: string（对 name、description 模糊匹配）
+-- - status: string（planning|confirmed|completed|cancelled）
+-- - 默认排序：createTime DESC
+-- Item.page 支持筛选：
+-- - tripId: number（必填）
+-- - dayNumber?: number
+-- - type?: string（major_transport|minor_transport|attraction|accommodation|restaurant|other）
+-- - status?: string（pending|confirmed|cancelled）
+-- - 默认排序：dayNumber ASC, orderInDay ASC, startTime ASC
+-- dayView 返回分组后的对象，服务端已处理“住宿(accommodation)在同序时排最后”，并将 details 解析为对象
+
+-- 3. 前端数据模型（建议 TypeScript 接口）
+-- ===========================================
+-- Trip
+-- interface Trip {
+--   id: number;
+--   name: string;
+--   description?: string;
+--   startDate: string; // YYYY-MM-DD
+--   endDate: string;   // YYYY-MM-DD
+--   totalDays: number; // 由后端计算
+--   status: 'planning'|'confirmed'|'completed'|'cancelled';
+--   createTime?: string;
+--   updateTime?: string;
+-- }
+-- Item
+-- type ItemType = 'major_transport'|'minor_transport'|'attraction'|'accommodation'|'restaurant'|'other';
+-- type ItemStatus = 'pending'|'confirmed'|'cancelled';
+-- interface BaseItemDetails { [k: string]: any }
+-- interface MajorTransportDetails extends BaseItemDetails { from: string; to: string; operator?: string; flightNumber?: string; bookingUrl?: string; }
+-- interface MinorTransportDetails extends BaseItemDetails { from: string; to: string; method: string; duration?: string; cost?: string; }
+-- interface AttractionDetails     extends BaseItemDetails { address: string; ticketPrice?: string; openingHours?: string; duration?: string; website?: string; }
+-- interface AccommodationDetails  extends BaseItemDetails { address: string; checkIn: string; checkOut: string; nights: number; bookingUrl?: string; }
+-- interface RestaurantDetails     extends BaseItemDetails { address: string; cuisine: string; priceRange?: string; reservation?: string; openingHours?: string; }
+-- interface OtherDetails          extends BaseItemDetails { category: string; address?: string; [k: string]: any }
+-- type ItemDetails = MajorTransportDetails|MinorTransportDetails|AttractionDetails|AccommodationDetails|RestaurantDetails|OtherDetails|BaseItemDetails;
+-- interface Item {
+--   id: number;
+--   tripId: number;
+--   type: ItemType;
+--   name: string;
+--   dayNumber: number;
+--   orderInDay: number;
+--   startTime?: string; // YYYY-MM-DD HH:mm:ss
+--   endTime?: string;   // YYYY-MM-DD HH:mm:ss
+--   details: ItemDetails; // 注意：后端保存为字符串，提交可直接传对象
+--   status: ItemStatus;
+--   notes?: string;
+--   createTime?: string;
+--   updateTime?: string;
+-- }
+-- DayView 响应
+-- type DayView = Record<number, Item[]>; // key 为 dayNumber
+
+-- 4. 表单与校验（与后端 DTO 一致）
+-- ===========================================
+-- Trip 表单
+-- - 新增：name(required)、startDate(required)、endDate(required)、description(optional)
+-- - 更新：可修改 name/description/startDate/endDate/status
+-- - 校验：startDate <= endDate；totalDays 由后端计算，前端只展示
+-- Item 表单
+-- - 新增：tripId(required)、type(required)、name(required)、dayNumber(>=1)、orderInDay(>=1)、details(required)、startTime(optional)、endTime(optional)、status(optional)、notes(optional)
+-- - 更新：可修改 name/dayNumber/orderInDay/startTime/endTime/details/status/notes
+-- - 时间规则：
+--   * 非住宿：startTime/endTime 必须在行程 [startDate 00:00:00, endDate 23:59:59] 区间内
+--   * 住宿：允许跨天（例：checkIn 16:00 至次日/多日 checkOut 11:00）
+-- - 并列顺序：同一天允许相同 orderInDay；UI 可并排展示
+-- - details：建议按 type 提供差异化字段的表单段落，提交时将 details 对象原样传给后端
+
+-- 5. 列表、分页与筛选（页面建议）
+-- ===========================================
+-- 行程管理页（/travel/trip）
+-- - 列：名称、日期范围(totalDays)、状态、创建时间、操作
+-- - 筛选：关键字(keyWord)、状态(status)
+-- - 排序：默认按创建时间倒序；可允许用户在表格上二次排序
+-- - 操作：新增、编辑、删除、查看详情
+-- 事项管理页（/travel/item）
+-- - 列：所属行程(tripId/行程名称快照)、第几天、序号(orderInDay)、类型、名称、开始-结束时间、状态、操作
+-- - 筛选：tripId(必选)、dayNumber、type、status
+-- - 排序：默认 dayNumber→orderInDay→startTime；表格可继续排序
+-- - 扩展视图：提供“按天查看”按钮，跳转/切换到 DayView（调用 /admin/travel/item/dayView）
+
+-- 6. DayView（按天分组视图）
+-- ===========================================
+-- - 接口：GET /admin/travel/item/dayView?tripId=xxx
+-- - 返回：Record<dayNumber, Item[]>，已按规则排序，details 已解析为对象
+-- - 前端展示建议：
+--   * 每天一个折叠面板/卡片区块；同序号并列展示；住宿项目自动在末尾
+--   * 提供类型筛选（本地过滤）与状态标识
+--   * 可在卡片上提供“编辑/删除”快捷操作
+
+-- 7. 错误处理与文案
+-- ===========================================
+-- 常见错误（后端抛出 CoolCommException，message 为中文）：
+-- - 开始日期不能大于结束日期
+-- - 行程不存在
+-- - 事项开始/结束时间不合法（超出行程范围）
+-- 处理建议：统一拦截器弹出 message；表单字段高亮错误项
+
+-- 8. 示例请求（伪代码）
+-- ===========================================
+-- 新增行程
+-- POST /admin/travel/trip/add
+-- { "name":"日本关西7日游", "startDate":"2024-03-15", "endDate":"2024-03-21", "description":"大阪京都奈良" }
+-- 分页查询行程
+-- GET /admin/travel/trip/page?keyWord=日本&status=confirmed&page=1&size=20
+-- 新增事项（details 传对象即可）
+-- POST /admin/travel/item/add
+-- { "tripId":1, "type":"accommodation", "name":"心斋桥酒店", "dayNumber":1, "orderInDay":99, "startTime":"2024-03-15 16:00:00", "endTime":"2024-03-17 11:00:00", "details": { "address":"大阪...", "checkIn":"2024-03-15 16:00", "checkOut":"2024-03-17 11:00", "nights":2 }, "status":"confirmed" }
+-- 获取 DayView
+-- GET /admin/travel/item/dayView?tripId=1
+
+-- 9. 字典与展示建议
+-- ===========================================
+-- 状态字典
+-- - TripStatus：planning(规划中)、confirmed(已确认)、completed(已完成)、cancelled(已取消)
+-- - ItemStatus：pending(待定)、confirmed(已确认)、cancelled(已取消)
+-- 类型字典（带图标建议）
+-- - major_transport：大交通（icon-plane）
+-- - minor_transport：小交通（icon-bus）
+-- - attraction：景点（icon-spot）
+-- - accommodation：住宿（icon-hotel）
+-- - restaurant：餐厅（icon-restaurant）
+-- - other：其他（icon-more）
+
+-- 10. 开发要点与注意事项
+-- ===========================================
+-- - 提交 Item.details 可直接传对象，后端会自动转字符串保存；获取 dayView 时 details 自动为对象
+-- - 一般 list/page 返回的 details 为字符串（如果后端未做 transformer），前端如需使用可手动 JSON.parse
+-- - 删除行程会级联删除事项（服务层实现），前端删除前需二次确认并提示不可恢复
+-- - 住宿排序规则仅在 dayView 接口保证；如在表格也需要“住宿最后”，可在前端做一次排序修正
+-- - 时间格式统一使用 'YYYY-MM-DD' / 'YYYY-MM-DD HH:mm:ss'，注意与日期控件适配
+
