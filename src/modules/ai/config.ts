@@ -5,6 +5,14 @@ export default (): ModuleConfig => {
 		order: 90,
 		views: [
 			{
+				path: '/ai',
+				redirect: '/ai/provider',
+				meta: {
+					label: 'AI模型管理',
+					icon: 'icon-ai'
+				}
+			},
+			{
 				path: '/ai/provider',
 				meta: {
 					label: '服务商管理'
