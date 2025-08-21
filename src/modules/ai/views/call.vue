@@ -48,6 +48,7 @@ import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { useI18n } from 'vue-i18n';
 import { ref } from 'vue';
+import { ElMessage } from 'element-plus';
 
 const { service } = useCool();
 const { t } = useI18n();
@@ -157,7 +158,7 @@ const openInvokeDialog = () => {
 
 const invokeAI = async () => {
 	if (!invokeForm.value.modelId || !invokeForm.value.prompt) {
-		$message.error(t('请选择模型并输入请求内容'));
+		ElMessage.error(t('请选择模型并输入请求内容'));
 		return;
 	}
 	
@@ -172,21 +173,21 @@ const invokeAI = async () => {
 			try {
 				params.params = JSON.parse(invokeForm.value.params);
 			} catch {
-				$message.error(t('参数配置格式错误，请输入有效的JSON'));
+				ElMessage.error(t('参数配置格式错误，请输入有效的JSON'));
 				return;
 			}
 		}
 		
 		const res = await service.ai.call.invoke(params);
 		if (res.success) {
-			$message.success(t('AI调用成功'));
+			ElMessage.success(t('AI调用成功'));
 			invokeDialog.value = false;
 			Crud.value.refresh();
 		} else {
-			$message.error(`${t('AI调用失败')}: ${res.message}`);
+			ElMessage.error(`${t('AI调用失败')}: ${res.message}`);
 		}
 	} catch (error) {
-		$message.error(t('调用过程中发生错误'));
+		ElMessage.error(t('调用过程中发生错误'));
 	} finally {
 		invoking.value = false;
 	}
@@ -196,13 +197,13 @@ const testAllModels = async () => {
 	try {
 		const res = await service.ai.call.testAll();
 		if (res.success) {
-			$message.success(t('批量测试完成，请查看日志详情'));
+			ElMessage.success(t('批量测试完成，请查看日志详情'));
 			Crud.value.refresh();
 		} else {
-			$message.error(`${t('批量测试失败')}: ${res.message}`);
+			ElMessage.error(`${t('批量测试失败')}: ${res.message}`);
 		}
 	} catch (error) {
-		$message.error(t('测试过程中发生错误'));
+		ElMessage.error(t('测试过程中发生错误'));
 	}
 };
 </script>

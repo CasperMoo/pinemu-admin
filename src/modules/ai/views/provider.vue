@@ -25,6 +25,7 @@ defineOptions({ name: 'ai-provider' });
 import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { useI18n } from 'vue-i18n';
+import { ElMessage } from 'element-plus';
 
 const { service } = useCool();
 const { t } = useI18n();
@@ -89,9 +90,9 @@ const Crud = useCrud({
 const testProvider = (row: any) => {
 	service.ai.provider.test({ id: row.id }).then((res: any) => {
 		if (res.success) {
-			$message.success(t('连接测试成功'));
+			ElMessage.success(t('连接测试成功'));
 		} else {
-			$message.error(`${t('连接测试失败')}: ${res.message}`);
+			ElMessage.error(`${t('连接测试失败')}: ${res.message}`);
 		}
 	});
 };
@@ -99,9 +100,9 @@ const testProvider = (row: any) => {
 const syncModels = (row: any) => {
 	service.ai.provider.syncModels({ id: row.id }).then((res: any) => {
 		if (res.success) {
-			$message.success(t('模型同步成功'));
+			ElMessage.success(t('模型同步成功'));
 		} else {
-			$message.error(`${t('模型同步失败')}: ${res.message}`);
+			ElMessage.error(`${t('模型同步失败')}: ${res.message}`);
 		}
 	});
 };

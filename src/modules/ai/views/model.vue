@@ -26,6 +26,7 @@ import { useCrud, useTable, useUpsert } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
 import { useI18n } from 'vue-i18n';
 import { ref } from 'vue';
+import { ElMessage } from 'element-plus';
 
 const { service } = useCool();
 const { t } = useI18n();
@@ -119,9 +120,9 @@ const Crud = useCrud({
 const testModel = (row: any) => {
 	service.ai.model.test({ id: row.id }).then((res: any) => {
 		if (res.success) {
-			$message.success(t('模型测试成功'));
+			ElMessage.success(t('模型测试成功'));
 		} else {
-			$message.error(`${t('模型测试失败')}: ${res.message}`);
+			ElMessage.error(`${t('模型测试失败')}: ${res.message}`);
 		}
 	});
 };
