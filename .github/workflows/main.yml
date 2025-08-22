@@ -1,0 +1,90 @@
+name: Deploy Admin to 1Panel
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      # 你的服务器上的部署目录（目录里直接是 index.html 等构建后的文件）
+      DEPLOY_PATH: /opt/1panel/apps/openresty/openresty/www/sites/mumumumu.net.admin
+      # 如果你的 admin 代码在仓库根目录，就保持 "."；若在子目录（如 ./admin），改成那个路径
+      WORKDIR: .
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+          cache-dependency-path: ${{ env.WORKDIR }}/pnpm-lock.yaml
+
+      - name: Install deps
+        working-directory: ${{ env.WORKDIR }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: ${{ env.WORKDIR }}
+        run: pnpm build
+
+      - name: Add server to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Prepare temp dir on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            rm -rf "${{ env.DEPLOY_PATH }}_tmp"
+            mkdir -p "${{ env.DEPLOY_PATH }}_tmp"
+
+      # 只把 dist 里的“内容”上传到 _tmp（不是整个 dist 目录）
+      - name: Upload dist via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "${{ env.WORKDIR }}/dist/*"
+          target: "${{ env.DEPLOY_PATH }}_tmp"
+
+      # 原子切换：_tmp -> 正式目录，备份旧版本到 _bak
+      - name: Atomic switch
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            TARGET="${{ env.DEPLOY_PATH }}"
+            TMP="${{ env.DEPLOY_PATH }}_tmp"
+            BAK="${{ env.DEPLOY_PATH }}_bak"
+
+            test -d "$TMP" && test "$(ls -A "$TMP")"
+
+            rm -rf "$BAK"
+            if [ -d "$TARGET" ]; then mv "$TARGET" "$BAK"; fi
+            mv "$TMP" "$TARGET"
+
+            # 统一权限（可选）
+            find "$TARGET" -type d -exec chmod 755 {} \;
+            find "$TARGET" -type f -exec chmod 644 {} \;
