@@ -1,0 +1,253 @@
+[
+  {
+    "tenantId": null,
+    "name": "AI模型管理",
+    "router": "/ai",
+    "perms": null,
+    "type": 0,
+    "icon": "icon-ai",
+    "orderNum": 10,
+    "viewPath": null,
+    "keepAlive": true,
+    "isShow": true,
+    "childMenus": [
+      {
+        "tenantId": null,
+        "name": "服务商管理",
+        "router": "/ai/provider",
+        "perms": null,
+        "type": 1,
+        "icon": "icon-cloud",
+        "orderNum": 1,
+        "viewPath": "modules/ai/views/provider.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "tenantId": null,
+            "name": "新增",
+            "router": null,
+            "perms": "ai:provider:add",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "删除",
+            "router": null,
+            "perms": "ai:provider:delete",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "修改",
+            "router": null,
+            "perms": "ai:provider:update,ai:provider:info",
+            "type": 2,
+            "icon": null,
+            "orderNum": 3,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "查询",
+            "router": null,
+            "perms": "ai:provider:page,ai:provider:list,ai:provider:info",
+            "type": 2,
+            "icon": null,
+            "orderNum": 4,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "测试连接",
+            "router": null,
+            "perms": "ai:provider:test",
+            "type": 2,
+            "icon": null,
+            "orderNum": 5,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "同步模型",
+            "router": null,
+            "perms": "ai:provider:sync",
+            "type": 2,
+            "icon": null,
+            "orderNum": 6,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          }
+        ]
+      },
+      {
+        "tenantId": null,
+        "name": "模型管理",
+        "router": "/ai/model",
+        "perms": null,
+        "type": 1,
+        "icon": "icon-data",
+        "orderNum": 2,
+        "viewPath": "modules/ai/views/model.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "tenantId": null,
+            "name": "新增",
+            "router": null,
+            "perms": "ai:model:add",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "删除",
+            "router": null,
+            "perms": "ai:model:delete",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "修改",
+            "router": null,
+            "perms": "ai:model:update,ai:model:info",
+            "type": 2,
+            "icon": null,
+            "orderNum": 3,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "查询",
+            "router": null,
+            "perms": "ai:model:page,ai:model:list,ai:model:info",
+            "type": 2,
+            "icon": null,
+            "orderNum": 4,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "测试模型",
+            "router": null,
+            "perms": "ai:model:test",
+            "type": 2,
+            "icon": null,
+            "orderNum": 5,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          }
+        ]
+      },
+      {
+        "tenantId": null,
+        "name": "调用管理",
+        "router": "/ai/call",
+        "perms": null,
+        "type": 1,
+        "icon": "icon-call",
+        "orderNum": 3,
+        "viewPath": "modules/ai/views/call.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "tenantId": null,
+            "name": "调用AI",
+            "router": null,
+            "perms": "ai:call:invoke",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "批量测试",
+            "router": null,
+            "perms": "ai:call:test-all",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "查看统计",
+            "router": null,
+            "perms": "ai:call:stats",
+            "type": 2,
+            "icon": null,
+            "orderNum": 3,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "查看日志",
+            "router": null,
+            "perms": "ai:call:log",
+            "type": 2,
+            "icon": null,
+            "orderNum": 4,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          }
+        ]
+      }
+    ]
+  }
+]
