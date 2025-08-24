@@ -31,7 +31,7 @@ import { ElMessage } from 'element-plus';
 const { service } = useCool();
 const { t } = useI18n();
 
-const providerOptions = ref([]);
+const providerOptions = ref<{ label: string; value: any }[]>([]);
 const capabilityOptions = [
 	{ label: t('文本生成'), value: 'text-generation' },
 	{ label: t('对话聊天'), value: 'chat' },
@@ -50,75 +50,174 @@ const Upsert = useUpsert({
 	dialog: { width: '880px' },
 	props: { labelWidth: '100px' },
 	items: [
-		{ label: t('服务商'), prop: 'providerId', component: { name: 'el-select', options: providerOptions }, required: true },
-		{ label: t('模型名称'), prop: 'name', component: { name: 'el-input' }, required: true },
-		{ label: t('模型标识'), prop: 'modelKey', component: { name: 'el-input' }, required: true },
-		{ label: t('模型能力'), prop: 'capabilities', component: { name: 'el-select', props: { multiple: true, 'collapse-tags': true }, options: capabilityOptions } },
-		{ label: t('默认参数'), prop: 'params', component: { name: 'el-input', props: { type: 'textarea', rows: 6 } }, hook: {
-			bind(value) { try { return value ? JSON.stringify(value, null, 2) : ''; } catch { return String(value || ''); } },
-			submit(value) { try { return value ? JSON.parse(value) : {}; } catch { return value; } }
-		}},
-		{ label: t('最大Token数'), prop: 'maxTokens', component: { name: 'el-input-number', props: { min: 1 } } },
-		{ label: t('输入成本'), prop: 'costInput', component: { name: 'el-input-number', props: { min: 0, step: 0.000001, precision: 6 } } },
-		{ label: t('输出成本'), prop: 'costOutput', component: { name: 'el-input-number', props: { min: 0, step: 0.000001, precision: 6 } } },
-		{ label: t('状态'), prop: 'status', component: { name: 'el-radio-group', options: statusOptions } },
-		{ label: t('排序'), prop: 'sort', component: { name: 'el-input-number', props: { min: 0 } } },
-		{ label: t('备注'), prop: 'remark', component: { name: 'el-input', props: { type: 'textarea', rows: 3 } } }
+		{
+			label: t('服务商'),
+			prop: 'model_providerId',
+			component: { name: 'el-select', options: providerOptions },
+			required: true
+		},
+		{
+			label: t('模型名称'),
+			prop: 'model_name',
+			component: { name: 'el-input' },
+			required: true
+		},
+		{
+			label: t('模型标识'),
+			prop: 'model_modelKey',
+			component: { name: 'el-input' },
+			required: true
+		},
+		{
+			label: t('模型能力'),
+			prop: 'model_capabilities',
+			component: {
+				name: 'el-select',
+				props: { multiple: true, 'collapse-tags': true },
+				options: capabilityOptions
+			}
+		},
+		{
+			label: t('默认参数'),
+			prop: 'model_params',
+			component: { name: 'el-input', props: { type: 'textarea', rows: 6 } },
+			hook: {
+				bind(value) {
+					try {
+						return value ? JSON.stringify(value, null, 2) : '';
+					} catch {
+						return String(value || '');
+					}
+				},
+				submit(value) {
+					try {
+						return value ? JSON.parse(value) : {};
+					} catch {
+						return value;
+					}
+				}
+			}
+		},
+		{
+			label: t('最大Token数'),
+			prop: 'model_maxTokens',
+			component: { name: 'el-input-number', props: { min: 1 } }
+		},
+		{
+			label: t('输入成本'),
+			prop: 'model_costInput',
+			component: { name: 'el-input-number', props: { min: 0, step: 0.000001, precision: 6 } }
+		},
+		{
+			label: t('输出成本'),
+			prop: 'model_costOutput',
+			component: { name: 'el-input-number', props: { min: 0, step: 0.000001, precision: 6 } }
+		},
+		{
+			label: t('状态'),
+			prop: 'model_status',
+			component: { name: 'el-radio-group', options: statusOptions }
+		},
+		{
+			label: t('排序'),
+			prop: 'model_sort',
+			component: { name: 'el-input-number', props: { min: 0 } }
+		},
+		{
+			label: t('备注'),
+			prop: 'model_remark',
+			component: { name: 'el-input', props: { type: 'textarea', rows: 3 } }
+		}
 	]
 });
 
 const Table = useTable({
 	columns: [
 		{ type: 'selection' },
-		{ label: t('服务商'), prop: 'providerName', minWidth: 120 },
-		{ label: t('模型名称'), prop: 'name', align: 'left', minWidth: 180 },
-		{ label: t('模型标识'), prop: 'modelKey', minWidth: 180 },
-		{ label: t('能力标签'), prop: 'capabilities', minWidth: 200, formatter: ({ row }) => {
-			return row.capabilities ? row.capabilities.map((cap: string) => 
-				capabilityOptions.find(e => e.value === cap)?.label || cap
-			).join(', ') : '';
-		}},
-		{ label: t('最大Token'), prop: 'maxTokens', width: 100 },
-		{ label: t('输入成本'), prop: 'costInput', width: 100, formatter: ({ row }) => row.costInput ? row.costInput.toFixed(6) : '0' },
-		{ label: t('输出成本'), prop: 'costOutput', width: 100, formatter: ({ row }) => row.costOutput ? row.costOutput.toFixed(6) : '0' },
-		{ label: t('状态'), prop: 'status', width: 80, formatter: ({ row }) => statusOptions.find(e => e.value === row.status)?.label || row.status },
-		{ label: t('排序'), prop: 'sort', width: 70 },
-		{ label: t('创建时间'), prop: 'createTime', sortable: 'custom', minWidth: 170 },
-		{ type: 'op', width: 200, buttons: [
-			{ label: t('测试模型'), type: 'primary', onClick: ({ row }) => testModel(row) }
-		] }
+		{ label: t('服务商'), prop: 'model_providerId', minWidth: 120 },
+		{ label: t('模型名称'), prop: 'model_name', align: 'left', minWidth: 180 },
+		{ label: t('模型标识'), prop: 'model_modelKey', minWidth: 180 },
+		{
+			label: t('能力标签'),
+			prop: 'model_capabilities',
+			minWidth: 200,
+			formatter: (row: any, column: any, cellValue: any, index: number) => {
+				return row?.model_capabilities
+					? row.model_capabilities
+							.map(
+								(cap: string) =>
+									capabilityOptions.find(e => e.value === cap)?.label || cap
+							)
+							.join(', ')
+					: '';
+			}
+		},
+		{ label: t('最大Token'), prop: 'model_maxTokens', width: 100 },
+		{
+			label: t('输入成本'),
+			prop: 'model_costInput',
+			width: 100,
+			formatter: (row: any, column: any, cellValue: any, index: number) =>
+				row?.model_costInput ? row.model_costInput.toFixed(6) : '0'
+		},
+		{
+			label: t('输出成本'),
+			prop: 'model_costOutput',
+			width: 100,
+			formatter: (row: any, column: any, cellValue: any, index: number) =>
+				row?.model_costOutput ? row.model_costOutput.toFixed(6) : '0'
+		},
+		{
+			label: t('状态'),
+			prop: 'model_status',
+			width: 80,
+			formatter: (row: any, column: any, cellValue: any, index: number) =>
+				statusOptions.find(e => e.value === row?.model_status)?.label ||
+				row?.model_status ||
+				'-'
+		},
+		{ label: t('排序'), prop: 'model_sort', width: 70 },
+		{ label: t('创建时间'), prop: 'model_createTime', sortable: 'custom', minWidth: 170 },
+		{
+			type: 'op',
+			width: 200,
+			buttons: [
+				{
+					label: t('测试模型'),
+					type: 'primary',
+					onClick: (row: any) => testModel(row)
+				}
+			]
+		}
 	]
 });
 
 const Crud = useCrud({
 	service: service.ai.model,
 	onRefresh(params, { render, next }) {
-		Promise.all([
-			next(params),
-			service.ai.provider.list()
-		]).then(([res, providers]) => {
+		Promise.all([next(params), service.ai.provider.list()]).then(([res, providers]) => {
 			const models = res?.list || [];
 			const providerMap = {};
 			(providers || []).forEach((p: any) => {
-				providerMap[p.id] = p.name;
+				providerMap[p.provider_id] = p.provider_name;
 			});
-			
+
 			models.forEach((model: any) => {
-				model.providerName = providerMap[model.providerId] || '';
+				model.providerName = providerMap[model.model_providerId] || '';
 			});
-			
+
 			providerOptions.value = (providers || []).map((p: any) => ({
-				label: p.name,
-				value: p.id
+				label: p.provider_name,
+				value: p.provider_id
 			}));
-			
+
 			render(models);
 		});
 	}
 });
 
 const testModel = (row: any) => {
-	service.ai.model.test({ id: row.id }).then((res: any) => {
+	service.ai.model.test({ id: row.model_id }).then((res: any) => {
 		if (res.success) {
 			ElMessage.success(t('模型测试成功'));
 		} else {

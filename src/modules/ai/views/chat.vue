@@ -260,8 +260,15 @@ const totalCost = computed(() => {
 const loadProviders = async () => {
 	try {
 		const result = await service.ai.provider.list();
-		providers.value = (result || []).filter((p: Provider) => p.status === 1);
+		console.log('Providers API response:', result);
+		
+		// 处理不同的数据结构
+		const list = result?.list || result?.data?.list || result?.data || result || [];
+		providers.value = (Array.isArray(list) ? list : []).filter((p: Provider) => p?.status === 1);
+		
+		console.log('Available providers:', providers.value);
 	} catch (error) {
+		console.error('Load providers error:', error);
 		ElMessage.error(t('加载服务商列表失败'));
 	}
 };
@@ -273,16 +280,28 @@ const loadModels = async () => {
 			service.ai.provider.list()
 		]);
 		
+		console.log('Models API response:', modelResult);
+		console.log('Providers API response for models:', providerResult);
+		
+		// 处理不同的数据结构
+		const modelList = modelResult?.list || modelResult?.data?.list || modelResult?.data || modelResult || [];
+		const providerList = providerResult?.list || providerResult?.data?.list || providerResult?.data || providerResult || [];
+		
 		const providerMap = {};
-		(providerResult || []).forEach((p: any) => {
-			providerMap[p.id] = p.name;
+		(Array.isArray(providerList) ? providerList : []).forEach((p: any) => {
+			if (p?.id && p?.name) {
+				providerMap[p.id] = p.name;
+			}
 		});
 		
-		models.value = (modelResult || []).map((model: any) => ({
+		models.value = (Array.isArray(modelList) ? modelList : []).map((model: any) => ({
 			...model,
-			providerName: providerMap[model.providerId] || ''
-		}));
+			providerName: providerMap[model?.providerId] || ''
+		})).filter(model => model?.status === 1);
+		
+		console.log('Available models:', models.value);
 	} catch (error) {
+		console.error('Load models error:', error);
 		ElMessage.error(t('加载模型列表失败'));
 	}
 };
