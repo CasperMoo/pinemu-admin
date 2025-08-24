@@ -2,7 +2,7 @@ name: Deploy Admin to 1Panel
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch: {}
 
 jobs:
@@ -11,8 +11,8 @@ jobs:
     env:
       # 你的服务器上的部署目录（目录里直接是 index.html 等构建后的文件）
       DEPLOY_PATH: /opt/1panel/apps/openresty/openresty/www/sites/mumumumu.net.admin
-      # 如果你的 admin 代码在仓库根目录，就保持 "."；若在子目录（如 ./admin），改成那个路径
-      WORKDIR: .
+      # admin 代码在 apps/admin 子目录
+      WORKDIR: apps/admin
     steps:
       - name: Checkout
         uses: actions/checkout@v4
