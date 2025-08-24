@@ -11,8 +11,6 @@ jobs:
     env:
       # 你的服务器上的部署目录（目录里直接是 index.html 等构建后的文件）
       DEPLOY_PATH: /opt/1panel/apps/openresty/openresty/www/sites/mumumumu.net.admin
-      # admin 代码在 apps/admin 子目录
-      WORKDIR: apps/admin
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,11 +26,9 @@ jobs:
           node-version: 18
 
       - name: Install deps
-        working-directory: ${{ env.WORKDIR }}
         run: pnpm install
 
       - name: Build
-        working-directory: ${{ env.WORKDIR }}
         run: pnpm build
 
       - name: Add server to known_hosts
@@ -60,7 +56,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "${{ env.WORKDIR }}/dist/*"
+          source: "dist/*"
           target: "${{ env.DEPLOY_PATH }}_tmp"
 
       # 原子切换：_tmp -> 正式目录，备份旧版本到 _bak
