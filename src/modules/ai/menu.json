@@ -247,6 +247,46 @@
             "childMenus": []
           }
         ]
+      },
+      {
+        "tenantId": null,
+        "name": "聊天调试",
+        "router": "/ai/chat",
+        "perms": null,
+        "type": 1,
+        "icon": "icon-chat-line",
+        "orderNum": 4,
+        "viewPath": "modules/ai/views/chat.vue",
+        "keepAlive": true,
+        "isShow": true,
+        "childMenus": [
+          {
+            "tenantId": null,
+            "name": "发送消息",
+            "router": null,
+            "perms": "ai:chat:send",
+            "type": 2,
+            "icon": null,
+            "orderNum": 1,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          },
+          {
+            "tenantId": null,
+            "name": "清空对话",
+            "router": null,
+            "perms": "ai:chat:clear",
+            "type": 2,
+            "icon": null,
+            "orderNum": 2,
+            "viewPath": null,
+            "keepAlive": false,
+            "isShow": true,
+            "childMenus": []
+          }
+        ]
       }
     ]
   }

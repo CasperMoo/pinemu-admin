@@ -32,6 +32,13 @@ export default (): ModuleConfig => {
 					label: '调用管理'
 				},
 				component: () => import('./views/call.vue')
+			},
+			{
+				path: '/ai/chat',
+				meta: {
+					label: '聊天调试'
+				},
+				component: () => import('./views/chat.vue')
 			}
 		]
 	};
